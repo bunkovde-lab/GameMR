@@ -7,12 +7,15 @@ import {
 } from './staff';
 import { ROLE_LABEL } from './content';
 import {
+  SUBSIDY, advanceConstruction, courseShiftsCut, earlyWarning, facilityDef, makeBuild, refreshQueue, repairEquipment, upgradeBlocker, upkeepPerShift,
+} from './facilities';
+import {
   RANK_NAMES, advanceTraining, applyOperationToRelations, courseBlocker, hasEffect, nodeById, organBlocker, organById, promotionStatus, salaryStep,
 } from './career';
 import { buildRoute, shortestPath } from './map/graph';
 import { districtById, edgeById, spawnPosition } from './map/mapConfig';
 import { nextInt } from './rng';
-import { DEPLOYED, aliveStaff, isOpen } from './selectors';
+import { DEPLOYED, aliveStaff, citySafety, isOpen } from './selectors';
 import type { Command, CommandResult, GameState, Incident, Squad, Transaction, TransactionKind } from './types';
 
 /**
@@ -213,11 +216,12 @@ export function reduce(state: GameState, command: Command): CommandResult {
       if (why) return reject(why);
       const p = s.staff.find((x) => x.id === command.staffId)!;
       const n = nodeById(command.nodeId)!;
-      p.training = { nodeId: n.id, shiftsLeft: n.shifts };
+      const shifts = n.shifts > 1 ? Math.max(1, n.shifts - courseShiftsCut(s)) : n.shifts;
+      p.training = { nodeId: n.id, shiftsLeft: shifts };
       const sq = squadOf(s, p.id);
       if (sq) { sq.memberIds = sq.memberIds.filter((id) => id !== p.id); if (sq.commanderId === p.id) sq.commanderId = null; }
       post(s, 'training', -toCents(n.cost), `Курс «${n.label}»: ${p.name}`);
-      log(s, 'course_started', `${p.name} направлен(а) на курс «${n.label}» (${n.shifts} смен.), выведен(а) в резерв.`, [p.id]);
+      log(s, 'course_started', `${p.name} направлен(а) на курс «${n.label}» (${shifts} смен.), выведен(а) в резерв.`, [p.id]);
       return { ok: true, state: s };
     }
     case 'PROMOTE': {
@@ -253,17 +257,64 @@ export function reduce(state: GameState, command: Command): CommandResult {
       log(s, 'implant_removed', `${p.name}: орган «${o.label}» извлечён.`, [p.id]);
       return { ok: true, state: s };
     }
+    case 'QUEUE_UPGRADE': {
+      const why = upgradeBlocker(s, command.facilityId);
+      if (why) return reject(why);
+      const b = makeBuild(s, command.facilityId);
+      s.construction.push(b);
+      refreshQueue(s);
+      const def = facilityDef(command.facilityId);
+      log(s, 'construction_queued', `${def.label}: улучшение до уровня ${b.toLevel} поставлено в очередь, зарезервировано ${b.cost / 100} РЕ.`);
+      return { ok: true, state: s };
+    }
+    case 'CANCEL_UPGRADE': {
+      const b = s.construction.find((x) => x.facilityId === command.facilityId);
+      if (!b) return reject('Этой работы нет в очереди.');
+      s.construction = s.construction.filter((x) => x !== b);
+      refreshQueue(s);
+      const def = facilityDef(command.facilityId);
+      log(s, 'construction_cancelled', `${def.label}: работы отменены${b.paid ? `, оплаченные ${b.paid / 100} РЕ не возвращаются` : ''}.`);
+      return { ok: true, state: s };
+    }
+    case 'PRIORITIZE_UPGRADE': {
+      const i = s.construction.findIndex((x) => x.facilityId === command.facilityId);
+      if (i < 0) return reject('Этой работы нет в очереди.');
+      if (i === 0) return reject('Работа уже первая в очереди.');
+      const [b] = s.construction.splice(i, 1);
+      s.construction.unshift(b!);
+      for (const x of s.construction) if (x.status === 'blocked') x.status = 'queued';
+      refreshQueue(s);
+      log(s, 'construction_prioritized', `${facilityDef(command.facilityId).label}: работа поставлена первой в очереди.`);
+      return { ok: true, state: s };
+    }
     case 'END_SHIFT': {
       if (s.phase !== 'ACTIVE' && s.phase !== 'REVIEW_PENDING') return reject('Сейчас нельзя завершить смену.');
       if (pendingDecision(s)) return reject('Сначала примите решение по операции.');
-      const opening = s.economy.balance;
+      // Начало смены — до её первой транзакции (платежи между сменами относятся к новой смене).
+      const opening = s.economy.balance - s.economy.ledger.filter((t) => t.shift === s.shift).reduce((x, t) => x + t.amount, 0);
       post(s, 'funding', toCents(BALANCE.fundingPerShift), 'Финансирование смены');
+      if (SUBSIDY.shifts.includes(s.shift)) {
+        const safety = citySafety(s);
+        if (safety >= SUBSIDY.minSafety) {
+          post(s, 'subsidy', toCents(SUBSIDY.amount), `Субсидия за цели смены ${s.shift}`);
+          log(s, 'subsidy_granted', `Субсидия получена: безопасность города ${safety}%.`);
+        } else log(s, 'subsidy_refused', `Субсидия не выделена: безопасность города ${safety}% ниже ${SUBSIDY.minSafety}%.`);
+      }
       const wages = aliveStaff(s).reduce((sum, p) => sum + p.salary, 0);
       const payable = Math.min(wages, s.economy.balance);
       post(s, 'salary', -payable, `Жалование: ${aliveStaff(s).length} сотрудников`);
       if (payable < wages) {
         s.economy.unpaidObligations += wages - payable;
-        log(s, 'salary_arrears', `Не хватило средств на жалование: долг ${wages - payable} сотых РЕ.`);
+        log(s, 'salary_arrears', `Не хватило средств на жалование: долг ${(wages - payable) / 100} РЕ.`);
+      }
+      const upkeep = upkeepPerShift(s);
+      if (upkeep > 0) {
+        const paidUp = Math.min(upkeep, s.economy.balance);
+        post(s, 'upkeep', -paidUp, 'Содержание объектов');
+        if (paidUp < upkeep) {
+          s.economy.unpaidObligations += upkeep - paidUp;
+          log(s, 'upkeep_arrears', `Не хватило средств на содержание объектов: долг ${(upkeep - paidUp) / 100} РЕ.`);
+        }
       }
       const ledger = s.economy.ledger.filter((t) => t.shift === s.shift);
       const open = s.incidents.filter(isOpen);
@@ -306,6 +357,12 @@ export function reduce(state: GameState, command: Command): CommandResult {
       });
       completeChecks(s, (type, text) => log(s, type, text));
       advanceTraining(s, staffLog(s));
+      advanceConstruction(s, (amount, note) => {
+        if (s.economy.balance + amount < 0) return false;
+        post(s, 'construction', amount, note);
+        return true;
+      }, (type, text) => log(s, type, text));
+      repairEquipment(s, (type, text) => log(s, type, text));
       for (const p of s.staff) if (p.adaptation > 0) p.adaptation -= 1;
       // Лёгкие ранения заживают сами (ТЗ §7.4), усталость снижается.
       for (const p of s.staff) {
@@ -449,7 +506,7 @@ function spawnIncidents(s: GameState, count: number) {
       severity: t.severity,
       state: 'new',
       deadlineType: 'escalate',
-      deadlineMinute: 60 + t.deadlineMinutes + jitter,
+      deadlineMinute: 60 + t.deadlineMinutes + jitter + earlyWarning(s),
       createdShift: s.shift,
     };
     s.incidents.push(inc);

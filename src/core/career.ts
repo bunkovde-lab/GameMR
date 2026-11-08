@@ -1,6 +1,7 @@
 import careerFile from '../../content/career_v1.json';
 import { toCents } from './content';
-import { STAFF_RULES, bedsUsed } from './staff';
+import { medicalCapacity } from './facilities';
+import { bedsUsed } from './staff';
 import type { GameState, OperationReport, Relation, Staff, StaffRole, Stats, TacticId } from './types';
 
 /**
@@ -139,7 +140,7 @@ export function organBlocker(s: GameState, staffId: string, organId: string): st
   if (onMission(s, p.id)) return 'Сотрудник на задании.';
   if (p.training) return 'Сотрудник на курсе.';
   if (s.medical.patients.some((x) => x.staffId === p.id)) return 'Сотрудник уже в клинике.';
-  if (bedsUsed(s) >= STAFF_RULES.medical.beds) return 'Нет свободного места в клинике для реабилитации.';
+  if (bedsUsed(s) >= medicalCapacity(s).beds) return 'Нет свободного места в клинике для реабилитации.';
   if (s.economy.balance < toCents(o.cost)) return 'Недостаточно средств на установку.';
   return null;
 }

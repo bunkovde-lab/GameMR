@@ -1,0 +1,40 @@
+{
+  "_status": "PROVISIONAL_RULE — W7 часть 1: восемь объектов дирекции (ТЗ §9.1), финансы (§8.2–8.3). Цены, сроки и мощности — гипотезы до баланса W10 (OPEN-02). Содержание 1-го уровня входит в baseline 46 РЕ финансирования.",
+  "buildSlots": { "base": 1, "_note": "Монтажные мощности: одновременно идёт столько работ; техсектор ур. 2 даёт +1" },
+  "subsidy": { "shifts": [4, 8, 12], "amount": 8, "minSafety": 65, "_note": "ТЗ §8.1: +8 РЕ после 4/8/12 смен, условная — нужен средний уровень безопасности" },
+  "facilities": [
+    { "id": "ops", "label": "Оперативный центр", "levels": [
+      { "level": 1, "upkeep": 0, "gives": "Диспетчерская и связь с отрядами." },
+      { "level": 2, "upkeep": 1, "cost": 14, "shifts": 2, "gives": "Раннее оповещение: у новых вызовов +15 минут до ухудшения.", "effect": { "earlyWarning": 15 } },
+      { "level": 3, "upkeep": 2, "cost": 24, "shifts": 3, "gives": "Раннее оповещение: +30 минут до ухудшения.", "effect": { "earlyWarning": 30 } }
+    ] },
+    { "id": "lab", "label": "Лабораторный комплекс", "levels": [
+      { "level": 1, "upkeep": 0, "gives": "1 исследовательская ячейка.", "effect": { "researchCells": 1 } },
+      { "level": 2, "upkeep": 1, "cost": 16, "shifts": 2, "gives": "2 ячейки. Ячейка без исследователя и реагентов не работает (W7, часть 2).", "effect": { "researchCells": 2 } },
+      { "level": 3, "upkeep": 2, "cost": 26, "shifts": 3, "gives": "3 ячейки, экспериментальный протокол.", "effect": { "researchCells": 3 } }
+    ] },
+    { "id": "medical", "label": "Медицинский блок", "levels": [
+      { "level": 1, "upkeep": 0, "gives": "2 места, 1 регенерационная капсула.", "effect": { "beds": 2, "capsules": 1 } },
+      { "level": 2, "upkeep": 1, "cost": 15, "shifts": 2, "gives": "3 места, 1 капсула.", "effect": { "beds": 3, "capsules": 1 } },
+      { "level": 3, "upkeep": 2, "cost": 25, "shifts": 3, "gives": "4 места, 2 капсулы.", "effect": { "beds": 4, "capsules": 2 } }
+    ] },
+    { "id": "analytics", "label": "Аналитический отдел", "levels": [
+      { "level": 1, "upkeep": 0, "gives": "3 кандидата на вакансию.", "effect": { "candidates": 3 } },
+      { "level": 2, "upkeep": 1, "cost": 12, "shifts": 2, "gives": "4 кандидата на вакансию.", "effect": { "candidates": 4 } }
+    ] },
+    { "id": "detention", "label": "Изолятор и допросы", "levels": [
+      { "level": 1, "upkeep": 0, "gives": "2 камеры. Допросы появятся в расследованиях (W9)." }
+    ], "lockedNote": "Улучшение откроется вместе с расследованиями (W9)." },
+    { "id": "tech", "label": "Технический сектор", "levels": [
+      { "level": 1, "upkeep": 0, "gives": "Ремонт 1 повреждённой единицы снаряжения за смену.", "effect": { "repairs": 1 } },
+      { "level": 2, "upkeep": 1, "cost": 14, "shifts": 2, "gives": "Ремонт 2 единиц за смену, вторая монтажная бригада.", "effect": { "repairs": 2, "buildSlots": 1 } }
+    ] },
+    { "id": "training", "label": "Учебный центр", "levels": [
+      { "level": 1, "upkeep": 0, "gives": "Курсы по обычному сроку." },
+      { "level": 2, "upkeep": 1, "cost": 12, "shifts": 2, "gives": "Курсы длиннее 1 смены идут на смену быстрее.", "effect": { "courseShiftsCut": 1 } }
+    ] },
+    { "id": "archive", "label": "Архив и хранилище", "levels": [
+      { "level": 1, "upkeep": 0, "gives": "Служебный архив и хранение улик. Сопоставление дел появится в расследованиях (W9)." }
+    ], "lockedNote": "Улучшение откроется вместе с расследованиями (W9)." }
+  ]
+}

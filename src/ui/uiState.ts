@@ -1,7 +1,7 @@
 /**
  * Локальное состояние интерфейса (не игровое, W3 §7 «Map View»). Выделение ≠ принятие вызова.
  */
-export type ViewId = 'map' | 'staff';
+export type ViewId = 'map' | 'staff' | 'directorate';
 export type LayerId = 'events' | 'patrols' | 'districts' | 'risks' | 'infrastructure';
 export type Selection = { kind: 'incident' | 'district' | 'squad'; id: string } | null;
 

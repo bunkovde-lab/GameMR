@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#101319" />
+  <title>Мир Раскола — Право на порядок · UI-прототип</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<svg aria-hidden="true" class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="ico-radio" viewBox="0 0 24 24"><path d="M7 16a7 7 0 0 1 0-8m10 8a7 7 0 0 0 0-8M4 19a11 11 0 0 1 0-14m16 14a11 11 0 0 0 0-14M12 9v12m-3 0h6M12 5h.01"/></symbol>
+  <symbol id="ico-shield" viewBox="0 0 24 24"><path d="M12 2 20 6v6c0 5-3.3 8.2-8 10-4.7-1.8-8-5-8-10V6l8-4Z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="ico-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="ico-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M2 21v-2c0-3 3-5 7-5s7 2 7 5v2M17 5a3 3 0 0 1 0 6m1 4c2.5.5 4 2 4 4v2"/></symbol>
+  <symbol id="ico-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14" stroke-width="4"/></symbol>
+  <symbol id="ico-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7Z"/></symbol>
+  <symbol id="ico-mail" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="m3 7 9 7 9-7"/></symbol>
+  <symbol id="ico-cog" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M19 5l-2 2M7 17l-2 2"/></symbol>
+  <symbol id="ico-map" viewBox="0 0 24 24"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Z M9 3v15M15 6v15"/></symbol>
+  <symbol id="ico-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+  <symbol id="ico-warning" viewBox="0 0 24 24"><path d="M12 3 2 21h20L12 3Z"/><path d="M12 9v5m0 4h.01"/></symbol>
+  <symbol id="ico-beaker" viewBox="0 0 24 24"><path d="M8 2h8M10 2v7L3 21h18L14 9V2M7 16h10"/></symbol>
+  <symbol id="ico-medical" viewBox="0 0 24 24"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6Z"/></symbol>
+  <symbol id="ico-folder" viewBox="0 0 24 24"><path d="M2 6h8l2 2h10v12H2Z"/></symbol>
+  <symbol id="ico-scales" viewBox="0 0 24 24"><path d="M12 3v18M5 21h14M3 7h18M6 7l-4 8h8L6 7Zm12 0-4 8h8l-4-8Z"/></symbol>
+  <symbol id="ico-wrench" viewBox="0 0 24 24"><path d="M20 6a6 6 0 0 1-8 7L5 20a2 2 0 0 1-3-3l7-7a6 6 0 0 1 8-8l-4 4 3 3Z"/></symbol>
+  <symbol id="ico-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="ico-plus" viewBox="0 0 24 24"><path d="M12 4v16M4 12h16"/></symbol>
+  <symbol id="ico-minus" viewBox="0 0 24 24"><path d="M4 12h16"/></symbol>
+  <symbol id="ico-search" viewBox="0 0 24 24"><circle cx="10" cy="10" r="7"/><path d="m15 15 7 7"/></symbol>
+  <symbol id="ico-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+  <symbol id="ico-heart" viewBox="0 0 24 24"><path d="M20 5c-3-3-6-1-8 1-2-2-5-4-8-1-6 6 8 16 8 16S26 11 20 5Z"/></symbol>
+  <symbol id="ico-crosshair" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 1v6m0 10v6M1 12h6m10 0h6"/></symbol>
+  <symbol id="ico-truck" viewBox="0 0 24 24"><path d="M2 6h13v12H2Zm13 4h4l3 4v4h-7ZM5 19a2 2 0 1 0 4 0m9 0a2 2 0 1 0 4 0"/></symbol>
+  <symbol id="ico-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="12" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/></symbol>
+  <symbol id="ico-book" viewBox="0 0 24 24"><path d="M12 5c-4-3-7-3-10-2v16c3-1 6-1 10 2 4-3 7-3 10-2V3c-3-1-6-1-10 2Zm0 0v16"/></symbol>
+  <symbol id="ico-person" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M4 22c0-6 3-9 8-9s8 3 8 9"/></symbol>
+  <symbol id="ico-close" viewBox="0 0 24 24"><path d="M4 4 20 20M20 4 4 20"/></symbol>
+  <symbol id="ico-save" viewBox="0 0 24 24"><path d="M3 3h15l3 3v15H3Zm4 0v7h9V3M7 21v-8h10v8"/></symbol>
+  <symbol id="ico-briefcase" viewBox="0 0 24 24"><path d="M3 8h18v13H3Zm5 0V4h8v4M3 14h18m-11 0v2h4v-2"/></symbol>
+  <symbol id="ico-list" viewBox="0 0 24 24"><path d="M9 5h13M9 12h13M9 19h13M3 5h1M3 12h1M3 19h1"/></symbol>
+  <symbol id="ico-layers" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7l10-5Zm-10 10 10 5 10-5m-20 5 10 5 10-5"/></symbol>
+  <symbol id="ico-upload" viewBox="0 0 24 24"><path d="M12 17V3m-5 5 5-5 5 5M3 17v4h18v-4"/></symbol>
+  <symbol id="ico-chart" viewBox="0 0 24 24"><path d="M3 21h18M6 17V9m6 8V4m6 13v-6"/></symbol>
+  <symbol id="ico-arrow" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+</svg>
+<div id="app" class="app-shell">
+  <header class="topbar">
+    <button class="brand" data-action="home" aria-label="Вернуться на карту">
+      <div class="brand-glyph">✦</div><div><strong>БАГРЯНЫЕ ДОМА</strong><span>ДИРЕКЦИЯ ПОРЯДКА · КАРВЕН</span></div>
+    </button>
+    <div class="shift-id"><span class="tiny-tag">ПРОТОТИП UI · 0.1</span><strong id="shiftLabel">Смена 01</strong></div>
+    <div class="clock-view"><strong id="clockDisplay">14:26</strong><span>Дежурство · Карвен</span></div>
+    <div class="time-control" role="group" aria-label="Скорость игрового времени">
+      <button data-action="togglePause" id="pauseButton" class="control-button active" title="Пауза или продолжить"></button>
+      <button data-action="speed" data-speed="1" class="control-button speed-btn active">×1</button>
+      <button data-action="speed" data-speed="2" class="control-button speed-btn">×2</button>
+      <button data-action="speed" data-speed="4" class="control-button speed-btn">×4</button>
+    </div>
+    <div class="top-resources">
+      <div title="Бюджет — условные расчётные единицы"><span class="res-icon">₣</span><div><b id="budgetTop">105</b><small>БЮДЖЕТ · РЕ</small></div></div>
+      <div title="Безопасность города"><span class="res-icon">◈</span><div><b id="safetyTop">72%</b><small>БЕЗОПАСНОСТЬ</small></div></div>
+      <div title="Доверие населения"><span class="res-icon">♧</span><div><b id="trustTop">68%</b><small>ДОВЕРИЕ</small></div></div>
+      <div title="Штатные места"><span class="res-icon">♟</span><div><b id="staffTop">12/16</b><small>СОТРУДНИКИ</small></div></div>
+    </div>
+    <button class="head-icon" data-action="messages" title="Журнал уведомлений"><svg><use href="#ico-mail"/></svg><i id="noticeCount">0</i></button>
+    <button class="head-icon" data-action="settings" title="Настройки и замена карты"><svg><use href="#ico-cog"/></svg></button>
+  </header>
+  <div id="mainShell" class="main-shell left-open">
+    <aside id="leftPanel" class="left-panel panel">
+      <div class="side-head"><h2><svg><use href="#ico-radio"/></svg> Вызовы <em id="incidentCount">5</em></h2><button class="icon-btn" data-action="collapseLeft" title="Свернуть вызовы"><svg><use href="#ico-close"/></svg></button></div>
+      <div class="incident-filters" role="group" aria-label="Фильтр вызовов">
+        <button data-action="filter" data-filter="all" class="filter-btn chosen">Все</button>
+        <button data-action="filter" data-filter="critical" class="filter-btn">Критичные</button>
+        <button data-action="filter" data-filter="other" class="filter-btn">Остальные</button>
+      </div>
+      <div id="incidentsList" class="incidents-list" aria-live="polite"></div>
+      <div class="city-pulse"><div class="section-label">СИТУАЦИЯ В ГОРОДЕ <svg><use href="#ico-chart"/></svg></div>
+        <div><span>Безопасность</span><b id="citySafety">72%</b></div><div><span>Доверие</span><b id="cityTrust">68%</b></div><div><span>Устойчивость</span><b id="cityStability">78%</b></div>
+      </div>
+    </aside>
+    <main class="map-stage" id="mapStage" aria-label="Интерактивная карта города">
+      <div id="mapWorld" class="map-world" role="group" aria-label="Карта районов"></div>
+      <div class="map-topline">
+        <button id="showLeft" class="small-glass" data-action="collapseLeft"><svg><use href="#ico-list"/></svg><span>Вызовы</span><b id="mapCallCount">5</b></button>
+        <div class="map-title"><span class="eyebrow">ОПЕРАТИВНЫЙ ОБЗОР</span><strong>КАРВЕН <small>· Город Преемства</small></strong></div>
+        <button class="small-glass" data-action="cleanMap" title="Убрать панели, показать карту"><svg><use href="#ico-map"/></svg><span>Чистая карта</span></button>
+      </div>
+      <div class="map-side-tools">
+        <button data-action="zoomIn" title="Увеличить карту"><svg><use href="#ico-plus"/></svg></button>
+        <button data-action="zoomOut" title="Уменьшить карту"><svg><use href="#ico-minus"/></svg></button>
+        <button data-action="zoomReset" title="Сбросить масштаб"><svg><use href="#ico-crosshair"/></svg></button>
+      </div>
+      <div class="map-bottomline">
+        <div class="map-layers" role="group" aria-label="Слой карты">
+          <button data-action="layer" data-layer="events" class="selected"><svg><use href="#ico-warning"/></svg> События</button>
+          <button data-action="layer" data-layer="patrols"><svg><use href="#ico-truck"/></svg> Патрули</button>
+          <button data-action="layer" data-layer="districts"><svg><use href="#ico-layers"/></svg> Районы</button>
+        </div>
+        <span class="map-hint">Нажмите на событие или район · карта масштабируется</span>
+      </div>
+    </main>
+    <aside id="rightPanel" class="right-panel panel" hidden aria-label="Сведения о выбранном событии"></aside>
+  </div>
+  <section class="squad-strip" aria-label="Оперативные группы"><div class="squad-caption"><span>ОПЕРАТИВНЫЕ ГРУППЫ</span><b id="readySquads">2 готово</b></div><div id="squadsList" class="squads-list"></div></section>
+  <nav class="bottom-nav" id="bottomNav" aria-label="Разделы игры">
+    <button data-action="view" data-view="map" class="nav-item active"><svg><use href="#ico-map"/></svg><span>Карта</span></button>
+    <button data-action="view" data-view="staff" class="nav-item"><svg><use href="#ico-users"/></svg><span>Кадры</span></button>
+    <button data-action="view" data-view="investigations" class="nav-item"><svg><use href="#ico-search"/></svg><span>Расследования</span></button>
+    <button data-action="view" data-view="operations" class="nav-item"><svg><use href="#ico-crosshair"/></svg><span>Операции</span></button>
+    <button data-action="view" data-view="development" class="nav-item"><svg><use href="#ico-wrench"/></svg><span>Развитие</span></button>
+    <button data-action="view" data-view="medicine" class="nav-item"><svg><use href="#ico-medical"/></svg><span>Медицина</span></button>
+    <button data-action="view" data-view="research" class="nav-item"><svg><use href="#ico-beaker"/></svg><span>Исследования</span></button>
+    <button data-action="view" data-view="dossier" class="nav-item"><svg><use href="#ico-folder"/></svg><span>Досье</span></button>
+    <button data-action="endShift" class="end-shift"><svg><use href="#ico-arrow"/></svg><span>Завершить смену</span></button>
+  </nav>
+</div>
+<div id="overlay" class="overlay" hidden aria-live="polite"></div>
+<div id="confirmOverlay" class="confirm-overlay" hidden></div>
+<div id="toastHost" class="toast-host" aria-live="polite" aria-atomic="false"></div>
+<input type="file" id="mapUpload" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden />
+<script src="app.js"></script>
+</body>
+</html>

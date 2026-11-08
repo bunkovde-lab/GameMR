@@ -1,7 +1,9 @@
-import { BALANCE, INCIDENT_TEMPLATES, toCents } from './content';
+import { BALANCE, DISPATCH_COST, INCIDENT_TEMPLATES, toCents } from './content';
+import { buildRoute, shortestPath } from './map/graph';
+import { districtById, edgeById, spawnPosition } from './map/mapConfig';
 import { nextInt } from './rng';
 import { DEPLOYED, aliveStaff, isOpen } from './selectors';
-import type { Command, CommandResult, GameState, Incident, Transaction, TransactionKind } from './types';
+import type { Command, CommandResult, GameState, Incident, Squad, Transaction, TransactionKind } from './types';
 
 /**
  * Единственная точка изменения игрового состояния: nextState = reduce(state, command).
@@ -70,6 +72,35 @@ export function reduce(state: GameState, command: Command): CommandResult {
       return { ok: true, state: s };
     }
 
+    case 'DISPATCH_SQUAD': {
+      const sq = s.squads.find((q) => q.id === command.squadId);
+      const inc = s.incidents.find((i) => i.id === command.incidentId);
+      if (!sq) return reject('Отряд не найден.');
+      if (!inc) return reject('Происшествие не найдено.');
+      if (s.phase !== 'ACTIVE' && s.phase !== 'BRIEFING') return reject('Отправка возможна только во время смены.');
+      const check = dispatchBlocker(s, sq, inc);
+      if (check) return reject(check);
+      const target = districtById(inc.districtId)!;
+      const route = buildRoute(sq.currentNodeId, target.serviceNode, s.roadClosures)!;
+      sq.status = 'en_route';
+      sq.assignedIncidentId = inc.id;
+      sq.movement = { route, elapsed: 0, destinationIncidentId: inc.id, aborted: false };
+      inc.state = 'en_route';
+      post(s, 'dispatch', -DISPATCH_COST, `Выезд «${sq.name}»: ${inc.title}`);
+      log(s, 'squad_dispatched', `Отряд «${sq.name}» направлен: ${inc.title}. Прибытие ≈${Math.ceil(route.totalMinutes)} мин.`);
+      return { ok: true, state: s };
+    }
+
+    case 'SET_ROAD_ENABLED': {
+      if (!edgeById(command.edgeId)) return reject('Дорога не найдена.');
+      const closed = s.roadClosures.includes(command.edgeId);
+      if (closed === !command.enabled) return reject('Состояние дороги не изменилось.');
+      s.roadClosures = command.enabled ? s.roadClosures.filter((e) => e !== command.edgeId) : [...s.roadClosures, command.edgeId].sort();
+      log(s, command.enabled ? 'road_opened' : 'road_closed', `${command.enabled ? 'Открыта' : 'Перекрыта'} дорога ${command.edgeId}.`);
+      for (const sq of s.squads) if (sq.movement && !sq.movement.aborted) reroute(s, sq);
+      return { ok: true, state: s };
+    }
+
     case 'END_SHIFT': {
       if (s.phase !== 'ACTIVE' && s.phase !== 'REVIEW_PENDING') return reject('Сейчас нельзя завершить смену.');
       const opening = s.economy.balance;
@@ -115,8 +146,77 @@ export function reduce(state: GameState, command: Command): CommandResult {
   }
 }
 
+/** Причина, по которой отряд нельзя отправить; null — можно. Используется ядром и интерфейсом (одна логика). */
+export function dispatchBlocker(s: GameState, sq: Squad, inc: Incident): string | null {
+  if (sq.status !== 'ready') return `Отряд «${sq.name}» недоступен.`;
+  const fit = sq.memberIds.filter((id) => {
+    const p = s.staff.find((x) => x.id === id);
+    return p && !['dead', 'missing', 'critical', 'serious_injury'].includes(p.health);
+  });
+  if (!fit.length) return `В отряде «${sq.name}» нет годных к выезду сотрудников.`;
+  if (!['new', 'acknowledged', 'escalated'].includes(inc.state)) return 'На этот вызов уже назначен отряд или он закрыт.';
+  if (s.economy.balance < DISPATCH_COST) return 'Недостаточно средств на выезд.';
+  const target = districtById(inc.districtId);
+  if (!target || !spawnPosition(inc.spawnId)) return 'Нет точки события на карте.';
+  if (!shortestPath(sq.currentNodeId, target.serviceNode, s.roadClosures)) return 'Маршрут недоступен: дороги перекрыты.';
+  return null;
+}
+
+/** Перестроить оставшийся путь после изменения дорог (W3 §4 п.9). Текущее ребро отряд доезжает. */
+function reroute(s: GameState, sq: Squad) {
+  const m = sq.movement!;
+  const r = m.route;
+  let t = m.elapsed, i = 0;
+  while (i < r.edgeIds.length && t >= r.legMinutes[i]!) { t -= r.legMinutes[i]!; i++; }
+  const committed = Math.min(i + 1, r.edgeIds.length); // рёбра, которые уже пройдены или на которых отряд сейчас
+  const remaining = r.edgeIds.slice(committed);
+  if (!remaining.some((e) => s.roadClosures.includes(e))) return;
+  const pivot = r.nodeIds[committed]!;
+  const inc = s.incidents.find((x) => x.id === m.destinationIncidentId)!;
+  const rest = buildRoute(pivot, districtById(inc.districtId)!.serviceNode, s.roadClosures);
+  const prefixLegs = r.legMinutes.slice(0, committed);
+  if (rest) {
+    const legMinutes = [...prefixLegs, ...rest.legMinutes];
+    m.route = {
+      nodeIds: [...r.nodeIds.slice(0, committed + 1), ...rest.nodeIds.slice(1)],
+      edgeIds: [...r.edgeIds.slice(0, committed), ...rest.edgeIds],
+      legMinutes,
+      totalMinutes: legMinutes.reduce((a, b) => a + b, 0),
+    };
+    log(s, 'squad_rerouted', `Отряд «${sq.name}»: маршрут перестроен, прибытие ≈${Math.ceil(m.route.totalMinutes - m.elapsed)} мин.`);
+  } else {
+    const legMinutes = [...prefixLegs, 0];
+    m.route = { nodeIds: r.nodeIds.slice(0, committed + 1), edgeIds: r.edgeIds.slice(0, committed), legMinutes, totalMinutes: prefixLegs.reduce((a, b) => a + b, 0) };
+    m.aborted = true;
+    log(s, 'squad_route_blocked', `Отряд «${sq.name}»: маршрут недоступен, остановка на узле ${pivot}.`);
+  }
+}
+
+function moveSquads(s: GameState) {
+  for (const sq of s.squads) {
+    const m = sq.movement;
+    if (!m || sq.status !== 'en_route') continue;
+    m.elapsed += 1;
+    if (m.elapsed < m.route.totalMinutes) continue;
+    const inc = s.incidents.find((x) => x.id === m.destinationIncidentId);
+    sq.currentNodeId = m.route.nodeIds[m.route.nodeIds.length - 1]!;
+    sq.movement = null;
+    if (m.aborted) {
+      sq.status = 'ready';
+      sq.assignedIncidentId = null;
+      if (inc && inc.state === 'en_route') inc.state = 'acknowledged';
+      log(s, 'squad_stopped', `Отряд «${sq.name}» остановился: дальше дороги нет.`);
+    } else {
+      sq.status = 'on_scene';
+      if (inc) inc.state = 'on_scene';
+      log(s, 'squad_arrived', `Отряд «${sq.name}» прибыл: ${inc?.title ?? ''}.`);
+    }
+  }
+}
+
 function advanceMinute(s: GameState) {
   s.minute += 1;
+  moveSquads(s);
   for (const inc of s.incidents) {
     if (inc.deadlineType === 'escalate' && (inc.state === 'new' || inc.state === 'acknowledged') && s.minute >= inc.deadlineMinute) {
       inc.state = 'escalated';

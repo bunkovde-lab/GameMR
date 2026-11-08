@@ -1,0 +1,23 @@
+﻿screen_id,label_ru,image_path,source_image,status,notes
+UI-01,Карта — режим наблюдения,art_refs/ref_01.webp,a_detailed_cinematic_game_ui_screenshot_in_russia.png,APPROVED_VISUAL,style_reference; карта внутри изображения НЕ является утверждённой картой
+UI-02,Карточка происшествия,art_refs/ref_01.webp,a_detailed_cinematic_game_ui_screenshot_in_russia.png,APPROVED_VISUAL,визуал карточки; иллюстративные значения
+UI-03,Формирование — быстрая отправка,art_refs/ref_02.webp,a_detailed_cinematic_sci_fi_strategy_game_ui_scen.png,APPROVED_VISUAL,финальный референс режима
+UI-04,Формирование — ручная настройка,art_refs/ref_03.webp,a_highly_detailed_cinematic_sci_fi_tactical_game.png,APPROVED_VISUAL,финальный референс режима
+UI-05,Особая операция,art_refs/ref_04.webp,a_cinematic_ultra_detailed_sci_fi_tactical_operat.png,APPROVED_VISUAL,упрощённая компоновка
+UI-06,Результат особой операции,art_refs/ref_05.webp,a_detailed_cinematic_ui_screen_in_a_dark_sci_fi_bi.png,APPROVED_VISUAL,финальный референс
+UI-07,Кадры — Сводка,art_refs/ref_06.webp,досье_кайрена_вольфа_сводка_оперативника.png,APPROVED_VISUAL,финальная упрощённая сводка
+UI-08,Кадры — Развитие,art_refs/ref_07.webp,a_highly_detailed_cinematic_dark_red_and_black_s.png,APPROVED_VISUAL,три ветки и разделение биологии/профессии
+UI-09,Кадры — Модификации,art_refs/ref_08.webp,a_highly_detailed_cinematic_sci_fi_ui_screen_in_d.png,APPROVED_VISUAL,"модификации, базовая анатомия"
+UI-10,Кадры — Медицина,art_refs/ref_09.webp,a_highly_detailed_cinematic_sci_fi_biopunk_game_u.png,APPROVED_VISUAL,"Дорен ранен, лечение и медмощности"
+UI-11,Кадры — Отношения,art_refs/ref_10.webp,a_highly_detailed_cinematic_sci_fi_ui_in_russian.png,APPROVED_VISUAL,"событийные связи, 3 параметра"
+UI-12,Кадры — История,art_refs/ref_11.webp,a_highly_detailed_cinematic_dark_sci_fi_ui_scree.png,APPROVED_VISUAL,карьерная хронология
+UI-13,Найм и подбор,art_refs/ref_12.webp,a_highly_detailed_cinematic_sci_fi_biopunk_ui_gam.png,APPROVED_VISUAL,"пригодность к вакансии, проверки, сравнение"
+UI-14,Штат и назначения,art_refs/ref_13.webp,a_highly_detailed_futuristic_dark_sci_fi_user_inte.png,APPROVED_VISUAL,четыре карточки отрядов
+UI-15,Дирекция — Обзор,art_refs/ref_14.webp,a_highly_detailed_cinematic_dark_red_gold_ui_scr.png,APPROVED_VISUAL,сводка бюджета/проблем
+UI-16,Дирекция — Финансы,art_refs/ref_15.webp,a_detailed_cinematic_high_detail_sci_fi_dark_ui.png,APPROVED_VISUAL,прогноз и статьи бюджета
+UI-17,Дирекция — Инфраструктура,art_refs/ref_16.webp,a_highly_detailed_cinematic_sci_fi_user_interface.png,APPROVED_VISUAL,8 объектов и модернизация
+UI-18,Дирекция — Проекты,art_refs/ref_17.webp,a_detailed_cinematic_ui_concept_screenshot_in_rus.png,APPROVED_VISUAL,проектные очереди
+UI-19,Дирекция — Полномочия,art_refs/ref_18.webp,a_cinematic_high_detail_ui_screen_in_russian_dar.png,APPROVED_VISUAL,санкции и запросы
+UI-20,Дирекция — Политика Домов,art_refs/ref_19.webp,a_highly_detailed_cinematic_sci_fi_strategy_manag.png,APPROVED_VISUAL,"коалиции, 6 Домов"
+UI-21,Расследования,art_refs/ref_20.webp,a_highly_detailed_cinematic_dark_sci_fi_detectiv.png,APPROVED_VISUAL,финальный экран доски
+UI-22,Итоги смены,art_refs/ref_21.webp,a_detailed_cinematic_high_detail_ui_game_interfa.png,APPROVED_VISUAL,финальный отчёт

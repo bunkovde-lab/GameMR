@@ -4,7 +4,9 @@ import { dispatch } from '../../store';
 import { Icon } from '../Icon';
 import { INCIDENT_STATE_LABEL, SEVERITY_LABEL } from '../labels';
 
-export function IncidentPanel({ game, onCollapse }: { game: GameState; onCollapse: () => void }) {
+interface Props { game: GameState; selectedId: string | null; onSelect: (id: string) => void; onCollapse: () => void }
+
+export function IncidentPanel({ game, selectedId, onSelect, onCollapse }: Props) {
   const open = game.incidents
     .filter(isOpen)
     .sort((a, b) => Number(b.state === 'escalated') - Number(a.state === 'escalated') || a.deadlineMinute - b.deadlineMinute);
@@ -25,9 +27,9 @@ export function IncidentPanel({ game, onCollapse }: { game: GameState; onCollaps
           {open.map((inc) => {
             const left = inc.deadlineMinute - game.minute;
             return (
-              <li key={inc.id} className={`incident sev-${inc.severity} st-${inc.state}`} data-testid={`incident-${inc.id}`}>
+              <li key={inc.id} className={`incident sev-${inc.severity} st-${inc.state}${selectedId === inc.id ? ' selected' : ''}`} data-testid={`incident-${inc.id}`}>
                 <div className="incident-head">
-                  <b>{inc.title}</b>
+                  <button className="incident-title" onClick={() => onSelect(inc.id)} aria-pressed={selectedId === inc.id}>{inc.title}</button>
                   <span className="deadline">
                     {inc.state === 'escalated' ? 'ухудшение' : left > 0 && ['new', 'acknowledged'].includes(inc.state) ? `${left} мин` : ''}
                   </span>
@@ -36,7 +38,7 @@ export function IncidentPanel({ game, onCollapse }: { game: GameState; onCollaps
                   {districtName(inc.districtId)} · {SEVERITY_LABEL[inc.severity]} · <span data-testid="incident-state">{INCIDENT_STATE_LABEL[inc.state]}</span>
                 </small>
                 {inc.state === 'new' && (
-                  <button className="btn small-action" onClick={() => dispatch({ type: 'ACKNOWLEDGE_INCIDENT', incidentId: inc.id })}>
+                  <button className="btn small-action" data-testid={`ack-${inc.id}`} onClick={() => dispatch({ type: 'ACKNOWLEDGE_INCIDENT', incidentId: inc.id })}>
                     <Icon name="check" /> Принять вызов
                   </button>
                 )}
@@ -44,7 +46,6 @@ export function IncidentPanel({ game, onCollapse }: { game: GameState; onCollaps
             );
           })}
         </ul>
-        <p className="empty"><small>Отправка отрядов — этап W4.</small></p>
       </div>
     </aside>
   );

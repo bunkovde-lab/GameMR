@@ -1,0 +1,1140 @@
+{
+  "schemaVersion": "1.0.0",
+  "stage": "W3-map-integration",
+  "status": "implementation_baseline_provisional_geometry",
+  "approvedArt": {
+    "file": "assets/approved_map_original_1672x941.png",
+    "sha256": "72ef916c330d70bafa5abbc953d0d040369ac459258c67f30ba9547e09b99ddc",
+    "width": 1672,
+    "height": 941,
+    "nativeResolution": true,
+    "allowedModification": false,
+    "format": "png",
+    "notes": "Утверждённый пользователем арт — последний вариант. Нельзя подменять предыдущей 4K картой."
+  },
+  "coordinateSystem": {
+    "id": "image-normalized-v1",
+    "origin": "top-left",
+    "units": "fraction-of-native-raster",
+    "range": [
+      0,
+      1
+    ],
+    "imagePxWidth": 1672,
+    "imagePxHeight": 941,
+    "anchorPrecisionDigits": 6
+  },
+  "districts": [
+    {
+      "id": "medical",
+      "name": "Медицинский район",
+      "role": "medical",
+      "description": "Клиники, лицензированная биоинженерия и медицинский надзор",
+      "status": "provisional_hit_geometry",
+      "labelAnchor": [
+        0.188995,
+        0.248672
+      ],
+      "hitPolygon": [
+        [
+          0.029904,
+          0.097768
+        ],
+        [
+          0.340909,
+          0.092455
+        ],
+        [
+          0.37799,
+          0.202976
+        ],
+        [
+          0.344498,
+          0.325186
+        ],
+        [
+          0.260167,
+          0.376196
+        ],
+        [
+          0.032895,
+          0.35813
+        ]
+      ],
+      "spawnPoints": [
+        {
+          "id": "medical:spawn:01",
+          "position": [
+            0.20933,
+            0.243358
+          ]
+        },
+        {
+          "id": "medical:spawn:02",
+          "position": [
+            0.259569,
+            0.282678
+          ]
+        },
+        {
+          "id": "medical:spawn:03",
+          "position": [
+            0.305024,
+            0.308183
+          ]
+        }
+      ],
+      "serviceNode": "MED_MAIN"
+    },
+    {
+      "id": "science",
+      "name": "Научный квартал",
+      "role": "science",
+      "description": "Исследования, архивы образцов и научные учреждения",
+      "status": "provisional_hit_geometry",
+      "labelAnchor": [
+        0.808014,
+        0.255048
+      ],
+      "hitPolygon": [
+        [
+          0.682416,
+          0.102019
+        ],
+        [
+          0.970096,
+          0.103082
+        ],
+        [
+          0.980861,
+          0.351753
+        ],
+        [
+          0.831938,
+          0.375133
+        ],
+        [
+          0.664474,
+          0.301807
+        ]
+      ],
+      "spawnPoints": [
+        {
+          "id": "science:spawn:01",
+          "position": [
+            0.82177,
+            0.282678
+          ]
+        },
+        {
+          "id": "science:spawn:02",
+          "position": [
+            0.873804,
+            0.327311
+          ]
+        },
+        {
+          "id": "science:spawn:03",
+          "position": [
+            0.738038,
+            0.316684
+          ]
+        }
+      ],
+      "serviceNode": "SCI_MAIN"
+    },
+    {
+      "id": "admin",
+      "name": "Административный центр",
+      "role": "administrative",
+      "description": "Дирекция безопасности, суды, куратории и служебные архивы",
+      "status": "provisional_hit_geometry",
+      "labelAnchor": [
+        0.51555,
+        0.351753
+      ],
+      "hitPolygon": [
+        [
+          0.395933,
+          0.096706
+        ],
+        [
+          0.620813,
+          0.09458
+        ],
+        [
+          0.686603,
+          0.298618
+        ],
+        [
+          0.656699,
+          0.490967
+        ],
+        [
+          0.562799,
+          0.522848
+        ],
+        [
+          0.461124,
+          0.517535
+        ],
+        [
+          0.360048,
+          0.420829
+        ],
+        [
+          0.349282,
+          0.296493
+        ]
+      ],
+      "spawnPoints": [
+        {
+          "id": "admin:spawn:01",
+          "position": [
+            0.517943,
+            0.444208
+          ]
+        },
+        {
+          "id": "admin:spawn:02",
+          "position": [
+            0.558612,
+            0.414453
+          ]
+        },
+        {
+          "id": "admin:spawn:03",
+          "position": [
+            0.444976,
+            0.417641
+          ]
+        }
+      ],
+      "serviceNode": "ADMIN_DEPOT"
+    },
+    {
+      "id": "industry",
+      "name": "Промышленный сектор",
+      "role": "industrial",
+      "description": "Инженерные фабрики, биоизготовление и защищённая логистика",
+      "status": "provisional_hit_geometry",
+      "labelAnchor": [
+        0.162679,
+        0.57067
+      ],
+      "hitPolygon": [
+        [
+          0.019737,
+          0.370882
+        ],
+        [
+          0.258373,
+          0.360255
+        ],
+        [
+          0.33134,
+          0.471838
+        ],
+        [
+          0.340311,
+          0.66525
+        ],
+        [
+          0.272727,
+          0.804463
+        ],
+        [
+          0.020335,
+          0.836344
+        ]
+      ],
+      "spawnPoints": [
+        {
+          "id": "industry:spawn:01",
+          "position": [
+            0.183612,
+            0.587673
+          ]
+        },
+        {
+          "id": "industry:spawn:02",
+          "position": [
+            0.252392,
+            0.62593
+          ]
+        },
+        {
+          "id": "industry:spawn:03",
+          "position": [
+            0.10945,
+            0.630181
+          ]
+        }
+      ],
+      "serviceNode": "IND_MAIN"
+    },
+    {
+      "id": "gardens",
+      "name": "Северные сады",
+      "role": "gardens",
+      "description": "Биосады, защитные оранжереи и городские фильтрационные системы",
+      "status": "provisional_hit_geometry",
+      "labelAnchor": [
+        0.858254,
+        0.565356
+      ],
+      "hitPolygon": [
+        [
+          0.748206,
+          0.39745
+        ],
+        [
+          0.97488,
+          0.37407
+        ],
+        [
+          0.983852,
+          0.765143
+        ],
+        [
+          0.790072,
+          0.751328
+        ],
+        [
+          0.684809,
+          0.601488
+        ],
+        [
+          0.669258,
+          0.51966
+        ]
+      ],
+      "spawnPoints": [
+        {
+          "id": "gardens:spawn:01",
+          "position": [
+            0.860646,
+            0.536663
+          ]
+        },
+        {
+          "id": "gardens:spawn:02",
+          "position": [
+            0.791268,
+            0.61424
+          ]
+        },
+        {
+          "id": "gardens:spawn:03",
+          "position": [
+            0.894737,
+            0.639745
+          ]
+        }
+      ],
+      "serviceNode": "GARDENS_MAIN"
+    },
+    {
+      "id": "residential",
+      "name": "Жилые кварталы",
+      "role": "residential",
+      "description": "Плотные жилые зоны, городские советы, социальная инфраструктура",
+      "status": "provisional_hit_geometry",
+      "labelAnchor": [
+        0.5,
+        0.757705
+      ],
+      "hitPolygon": [
+        [
+          0.376794,
+          0.57492
+        ],
+        [
+          0.639354,
+          0.568544
+        ],
+        [
+          0.69378,
+          0.713071
+        ],
+        [
+          0.66567,
+          0.927736
+        ],
+        [
+          0.292464,
+          0.967056
+        ],
+        [
+          0.276914,
+          0.849097
+        ],
+        [
+          0.338517,
+          0.700319
+        ]
+      ],
+      "spawnPoints": [
+        {
+          "id": "residential:spawn:01",
+          "position": [
+            0.495215,
+            0.727949
+          ]
+        },
+        {
+          "id": "residential:spawn:02",
+          "position": [
+            0.414474,
+            0.792774
+          ]
+        },
+        {
+          "id": "residential:spawn:03",
+          "position": [
+            0.597488,
+            0.772582
+          ]
+        }
+      ],
+      "serviceNode": "RES_MAIN"
+    }
+  ],
+  "roadNetwork": {
+    "directed": false,
+    "nodes": [
+      {
+        "id": "ADMIN_DEPOT",
+        "position": [
+          0.504187,
+          0.483528
+        ],
+        "districtId": "admin"
+      },
+      {
+        "id": "ADMIN_W",
+        "position": [
+          0.410287,
+          0.443146
+        ],
+        "districtId": "admin"
+      },
+      {
+        "id": "ADMIN_E",
+        "position": [
+          0.645933,
+          0.436769
+        ],
+        "districtId": "admin"
+      },
+      {
+        "id": "MED_MAIN",
+        "position": [
+          0.231459,
+          0.306057
+        ],
+        "districtId": "medical"
+      },
+      {
+        "id": "MED_RAMP",
+        "position": [
+          0.328947,
+          0.332625
+        ],
+        "districtId": "medical"
+      },
+      {
+        "id": "SCI_MAIN",
+        "position": [
+          0.827751,
+          0.337938
+        ],
+        "districtId": "science"
+      },
+      {
+        "id": "SCI_RAMP",
+        "position": [
+          0.70933,
+          0.326249
+        ],
+        "districtId": "science"
+      },
+      {
+        "id": "IND_MAIN",
+        "position": [
+          0.173445,
+          0.60255
+        ],
+        "districtId": "industry"
+      },
+      {
+        "id": "IND_RAMP",
+        "position": [
+          0.312799,
+          0.548353
+        ],
+        "districtId": "industry"
+      },
+      {
+        "id": "IND_SOUTH",
+        "position": [
+          0.255383,
+          0.756642
+        ],
+        "districtId": "industry"
+      },
+      {
+        "id": "RES_MAIN",
+        "position": [
+          0.501196,
+          0.783209
+        ],
+        "districtId": "residential"
+      },
+      {
+        "id": "RES_W",
+        "position": [
+          0.398923,
+          0.717322
+        ],
+        "districtId": "residential"
+      },
+      {
+        "id": "RES_E",
+        "position": [
+          0.636364,
+          0.764081
+        ],
+        "districtId": "residential"
+      },
+      {
+        "id": "GARDENS_MAIN",
+        "position": [
+          0.846292,
+          0.584485
+        ],
+        "districtId": "gardens"
+      },
+      {
+        "id": "GARDENS_RAMP",
+        "position": [
+          0.728469,
+          0.548353
+        ],
+        "districtId": "gardens"
+      },
+      {
+        "id": "CENTRAL_S",
+        "position": [
+          0.511962,
+          0.548353
+        ],
+        "districtId": "admin"
+      },
+      {
+        "id": "CENTRAL_W",
+        "position": [
+          0.364833,
+          0.503719
+        ],
+        "districtId": "admin"
+      },
+      {
+        "id": "CENTRAL_E",
+        "position": [
+          0.675837,
+          0.481403
+        ],
+        "districtId": "admin"
+      },
+      {
+        "id": "WEST_BRIDGE",
+        "position": [
+          0.351077,
+          0.626993
+        ],
+        "districtId": "industry"
+      },
+      {
+        "id": "EAST_BRIDGE",
+        "position": [
+          0.680622,
+          0.652497
+        ],
+        "districtId": "gardens"
+      }
+    ],
+    "edges": [
+      {
+        "id": "AD-AW",
+        "from": "ADMIN_DEPOT",
+        "to": "ADMIN_W",
+        "baselineMinutes": 3,
+        "mode": "road",
+        "enabled": true,
+        "polyline": [
+          [
+            0.504187,
+            0.483528
+          ],
+          [
+            0.452153,
+            0.463337
+          ],
+          [
+            0.410287,
+            0.443146
+          ]
+        ]
+      },
+      {
+        "id": "AD-AE",
+        "from": "ADMIN_DEPOT",
+        "to": "ADMIN_E",
+        "baselineMinutes": 4,
+        "mode": "road",
+        "enabled": true,
+        "polyline": [
+          [
+            0.504187,
+            0.483528
+          ],
+          [
+            0.574163,
+            0.477152
+          ],
+          [
+            0.645933,
+            0.436769
+          ]
+        ]
+      },
+      {
+        "id": "AD-CS",
+        "from": "ADMIN_DEPOT",
+        "to": "CENTRAL_S",
+        "baselineMinutes": 2,
+        "mode": "road",
+        "enabled": true,
+        "polyline": [
+          [
+            0.504187,
+            0.483528
+          ],
+          [
+            0.511962,
+            0.548353
+          ]
+        ]
+      },
+      {
+        "id": "AW-MR",
+        "from": "ADMIN_W",
+        "to": "MED_RAMP",
+        "baselineMinutes": 3,
+        "mode": "elevated",
+        "enabled": true,
+        "polyline": [
+          [
+            0.410287,
+            0.443146
+          ],
+          [
+            0.376794,
+            0.394261
+          ],
+          [
+            0.328947,
+            0.332625
+          ]
+        ]
+      },
+      {
+        "id": "MR-MM",
+        "from": "MED_RAMP",
+        "to": "MED_MAIN",
+        "baselineMinutes": 3,
+        "mode": "elevated",
+        "enabled": true,
+        "polyline": [
+          [
+            0.328947,
+            0.332625
+          ],
+          [
+            0.283493,
+            0.326249
+          ],
+          [
+            0.231459,
+            0.306057
+          ]
+        ]
+      },
+      {
+        "id": "AW-CW",
+        "from": "ADMIN_W",
+        "to": "CENTRAL_W",
+        "baselineMinutes": 2,
+        "mode": "road",
+        "enabled": true,
+        "polyline": [
+          [
+            0.410287,
+            0.443146
+          ],
+          [
+            0.385766,
+            0.477152
+          ],
+          [
+            0.364833,
+            0.503719
+          ]
+        ]
+      },
+      {
+        "id": "CW-IR",
+        "from": "CENTRAL_W",
+        "to": "IND_RAMP",
+        "baselineMinutes": 3,
+        "mode": "elevated",
+        "enabled": true,
+        "polyline": [
+          [
+            0.364833,
+            0.503719
+          ],
+          [
+            0.340909,
+            0.530287
+          ],
+          [
+            0.312799,
+            0.548353
+          ]
+        ]
+      },
+      {
+        "id": "IR-IM",
+        "from": "IND_RAMP",
+        "to": "IND_MAIN",
+        "baselineMinutes": 4,
+        "mode": "road",
+        "enabled": true,
+        "polyline": [
+          [
+            0.312799,
+            0.548353
+          ],
+          [
+            0.253589,
+            0.568544
+          ],
+          [
+            0.173445,
+            0.60255
+          ]
+        ]
+      },
+      {
+        "id": "CW-WB",
+        "from": "CENTRAL_W",
+        "to": "WEST_BRIDGE",
+        "baselineMinutes": 3,
+        "mode": "road",
+        "enabled": true,
+        "polyline": [
+          [
+            0.364833,
+            0.503719
+          ],
+          [
+            0.361244,
+            0.565356
+          ],
+          [
+            0.351077,
+            0.626993
+          ]
+        ]
+      },
+      {
+        "id": "WB-RW",
+        "from": "WEST_BRIDGE",
+        "to": "RES_W",
+        "baselineMinutes": 4,
+        "mode": "elevated",
+        "enabled": true,
+        "polyline": [
+          [
+            0.351077,
+            0.626993
+          ],
+          [
+            0.365431,
+            0.670563
+          ],
+          [
+            0.398923,
+            0.717322
+          ]
+        ]
+      },
+      {
+        "id": "IM-IS",
+        "from": "IND_MAIN",
+        "to": "IND_SOUTH",
+        "baselineMinutes": 4,
+        "mode": "road",
+        "enabled": true,
+        "polyline": [
+          [
+            0.173445,
+            0.60255
+          ],
+          [
+            0.192584,
+            0.685441
+          ],
+          [
+            0.255383,
+            0.756642
+          ]
+        ]
+      },
+      {
+        "id": "IS-RW",
+        "from": "IND_SOUTH",
+        "to": "RES_W",
+        "baselineMinutes": 4,
+        "mode": "road",
+        "enabled": true,
+        "polyline": [
+          [
+            0.255383,
+            0.756642
+          ],
+          [
+            0.326555,
+            0.767269
+          ],
+          [
+            0.398923,
+            0.717322
+          ]
+        ]
+      },
+      {
+        "id": "CS-RM",
+        "from": "CENTRAL_S",
+        "to": "RES_MAIN",
+        "baselineMinutes": 5,
+        "mode": "road",
+        "enabled": true,
+        "polyline": [
+          [
+            0.511962,
+            0.548353
+          ],
+          [
+            0.514354,
+            0.652497
+          ],
+          [
+            0.501196,
+            0.783209
+          ]
+        ]
+      },
+      {
+        "id": "RW-RM",
+        "from": "RES_W",
+        "to": "RES_MAIN",
+        "baselineMinutes": 2,
+        "mode": "road",
+        "enabled": true,
+        "polyline": [
+          [
+            0.398923,
+            0.717322
+          ],
+          [
+            0.449163,
+            0.74814
+          ],
+          [
+            0.501196,
+            0.783209
+          ]
+        ]
+      },
+      {
+        "id": "RM-RE",
+        "from": "RES_MAIN",
+        "to": "RES_E",
+        "baselineMinutes": 3,
+        "mode": "road",
+        "enabled": true,
+        "polyline": [
+          [
+            0.501196,
+            0.783209
+          ],
+          [
+            0.56878,
+            0.780021
+          ],
+          [
+            0.636364,
+            0.764081
+          ]
+        ]
+      },
+      {
+        "id": "AE-SR",
+        "from": "ADMIN_E",
+        "to": "SCI_RAMP",
+        "baselineMinutes": 3,
+        "mode": "elevated",
+        "enabled": true,
+        "polyline": [
+          [
+            0.645933,
+            0.436769
+          ],
+          [
+            0.679426,
+            0.378321
+          ],
+          [
+            0.70933,
+            0.326249
+          ]
+        ]
+      },
+      {
+        "id": "SR-SM",
+        "from": "SCI_RAMP",
+        "to": "SCI_MAIN",
+        "baselineMinutes": 3,
+        "mode": "elevated",
+        "enabled": true,
+        "polyline": [
+          [
+            0.70933,
+            0.326249
+          ],
+          [
+            0.760766,
+            0.33475
+          ],
+          [
+            0.827751,
+            0.337938
+          ]
+        ]
+      },
+      {
+        "id": "AE-CE",
+        "from": "ADMIN_E",
+        "to": "CENTRAL_E",
+        "baselineMinutes": 2,
+        "mode": "road",
+        "enabled": true,
+        "polyline": [
+          [
+            0.645933,
+            0.436769
+          ],
+          [
+            0.66866,
+            0.456961
+          ],
+          [
+            0.675837,
+            0.481403
+          ]
+        ]
+      },
+      {
+        "id": "CE-GR",
+        "from": "CENTRAL_E",
+        "to": "GARDENS_RAMP",
+        "baselineMinutes": 3,
+        "mode": "road",
+        "enabled": true,
+        "polyline": [
+          [
+            0.675837,
+            0.481403
+          ],
+          [
+            0.702153,
+            0.512221
+          ],
+          [
+            0.728469,
+            0.548353
+          ]
+        ]
+      },
+      {
+        "id": "GR-GM",
+        "from": "GARDENS_RAMP",
+        "to": "GARDENS_MAIN",
+        "baselineMinutes": 3,
+        "mode": "elevated",
+        "enabled": true,
+        "polyline": [
+          [
+            0.728469,
+            0.548353
+          ],
+          [
+            0.782297,
+            0.577046
+          ],
+          [
+            0.846292,
+            0.584485
+          ]
+        ]
+      },
+      {
+        "id": "CE-EB",
+        "from": "CENTRAL_E",
+        "to": "EAST_BRIDGE",
+        "baselineMinutes": 4,
+        "mode": "road",
+        "enabled": true,
+        "polyline": [
+          [
+            0.675837,
+            0.481403
+          ],
+          [
+            0.68122,
+            0.571732
+          ],
+          [
+            0.680622,
+            0.652497
+          ]
+        ]
+      },
+      {
+        "id": "EB-RE",
+        "from": "EAST_BRIDGE",
+        "to": "RES_E",
+        "baselineMinutes": 3,
+        "mode": "road",
+        "enabled": true,
+        "polyline": [
+          [
+            0.680622,
+            0.652497
+          ],
+          [
+            0.650718,
+            0.698193
+          ],
+          [
+            0.636364,
+            0.764081
+          ]
+        ]
+      },
+      {
+        "id": "SM-GM",
+        "from": "SCI_MAIN",
+        "to": "GARDENS_MAIN",
+        "baselineMinutes": 6,
+        "mode": "road",
+        "enabled": true,
+        "polyline": [
+          [
+            0.827751,
+            0.337938
+          ],
+          [
+            0.852871,
+            0.439957
+          ],
+          [
+            0.851675,
+            0.504782
+          ],
+          [
+            0.846292,
+            0.584485
+          ]
+        ]
+      },
+      {
+        "id": "MR-CW",
+        "from": "MED_RAMP",
+        "to": "CENTRAL_W",
+        "baselineMinutes": 5,
+        "mode": "road",
+        "enabled": true,
+        "polyline": [
+          [
+            0.328947,
+            0.332625
+          ],
+          [
+            0.337321,
+            0.420829
+          ],
+          [
+            0.364833,
+            0.503719
+          ]
+        ]
+      }
+    ],
+    "trafficDefaults": {
+      "road": 1.0,
+      "elevated": 1.0
+    },
+    "modifiersAreProvisional": true,
+    "notes": "Дорожные линии — отрисовочные эскизы по арту, не трассировка метрического плана. Вес рёбер — базовые игровые минуты; финальные значения требуют баланса."
+  },
+  "viewDefaults": {
+    "mode": "observation",
+    "layer": "events",
+    "zoom": 1.0,
+    "zoomMin": 1.0,
+    "zoomMax": 2.5,
+    "leftPanelOpen": true,
+    "rightPanelOpen": false,
+    "fitMode": "cover"
+  },
+  "mapLayers": [
+    "events",
+    "patrols",
+    "risks",
+    "infrastructure",
+    "districts",
+    "route-preview"
+  ],
+  "legacyIdAliases": {
+    "venechniy": "admin",
+    "red_clinics": "medical",
+    "krasnye_kliniki": "medical",
+    "iron_belt": "industry",
+    "zhelezny_poyas": "industry",
+    "continuation_gardens": "gardens",
+    "sady_prodolzheniya": "gardens"
+  },
+  "unresolvedLegacyIds": {
+    "transit_hub": "Это объект инфраструктуры, не 7-й район; не маппить автоматически",
+    "lower_galleries": "Может не совпадать с жилым районом; требуются миграция по содержанию или явно заданное соответствие"
+  },
+  "canonicalDisclaimers": [
+    "Физические границы районов не утверждены лором: hitPolygon — рабочие зоны взаимодействия, не границы собственности.",
+    "Масштаб и расстояния на иллюстрации не геодезические.",
+    "Шестёрка районов — рабочий игровой состав; не превращать в территориальную стратегию."
+  ]
+}

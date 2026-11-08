@@ -15,7 +15,14 @@ export type LoadResult = { ok: true; state: GameState } | { ok: false; reason: s
  * Миграции схемы: ключ — версия, из которой переводим. Сейчас схема одна (v1),
  * при изменении GameState добавляется функция N → N+1 и тест на неё.
  */
-const MIGRATIONS: Record<number, (s: Record<string, unknown>) => Record<string, unknown>> = {};
+const MIGRATIONS: Record<number, (s: Record<string, unknown>) => Record<string, unknown>> = {
+  /** v1 (W2) → v2 (W3): у отрядов появилось движение по графу, у города — закрытые дороги. */
+  1: (s) => ({
+    ...s,
+    roadClosures: [],
+    squads: (s.squads as Record<string, unknown>[]).map((q) => ({ ...q, movement: null })),
+  }),
+};
 
 export function toSaveFile(state: GameState, label: string, now: Date): SaveFile {
   return { format: 'gamemr-save', schemaVersion: SCHEMA_VERSION, savedAt: now.toISOString(), label, state };
@@ -50,7 +57,7 @@ export function parseSave(raw: unknown): LoadResult {
 }
 
 function validateState(s: Record<string, unknown>): string | null {
-  const arrays = ['districts', 'staff', 'squads', 'incidents', 'log', 'reports'] as const;
+  const arrays = ['districts', 'staff', 'squads', 'incidents', 'roadClosures', 'log', 'reports'] as const;
   for (const k of arrays) if (!Array.isArray(s[k])) return `нет раздела ${k}`;
   if (!Number.isInteger(s.shift) || (s.shift as number) < 1) return 'неверный номер смены';
   if (!Number.isInteger(s.minute) || (s.minute as number) < 0) return 'неверное время';

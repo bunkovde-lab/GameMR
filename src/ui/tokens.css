@@ -1,26 +1,33 @@
-/* Дизайн-токены. Значения перенесены без изменений из legacy UI-прототипа 0.1 (styles.css :root),
-   композиция утверждена владельцем. Добавлены только размеры, которые требует ТЗ §3.1 и §15.2. */
+/* Дизайн-токены. Палитра — docs/art/STYLE_REF01_SPEC.md (PR #12) в трактовке утверждённого UI-kit v2
+   (docs/art/APPROVED_UI_KIT_V2.md). Размеры — ТЗ §3.1 и §15.2. */
 :root {
   color-scheme: dark;
-  --bg: #080b10;
-  --surface: #141922;
-  --panel: #151b22ed;
-  --raised: #1d232ced;
-  --stroke: #485361;
-  --stroke2: #303b46;
-  --text: #f3e9d8;
-  --muted: #aab5bb;
-  --dim: #75828d;
-  --red: #e25d5a;
-  --red-deep: #872f37;
-  --gold: #dfb780;
-  --green: #72cca3;
-  --cyan: #80b8d3;
-  --amber: #eac078;
-  --bad: #f47b72;
+  --bg: #07090d;
+  --surface: #0b1016;
+  --panel: #0b1016f2;
+  --raised: #121820f0;
+  --stroke: #68543d;
+  --stroke2: #483c2f;
+  --text: #f2e9d8;
+  --muted: #b5ad9f;
+  --dim: #83838a;
+  --red: #e75958;
+  --red-deep: #55141b;
+  --gold: #c9a46a;
+  --green: #64bf7e;
+  --cyan: #69c1d0;
+  --amber: #d5a343;
+  --bad: #e75958;
+  --gold-light: #e6c58d;
+  --crimson: #aa2530;
+  --crimson-glow: #e84c50;
+  --section: #121820;
+  --lift: #202127;
+  --font-ui: 'Golos Text', 'Segoe UI', Arial, sans-serif;
+  --font-title: 'Forum', Georgia, serif;
   --font: 14px;
-  --radius: 13px;
-  --shadow: 0 18px 34px #0007, inset 0 1px #ffffff11;
+  --radius: 8px;
+  --shadow: 0 12px 28px #000000a6;
 
   /* ТЗ §3.1: минимальная зона касания 44×44 CSS px, основной текст от 14 px. */
   --tap: 44px;

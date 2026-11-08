@@ -114,7 +114,7 @@ svg.icon {
 .nav .stage { font-size: 10px; color: var(--dim); }
 
 /* ---------- Экран-раздел (пробный, без данных) ---------- */
-.screen { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.screen { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; }
 .screen .panel-body { padding: 18px; }
 
 /* ---------- Адаптивность ---------- */
@@ -393,3 +393,32 @@ li.kia b { color: var(--bad); }
   .report-quote { font-size: 13px; padding: 8px 10px; }
   .outcome { font-size: 19px; }
 }
+
+/* ---------- W6: кадры ---------- */
+.screen .panel-header { flex-wrap: wrap; }
+.screen-tabs { flex: 1; margin: 0; overflow-x: auto; }
+.screen-tabs .btn { flex: 0 0 auto; }
+.table-scroll { overflow-x: auto; }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; margin-top: 8px; }
+.sq-card { border: 1px solid var(--stroke2); border-radius: 12px; background: var(--raised); padding: 10px 12px; display: grid; gap: 6px; align-content: start; }
+.sq-card header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.sq-card header small { color: var(--muted); }
+.sq-card.reserve { border-style: dashed; }
+.member-rows { list-style: none; padding: 0; gap: 6px; }
+.member-rows li { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.member-rows li > span:first-child { display: grid; }
+.member-rows small { color: var(--muted); font-size: 12px; }
+.row-actions { display: flex; gap: 6px; }
+.row-actions.wrap { flex-wrap: wrap; }
+.row-actions .btn { min-height: var(--tap); padding: 0 10px; font-size: 13px; }
+.cmd { color: var(--gold); font-style: normal; }
+.pick-list.one-col { grid-template-columns: 1fr; }
+.fit { margin: 0; }
+.dossier { font-size: 13px; }
+.deficit { margin: 0; }
+@media (max-width: 950px) {
+  .screen .panel-body { padding: 10px; }
+  .card-grid { grid-template-columns: 1fr; }
+  .screen-tabs { order: 3; flex-basis: 100%; }
+}
+.screen.panel { background: linear-gradient(var(--panel), var(--panel)), var(--bg); }

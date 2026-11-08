@@ -2,6 +2,10 @@ import { BALANCE, DISPATCH_COST, INCIDENT_TEMPLATES, toCents } from './content';
 import { bestCommander, defaultDraft, forecastTerms, planDispatch, recommendedTactic, riskLevel, tacticById, type DispatchDraft } from './dispatch';
 import { applyOption, beginScene, finishReturn, pendingDecision, tickScene } from './operations';
 import { HEALTH_LOG } from './healthText';
+import {
+  admitPatient, advanceMedical, completeChecks, hireCandidate, patientOf, refreshCandidates, squadOf, treatmentForecast, vacancies, PLANS,
+} from './staff';
+import { ROLE_LABEL } from './content';
 import { buildRoute, shortestPath } from './map/graph';
 import { districtById, edgeById, spawnPosition } from './map/mapConfig';
 import { nextInt } from './rng';
@@ -14,6 +18,7 @@ import type { Command, CommandResult, GameState, Incident, Squad, Transaction, T
  * Неверная команда не меняет состояние и возвращает причину (ТЗ §5.3).
  */
 const BALANCE_REST = 30;
+const STAFF_CHECK_COST = 1;
 
 export function reduce(state: GameState, command: Command): CommandResult {
   const s: GameState = structuredClone(state);
@@ -146,6 +151,59 @@ export function reduce(state: GameState, command: Command): CommandResult {
       return { ok: true, state: s };
     }
 
+    case 'UNASSIGN_STAFF': {
+      const person = s.staff.find((p) => p.id === command.staffId);
+      if (!person) return reject('Сотрудник не найден.');
+      const sq = squadOf(s, person.id);
+      if (!sq) return reject(`${person.name} уже в резерве.`);
+      if (DEPLOYED.includes(sq.status)) return reject(`${person.name} на задании в отряде «${sq.name}»; перевод после возвращения.`);
+      sq.memberIds = sq.memberIds.filter((id) => id !== person.id);
+      if (sq.commanderId === person.id) sq.commanderId = null;
+      log(s, 'staff_transferred', `${person.name} переведён(а) в резерв.`);
+      return { ok: true, state: s };
+    }
+    case 'SET_COMMANDER': {
+      const sq = s.squads.find((q) => q.id === command.squadId);
+      const person = s.staff.find((p) => p.id === command.staffId);
+      if (!sq || !person) return reject('Отряд или сотрудник не найден.');
+      if (!sq.memberIds.includes(person.id)) return reject(`${person.name} не входит в отряд «${sq.name}».`);
+      if (DEPLOYED.includes(sq.status)) return reject(`Отряд «${sq.name}» на задании.`);
+      sq.commanderId = person.id;
+      log(s, 'commander_set', `${person.name} назначен(а) командиром отряда «${sq.name}».`);
+      return { ok: true, state: s };
+    }
+    case 'START_TREATMENT': {
+      if (!PLANS[command.plan]) return reject('Нет такого плана лечения.');
+      const f = treatmentForecast(s, command.staffId, command.plan);
+      if (f.blocker) return reject(f.blocker);
+      const person = s.staff.find((p) => p.id === command.staffId)!;
+      const pt = admitPatient(s, command.staffId, command.plan);
+      if (pt.status === 'treating') post(s, 'treatment', -f.cost, `Лечение: ${person.name}`);
+      log(s, pt.status === 'treating' ? 'treatment_started' : 'treatment_queued',
+        `${person.name}: ${PLANS[command.plan].label.toLowerCase()} лечение${pt.status === 'queued' ? ', очередь на место' : ''}. Ожидаемое возвращение — смена ${f.returnShift}.`);
+      return { ok: true, state: s };
+    }
+    case 'DEEP_CHECK': {
+      const c = s.candidates.find((x) => x.id === command.candidateId);
+      if (!c) return reject('Кандидат не найден.');
+      if (c.check !== 'none') return reject('Проверка уже проведена или идёт.');
+      const cost = toCents(STAFF_CHECK_COST);
+      if (s.economy.balance < cost) return reject('Недостаточно средств на проверку.');
+      c.check = 'pending';
+      post(s, 'check', -cost, `Проверка кандидата: ${c.name}`);
+      log(s, 'candidate_check_started', `Начата проверка кандидата ${c.name}; результат к следующей смене.`);
+      return { ok: true, state: s };
+    }
+    case 'HIRE': {
+      const c = s.candidates.find((x) => x.id === command.candidateId);
+      if (!c) return reject('Кандидат не найден.');
+      if (vacancies(s)[c.role] <= 0) return reject(`Нет вакансии: ${ROLE_LABEL[c.role].toLowerCase()}.`);
+      if (s.economy.balance < c.hireCost) return reject('Недостаточно средств на найм.');
+      post(s, 'hiring', -c.hireCost, `Найм: ${c.name}`);
+      const person = hireCandidate(s, c);
+      log(s, 'staff_hired', `${person.name} принят(а) на службу (${ROLE_LABEL[person.role].toLowerCase()}), в резерве${person.adaptation ? `, адаптация ${person.adaptation} смен.` : '.'}`);
+      return { ok: true, state: s };
+    }
     case 'END_SHIFT': {
       if (s.phase !== 'ACTIVE' && s.phase !== 'REVIEW_PENDING') return reject('Сейчас нельзя завершить смену.');
       if (pendingDecision(s)) return reject('Сначала примите решение по операции.');
@@ -190,11 +248,19 @@ export function reduce(state: GameState, command: Command): CommandResult {
       s.minute = 0;
       s.phase = 'BRIEFING';
       s.paused = true;
-      for (const q of s.squads) if (q.status === 'resting' || q.status === 'recovery') q.status = 'ready';
-      // Между сменами: лёгкие ранения заживают сами (ТЗ §7.4), усталость снижается. Тяжёлые требуют клиники (W6).
+      for (const q of s.squads) if (q.status === 'resting' || q.status === 'recovery' || q.status === 'treatment') q.status = 'ready';
+      // Между сменами: клиника, проверки кандидатов, адаптация новичков (W6).
+      advanceMedical(s, (type, text) => log(s, type, text), (amount, note) => {
+        if (s.economy.balance + amount < 0) return false;
+        post(s, 'treatment', amount, note);
+        return true;
+      });
+      completeChecks(s, (type, text) => log(s, type, text));
+      for (const p of s.staff) if (p.adaptation > 0) p.adaptation -= 1;
+      // Лёгкие ранения заживают сами (ТЗ §7.4), усталость снижается.
       for (const p of s.staff) {
         if (p.health === 'dead') continue;
-        if (p.health === 'light_injury' || p.health === 'fatigued') {
+        if ((p.health === 'light_injury' || p.health === 'fatigued') && !patientOf(s, p.id)) {
           p.health = 'healthy';
           log(s, 'staff_recovered', `${p.name}: лёгкое ранение зажило.`);
         }
@@ -203,6 +269,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
       // Незакрытые вызовы переносятся (ТЗ §2.2, SHIFT-01): их срок отсчитывается заново от начала новой смены.
       for (const inc of s.incidents) if (isOpen(inc)) inc.deadlineMinute = Math.max(0, inc.deadlineMinute - BALANCE.shift.lengthMinutes);
       spawnIncidents(s, BALANCE.incidentsPerNewShift);
+      refreshCandidates(s);
       log(s, 'shift_briefing', `Брифинг смены ${s.shift}.`);
       return { ok: true, state: s };
     }

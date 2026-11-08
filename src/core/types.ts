@@ -2,7 +2,7 @@
  * Доменная модель W2 — подмножество ТЗ §5.2, необходимое для одной смены.
  * Деньги хранятся целым числом в сотых долях РЕ (cents), чтобы избежать ошибок округления.
  */
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 import type { Route } from './map/graph';
 
@@ -118,6 +118,42 @@ export interface Staff {
   fatigue: number;
   /** РЕ за смену, в сотых */
   salary: number;
+  /** W6: смен адаптации после найма (пока > 0 — не выезжает) */
+  adaptation: number;
+  /** W6: скрытая рекомендация/обязательство перед Домом (ТЗ §7.6), раскрывается проверкой */
+  patron: string | null;
+}
+
+/** ТЗ §7.4: медицинские планы */
+export type MedicalPlanId = 'standard' | 'accelerated' | 'regenerative';
+export interface Patient {
+  staffId: string;
+  plan: MedicalPlanId;
+  status: 'queued' | 'treating';
+  /** Смен до выписки (у очереди — полный срок плана) */
+  shiftsLeft: number;
+  injury: HealthState;
+  since: number;
+}
+
+/** ТЗ §7.6: статусы сведений досье */
+export type DossierStatus = 'verified' | 'reported' | 'unverified' | 'contested';
+export interface Candidate {
+  id: string;
+  name: string;
+  role: StaffRole;
+  rank: number;
+  /** Истинные качества — только для ядра */
+  stats: Stats;
+  /** Что сказано в досье */
+  reported: Stats;
+  dossier: Record<keyof Stats, DossierStatus>;
+  hireCost: number;
+  salary: number;
+  adaptation: number;
+  patron: string | null;
+  patronKnown: boolean;
+  check: 'none' | 'pending' | 'done';
 }
 
 /** Движение отряда по графу дорог (W3 §4). Позиция выводится из route + elapsed, а не хранится в пикселях. */
@@ -140,6 +176,8 @@ export interface Squad {
   assignedIncidentId: string | null;
   movement: SquadMovement | null;
   operation: SquadOperation | null;
+  /** W6: постоянный командир отряда (null — выбирается по рангу) */
+  commanderId: string | null;
 }
 
 export interface Incident {
@@ -156,7 +194,7 @@ export interface Incident {
   createdShift: number;
 }
 
-export type TransactionKind = 'funding' | 'salary' | 'dispatch';
+export type TransactionKind = 'funding' | 'salary' | 'dispatch' | 'treatment' | 'hiring' | 'check';
 
 export interface Transaction {
   id: number;
@@ -219,7 +257,9 @@ export interface GameState {
   log: WorldEvent[];
   reports: ShiftReport[];
   operationReports: OperationReport[];
-  nextIds: { event: number; transaction: number; incident: number; report: number };
+  medical: { patients: Patient[] };
+  candidates: Candidate[];
+  nextIds: { event: number; transaction: number; incident: number; report: number; staff: number; candidate: number };
 }
 
 export type Command =
@@ -242,6 +282,11 @@ export type Command =
     }
   | { type: 'SET_ROAD_ENABLED'; edgeId: string; enabled: boolean }
   | { type: 'CHOOSE_OPTION'; squadId: string; optionId: string }
+  | { type: 'UNASSIGN_STAFF'; staffId: string }
+  | { type: 'SET_COMMANDER'; squadId: string; staffId: string }
+  | { type: 'START_TREATMENT'; staffId: string; plan: MedicalPlanId }
+  | { type: 'DEEP_CHECK'; candidateId: string }
+  | { type: 'HIRE'; candidateId: string }
   | { type: 'ACK_OPERATION_REPORT'; reportId: number }
   | { type: 'END_SHIFT' }
   | { type: 'ADVANCE_SHIFT' };

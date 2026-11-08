@@ -201,6 +201,7 @@ export function resolveOperation(s: GameState, sq: Squad, inc: Incident): Operat
   // Погибшие уходят в архив: из отряда исключаются, запись — только через журнал.
   const dead = casualties.filter((c) => c.after === 'dead').map((c) => c.staffId);
   sq.memberIds = sq.memberIds.filter((id) => !dead.includes(id));
+  if (sq.commanderId && dead.includes(sq.commanderId)) sq.commanderId = null;
 
   // Возвращение на базу.
   const target = districtById(inc.districtId);

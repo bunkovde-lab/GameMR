@@ -1,0 +1,21 @@
+/* Draft theme tokens matching approved ref_01, not applied automatically to production UI. */
+.gamemr-ref01 {
+  --ui-bg:#07090d; --ui-panel:#0b1016; --ui-surface:#121820; --ui-raised:#202127;
+  --ui-edge:#68543d; --ui-edge-soft:#483c2f; --ui-gold:#c9a46a; --ui-gold-hi:#e6c58d;
+  --ui-red:#aa2530; --ui-red-deep:#55141b; --ui-red-hot:#e84c50;
+  --ui-text:#f2e9d8; --ui-muted:#b5ad9f; --ui-dim:#83838a;
+  --ui-success:#64bf7e; --ui-warning:#d5a343; --ui-danger:#e75958; --ui-cyan:#69c1d0;
+  --ui-title-font:'Forum',Georgia,serif; --ui-body-font:'Golos Text','Segoe UI',Arial,sans-serif;
+  --ui-radius:7px; --ui-shadow:0 12px 28px rgba(0,0,0,.65);
+  background:var(--ui-bg);color:var(--ui-text);font-family:var(--ui-body-font);
+}
+.gamemr-ref01 .ref-panel {border:1px solid var(--ui-edge);border-radius:var(--ui-radius);background:linear-gradient(175deg,#171b21,#080b10);box-shadow:var(--ui-shadow)}
+.gamemr-ref01 .ref-title {font:400 22px/1.2 var(--ui-title-font);color:var(--ui-gold-hi)}
+.gamemr-ref01 .ref-button {min-height:44px;min-width:44px;padding:0 14px;cursor:pointer;color:var(--ui-text);background:linear-gradient(#222329,#101215);border:1px solid var(--ui-edge);border-radius:7px;font:500 14px/1.2 var(--ui-body-font)}
+.gamemr-ref01 .ref-button:hover:not(:disabled) {border-color:var(--ui-gold);background:linear-gradient(#342b2d,#15161b)}
+.gamemr-ref01 .ref-button:active {background:linear-gradient(#69232a,#260f16);transform:translateY(1px)}
+.gamemr-ref01 .ref-button[aria-pressed=true],.gamemr-ref01 .ref-button[aria-current=page] {background:linear-gradient(#a52730,#401018);border-color:var(--ui-gold-hi);box-shadow:0 0 10px #bc273c66}
+.gamemr-ref01 .ref-button:disabled {cursor:not-allowed;opacity:.44;filter:saturate(.35)}
+.gamemr-ref01 :focus-visible {outline:2px solid var(--ui-cyan);outline-offset:2px}
+.gamemr-ref01 .ref-hud {background:linear-gradient(#16151a,#06080b);border-bottom:1px solid var(--ui-gold);box-shadow:0 5px 16px #0009}
+.gamemr-ref01 .ref-bottom {background:linear-gradient(#080b10,#14141a);border-top:1px solid var(--ui-edge-soft)}

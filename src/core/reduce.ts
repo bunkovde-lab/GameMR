@@ -1,11 +1,12 @@
 import { BALANCE, DISPATCH_COST, INCIDENT_TEMPLATES, toCents } from './content';
-import { bestCommander, defaultDraft, forecastTerms, planDispatch, recommendedTactic, riskLevel, tacticById, type DispatchDraft } from './dispatch';
+import { bestCommander, defaultDraft, equipmentType, forecastTerms, planDispatch, recommendedTactic, riskLevel, tacticById, type DispatchDraft } from './dispatch';
 import { applyOption, beginScene, finishReturn, pendingDecision, tickScene } from './operations';
 import { HEALTH_LOG } from './healthText';
 import {
   admitPatient, advanceMedical, completeChecks, hireCandidate, patientOf, refreshCandidates, squadOf, treatmentForecast, vacancies, PLANS,
 } from './staff';
 import { ROLE_LABEL } from './content';
+import { RESEARCH, advanceResearch, fabricateBlocker, isRunning, makeProject, projectDef, refreshResearch, startBlocker } from './research';
 import {
   SUBSIDY, advanceConstruction, courseShiftsCut, earlyWarning, facilityDef, makeBuild, refreshQueue, repairEquipment, upgradeBlocker, upkeepPerShift,
 } from './facilities';
@@ -287,6 +288,40 @@ export function reduce(state: GameState, command: Command): CommandResult {
       log(s, 'construction_prioritized', `${facilityDef(command.facilityId).label}: работа поставлена первой в очереди.`);
       return { ok: true, state: s };
     }
+    case 'START_PROJECT': {
+      const why = startBlocker(s, command.projectId, command.protocol, command.researcherId);
+      if (why) return reject(why);
+      const p = s.staff.find((x) => x.id === command.researcherId)!;
+      const sq = squadOf(s, p.id);
+      if (sq) { sq.memberIds = sq.memberIds.filter((id) => id !== p.id); if (sq.commanderId === p.id) sq.commanderId = null; }
+      s.research = s.research.filter((x) => x.id !== command.projectId);
+      s.research.push(makeProject(s, command.projectId, command.protocol, p.id));
+      refreshResearch(s);
+      const d = projectDef(command.projectId)!;
+      log(s, 'research_started', `Начато исследование «${d.label}» (${RESEARCH.protocols[command.protocol].label.toLowerCase()} протокол). Ведёт ${p.name}, выведен(а) из отряда.`, [p.id]);
+      return { ok: true, state: s };
+    }
+    case 'CANCEL_PROJECT': {
+      const pr = s.research.find((x) => x.id === command.projectId && isRunning(x));
+      if (!pr) return reject('Проект не идёт.');
+      s.research = s.research.filter((x) => x !== pr);
+      refreshResearch(s);
+      log(s, 'research_cancelled', `Исследование «${projectDef(pr.id)?.label}» остановлено; затраты не возвращаются.`, [pr.researcherId]);
+      return { ok: true, state: s };
+    }
+    case 'FABRICATE': {
+      const why = fabricateBlocker(s, command.projectId);
+      if (why) return reject(why);
+      const f = projectDef(command.projectId)!.fabricate!;
+      post(s, 'fabrication', -toCents(f.cost), `Изготовление: ${equipmentType(f.typeId)?.label ?? f.typeId}`);
+      s.resources.reagents -= f.reagents;
+      for (let i = 0; i < f.units; i++) {
+        const n = s.equipment.filter((u) => u.typeId === f.typeId).length + 1;
+        s.equipment.push({ id: `${f.typeId}-${n}`, typeId: f.typeId, state: 'available', squadId: null });
+      }
+      log(s, 'fabricated', `Изготовлено: ${equipmentType(f.typeId)?.label ?? f.typeId}, ${f.units} ед.`);
+      return { ok: true, state: s };
+    }
     case 'END_SHIFT': {
       if (s.phase !== 'ACTIVE' && s.phase !== 'REVIEW_PENDING') return reject('Сейчас нельзя завершить смену.');
       if (pendingDecision(s)) return reject('Сначала примите решение по операции.');
@@ -363,6 +398,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
         return true;
       }, (type, text) => log(s, type, text));
       repairEquipment(s, (type, text) => log(s, type, text));
+      advanceResearch(s, (amount, note) => { post(s, 'research', amount, note); return true; }, (type, text, ids) => log(s, type, text, ids));
       for (const p of s.staff) if (p.adaptation > 0) p.adaptation -= 1;
       // Лёгкие ранения заживают сами (ТЗ §7.4), усталость снижается.
       for (const p of s.staff) {

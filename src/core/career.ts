@@ -2,6 +2,7 @@ import careerFile from '../../content/career_v1.json';
 import { toCents } from './content';
 import { medicalCapacity } from './facilities';
 import { bedsUsed } from './staff';
+import { isDone, projectDef } from './research';
 import type { GameState, OperationReport, Relation, Staff, StaffRole, Stats, TacticId } from './types';
 
 /**
@@ -16,7 +17,7 @@ export interface NodeDef {
 }
 export interface OrganDef {
   id: string; label: string; ability: string; desc: string; effect: string; load: number; cost: number; shifts: number;
-  removable: boolean; conflicts: string[]; conflictWhy: string;
+  removable: boolean; conflicts: string[]; conflictWhy: string; requiresResearch?: string;
 }
 export interface SystemDef { id: string; label: string; load: number; desc: string }
 
@@ -131,6 +132,7 @@ export function organBlocker(s: GameState, staffId: string, organId: string): st
   if (!p || !o) return 'Нет такого сотрудника или органа.';
   if (p.health === 'dead') return 'Сотрудник в архиве.';
   if (p.implants.includes(o.id)) return 'Уже установлен.';
+  if (o.requiresResearch && !isDone(s, o.requiresResearch)) return `Нужно исследование «${projectDef(o.requiresResearch)?.label}».`;
   const systems = [...innateSystems(p.role).map((x) => x.id), ...p.implants];
   const clash = o.conflicts.find((c) => systems.includes(c));
   if (clash) return `Несовместимо: ${o.conflictWhy}.`;

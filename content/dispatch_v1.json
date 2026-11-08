@@ -139,6 +139,35 @@
       ],
       "consumable": true,
       "count": 4
+    },
+    {
+      "id": "mirror_kit",
+      "label": "Набор «Зеркало-М»",
+      "tags": [
+        "assault",
+        "trace"
+      ],
+      "consumable": false,
+      "count": 0
+    },
+    {
+      "id": "quarantine_kit",
+      "label": "Карантинный комплект «Порог»",
+      "tags": [
+        "bio"
+      ],
+      "consumable": true,
+      "count": 0
+    },
+    {
+      "id": "assault_shield",
+      "label": "Штурмовой щит",
+      "tags": [
+        "riot",
+        "assault"
+      ],
+      "consumable": false,
+      "count": 0
     }
   ]
 }

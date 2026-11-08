@@ -1,5 +1,6 @@
 import { allegianceStart, initialRelations } from './career';
 import { initialFacilities } from './facilities';
+import { RESEARCH } from './research';
 import { BALANCE, DISTRICTS, INCIDENT_TEMPLATES, SQUAD_MEMBERS, SQUADS_DEMO, STAFF_START, toCents } from './content';
 import { bestCommander, computeForecast, initialEquipment, riskLevel } from './dispatch';
 import { seedRng } from './rng';
@@ -83,6 +84,8 @@ export function createInitialState(seed: number = DEFAULT_SEED): GameState {
     relations: [],
     facilities: initialFacilities(),
     construction: [],
+    research: [],
+    resources: { reagents: RESEARCH.reagents.start },
     nextIds: { event: 2, transaction: 1, incident: 1, report: 1, staff: 13, candidate: 1 },
   };
   seedOperationsInProgress(state);

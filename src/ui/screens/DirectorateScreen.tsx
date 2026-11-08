@@ -8,19 +8,21 @@ import { TREATABLE, patientOf, vacancies } from '../../core/staff';
 import type { GameState, StaffRole, TransactionKind } from '../../core/types';
 import { dispatch } from '../../store';
 import { Icon } from '../Icon';
+import { ProjectsTab } from './ProjectsTab';
 
-type Tab = 'overview' | 'finance' | 'infra';
+type Tab = 'overview' | 'finance' | 'infra' | 'projects';
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'Обзор' },
   { id: 'finance', label: 'Финансы' },
   { id: 'infra', label: 'Инфраструктура' },
+  { id: 'projects', label: 'Проекты' },
 ];
-const LATER = [{ label: 'Проекты', stage: 'W7, часть 2' }, { label: 'Полномочия', stage: 'W8' }];
+const LATER = [{ label: 'Полномочия', stage: 'W8' }];
 
 const KIND_LABEL: Record<TransactionKind, string> = {
   funding: 'Финансирование', subsidy: 'Субсидия', salary: 'Жалование', upkeep: 'Содержание объектов', dispatch: 'Выезды',
   treatment: 'Лечение', hiring: 'Найм', check: 'Проверки', training: 'Обучение', promotion: 'Аттестация', implant: 'Органы',
-  construction: 'Строительство',
+  construction: 'Строительство', research: 'Исследования', fabrication: 'Изготовление',
 };
 
 /** W7 (часть 1): Дирекция — обзор (UI-15), финансы (UI-16), инфраструктура (UI-17). */
@@ -42,6 +44,7 @@ export function DirectorateScreen({ game, onClose }: { game: GameState; onClose:
         {tab === 'overview' && <Overview game={game} />}
         {tab === 'finance' && <Finance game={game} />}
         {tab === 'infra' && <Infrastructure game={game} />}
+        {tab === 'projects' && <ProjectsTab game={game} />}
       </div>
     </section>
   );
@@ -80,7 +83,7 @@ function Overview({ game }: { game: GameState }) {
       <ul className="plain-list">
         {nextSubsidy && <li>Субсидия {SUBSIDY.amount} РЕ после смены {nextSubsidy}, если безопасность города не ниже {SUBSIDY.minSafety}% (сейчас {citySafety(game)}%). Не гарантирована.</li>}
         <li>Монтажных бригад: {buildSlots(game)}. Остальные работы ждут очереди.</li>
-        <li>Исследования и полномочия появятся в следующих частях этапа.</li>
+        <li>Полномочия и согласования появятся на этапе W8.</li>
       </ul>
     </div>
   );

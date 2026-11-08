@@ -1,6 +1,85 @@
 {
   "schemaVersion": 1,
   "project": "GameMR",
-  "note": "No actual binary assets have been committed in this batch; see docs/ASSET_CATALOG.md for planned IDs.",
-  "assets": []
+  "note": "Registered actual draft assets on art/map-markers-review-v1; approval pending",
+  "assets": [
+    {
+      "id": "MARKER_INCIDENT_RIOT",
+      "file": "assets/ui/markers/marker_incident_riot.svg",
+      "category": "ui",
+      "role": "Беспорядки / сдерживание толпы",
+      "status": "review",
+      "width": 24,
+      "height": 24,
+      "alpha": true,
+      "source": "original authored SVG; specification docs/art/prompts/MARKER_INCIDENT_RIOT.md",
+      "approvedBy": null,
+      "notes": "Color via currentColor; use at 32px. Not yet integrated."
+    },
+    {
+      "id": "MARKER_INCIDENT_BIO",
+      "file": "assets/ui/markers/marker_incident_bio.svg",
+      "category": "ui",
+      "role": "Биологическая угроза / утечка",
+      "status": "review",
+      "width": 24,
+      "height": 24,
+      "alpha": true,
+      "source": "original authored SVG; specification docs/art/prompts/MARKER_INCIDENT_BIO.md",
+      "approvedBy": null,
+      "notes": "Color via currentColor; use at 32px. Not yet integrated."
+    },
+    {
+      "id": "MARKER_INCIDENT_ARMED",
+      "file": "assets/ui/markers/marker_incident_armed.svg",
+      "category": "ui",
+      "role": "Вооружённая угроза",
+      "status": "review",
+      "width": 24,
+      "height": 24,
+      "alpha": true,
+      "source": "original authored SVG; specification docs/art/prompts/MARKER_INCIDENT_ARMED.md",
+      "approvedBy": null,
+      "notes": "Color via currentColor; use at 32px. Not yet integrated."
+    },
+    {
+      "id": "MARKER_INCIDENT_SEARCH",
+      "file": "assets/ui/markers/marker_incident_search.svg",
+      "category": "ui",
+      "role": "Розыск / пропажа",
+      "status": "review",
+      "width": 24,
+      "height": 24,
+      "alpha": true,
+      "source": "original authored SVG; specification docs/art/prompts/MARKER_INCIDENT_SEARCH.md",
+      "approvedBy": null,
+      "notes": "Color via currentColor; use at 32px. Not yet integrated."
+    },
+    {
+      "id": "MARKER_INCIDENT_ILLEGAL_MOD",
+      "file": "assets/ui/markers/marker_incident_illegal_mod.svg",
+      "category": "ui",
+      "role": "Нелегальная биомодификация",
+      "status": "review",
+      "width": 24,
+      "height": 24,
+      "alpha": true,
+      "source": "original authored SVG; specification docs/art/prompts/MARKER_INCIDENT_ILLEGAL_MOD.md",
+      "approvedBy": null,
+      "notes": "Color via currentColor; use at 32px. Not yet integrated."
+    },
+    {
+      "id": "MARKER_SQUAD_TRANSPORT",
+      "file": "assets/ui/markers/marker_squad_transport.svg",
+      "category": "ui",
+      "role": "Служебный транспорт Дирекции (вид сверху)",
+      "status": "review",
+      "width": 24,
+      "height": 24,
+      "alpha": true,
+      "source": "original authored SVG; specification docs/art/prompts/MARKER_SQUAD_TRANSPORT.md",
+      "approvedBy": null,
+      "notes": "Color via currentColor; use at 32px. Not yet integrated."
+    }
+  ]
 }

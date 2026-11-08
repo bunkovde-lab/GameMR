@@ -6,6 +6,9 @@ import {
   admitPatient, advanceMedical, completeChecks, hireCandidate, patientOf, refreshCandidates, squadOf, treatmentForecast, vacancies, PLANS,
 } from './staff';
 import { ROLE_LABEL } from './content';
+import {
+  RANK_NAMES, advanceTraining, applyOperationToRelations, courseBlocker, hasEffect, nodeById, organBlocker, organById, promotionStatus, salaryStep,
+} from './career';
 import { buildRoute, shortestPath } from './map/graph';
 import { districtById, edgeById, spawnPosition } from './map/mapConfig';
 import { nextInt } from './rng';
@@ -94,7 +97,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
         return reject(`В отряде «${target.name}» нет свободных мест.`);
       if (current) current.memberIds = current.memberIds.filter((id) => id !== person.id);
       target.memberIds.push(person.id);
-      log(s, 'staff_transferred', `${person.name} переведён(а) в отряд «${target.name}».`);
+      log(s, 'staff_transferred', `${person.name} переведён(а) в отряд «${target.name}».`, [person.id]);
       return { ok: true, state: s };
     }
 
@@ -138,7 +141,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
       };
       inc.state = 'en_route';
       post(s, 'dispatch', -DISPATCH_COST, `Выезд «${sq.name}»: ${inc.title}`);
-      log(s, 'squad_dispatched', `Отряд «${sq.name}» направлен: ${inc.title}. Тактика: ${tacticById(draft.tactic).label.toLowerCase()}. Прибытие ≈${Math.ceil(route.totalMinutes)} мин.`);
+      log(s, 'squad_dispatched', `Отряд «${sq.name}» направлен: ${inc.title}. Тактика: ${tacticById(draft.tactic).label.toLowerCase()}. Прибытие ≈${Math.ceil(route.totalMinutes)} мин.`, memberIds);
       return { ok: true, state: s };
     }
     case 'SET_ROAD_ENABLED': {
@@ -159,7 +162,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
       if (DEPLOYED.includes(sq.status)) return reject(`${person.name} на задании в отряде «${sq.name}»; перевод после возвращения.`);
       sq.memberIds = sq.memberIds.filter((id) => id !== person.id);
       if (sq.commanderId === person.id) sq.commanderId = null;
-      log(s, 'staff_transferred', `${person.name} переведён(а) в резерв.`);
+      log(s, 'staff_transferred', `${person.name} переведён(а) в резерв.`, [person.id]);
       return { ok: true, state: s };
     }
     case 'SET_COMMANDER': {
@@ -169,7 +172,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
       if (!sq.memberIds.includes(person.id)) return reject(`${person.name} не входит в отряд «${sq.name}».`);
       if (DEPLOYED.includes(sq.status)) return reject(`Отряд «${sq.name}» на задании.`);
       sq.commanderId = person.id;
-      log(s, 'commander_set', `${person.name} назначен(а) командиром отряда «${sq.name}».`);
+      log(s, 'commander_set', `${person.name} назначен(а) командиром отряда «${sq.name}».`, [person.id]);
       return { ok: true, state: s };
     }
     case 'START_TREATMENT': {
@@ -180,14 +183,15 @@ export function reduce(state: GameState, command: Command): CommandResult {
       const pt = admitPatient(s, command.staffId, command.plan);
       if (pt.status === 'treating') post(s, 'treatment', -f.cost, `Лечение: ${person.name}`);
       log(s, pt.status === 'treating' ? 'treatment_started' : 'treatment_queued',
-        `${person.name}: ${PLANS[command.plan].label.toLowerCase()} лечение${pt.status === 'queued' ? ', очередь на место' : ''}. Ожидаемое возвращение — смена ${f.returnShift}.`);
+        `${person.name}: ${PLANS[command.plan].label.toLowerCase()} лечение${pt.status === 'queued' ? ', очередь на место' : ''}. Ожидаемое возвращение — смена ${f.returnShift}.`, [person.id]);
       return { ok: true, state: s };
     }
     case 'DEEP_CHECK': {
       const c = s.candidates.find((x) => x.id === command.candidateId);
       if (!c) return reject('Кандидат не найден.');
       if (c.check !== 'none') return reject('Проверка уже проведена или идёт.');
-      const cost = toCents(STAFF_CHECK_COST);
+      const analyst = s.staff.some((p) => p.health !== 'dead' && !p.training && !patientOf(s, p.id) && hasEffect(p, 'cheap_check'));
+      const cost = toCents(STAFF_CHECK_COST) / (analyst ? 2 : 1);
       if (s.economy.balance < cost) return reject('Недостаточно средств на проверку.');
       c.check = 'pending';
       post(s, 'check', -cost, `Проверка кандидата: ${c.name}`);
@@ -201,7 +205,52 @@ export function reduce(state: GameState, command: Command): CommandResult {
       if (s.economy.balance < c.hireCost) return reject('Недостаточно средств на найм.');
       post(s, 'hiring', -c.hireCost, `Найм: ${c.name}`);
       const person = hireCandidate(s, c);
-      log(s, 'staff_hired', `${person.name} принят(а) на службу (${ROLE_LABEL[person.role].toLowerCase()}), в резерве${person.adaptation ? `, адаптация ${person.adaptation} смен.` : '.'}`);
+      log(s, 'staff_hired', `${person.name} принят(а) на службу (${ROLE_LABEL[person.role].toLowerCase()}), в резерве${person.adaptation ? `, адаптация ${person.adaptation} смен.` : '.'}`, [person.id]);
+      return { ok: true, state: s };
+    }
+    case 'START_COURSE': {
+      const why = courseBlocker(s, command.staffId, command.nodeId);
+      if (why) return reject(why);
+      const p = s.staff.find((x) => x.id === command.staffId)!;
+      const n = nodeById(command.nodeId)!;
+      p.training = { nodeId: n.id, shiftsLeft: n.shifts };
+      const sq = squadOf(s, p.id);
+      if (sq) { sq.memberIds = sq.memberIds.filter((id) => id !== p.id); if (sq.commanderId === p.id) sq.commanderId = null; }
+      post(s, 'training', -toCents(n.cost), `Курс «${n.label}»: ${p.name}`);
+      log(s, 'course_started', `${p.name} направлен(а) на курс «${n.label}» (${n.shifts} смен.), выведен(а) в резерв.`, [p.id]);
+      return { ok: true, state: s };
+    }
+    case 'PROMOTE': {
+      const st = promotionStatus(s, command.staffId);
+      if (!st) return reject('Повышение невозможно.');
+      if (st.blocker) return reject(st.blocker);
+      const p = s.staff.find((x) => x.id === command.staffId)!;
+      post(s, 'promotion', -st.fee, `Аттестация: ${p.name}`);
+      p.rank = st.next;
+      p.salary += salaryStep();
+      log(s, 'staff_promoted', `${p.name} аттестован(а): присвоен ранг ${RANK_NAMES[p.rank - 1]}.`, [p.id]);
+      return { ok: true, state: s };
+    }
+    case 'INSTALL_ORGAN': {
+      const why = organBlocker(s, command.staffId, command.organId);
+      if (why) return reject(why);
+      const p = s.staff.find((x) => x.id === command.staffId)!;
+      const o = organById(command.organId)!;
+      const sq = squadOf(s, p.id);
+      if (sq) { sq.memberIds = sq.memberIds.filter((id) => id !== p.id); if (sq.commanderId === p.id) sq.commanderId = null; }
+      s.medical.patients.push({ staffId: p.id, plan: 'standard', status: 'treating', shiftsLeft: o.shifts, injury: p.health, since: s.shift, kind: 'implant', organId: o.id });
+      post(s, 'implant', -toCents(o.cost), `Установка органа «${o.label}»: ${p.name}`);
+      log(s, 'implant_started', `${p.name}: установка «${o.label}», реабилитация ${o.shifts} смен., выведен(а) в резерв.`, [p.id]);
+      return { ok: true, state: s };
+    }
+    case 'REMOVE_ORGAN': {
+      const p = s.staff.find((x) => x.id === command.staffId);
+      const o = organById(command.organId);
+      if (!p || !o || !p.implants.includes(o.id)) return reject('Такой орган не установлен.');
+      if (!o.removable) return reject(`«${o.label}» нельзя безопасно извлечь.`);
+      if (s.squads.some((q) => q.memberIds.includes(p.id) && DEPLOYED.includes(q.status))) return reject('Сотрудник на задании.');
+      p.implants = p.implants.filter((id) => id !== o.id);
+      log(s, 'implant_removed', `${p.name}: орган «${o.label}» извлечён.`, [p.id]);
       return { ok: true, state: s };
     }
     case 'END_SHIFT': {
@@ -250,19 +299,20 @@ export function reduce(state: GameState, command: Command): CommandResult {
       s.paused = true;
       for (const q of s.squads) if (q.status === 'resting' || q.status === 'recovery' || q.status === 'treatment') q.status = 'ready';
       // Между сменами: клиника, проверки кандидатов, адаптация новичков (W6).
-      advanceMedical(s, (type, text) => log(s, type, text), (amount, note) => {
+      advanceMedical(s, staffLog(s), (amount, note) => {
         if (s.economy.balance + amount < 0) return false;
         post(s, 'treatment', amount, note);
         return true;
       });
       completeChecks(s, (type, text) => log(s, type, text));
+      advanceTraining(s, staffLog(s));
       for (const p of s.staff) if (p.adaptation > 0) p.adaptation -= 1;
       // Лёгкие ранения заживают сами (ТЗ §7.4), усталость снижается.
       for (const p of s.staff) {
         if (p.health === 'dead') continue;
         if ((p.health === 'light_injury' || p.health === 'fatigued') && !patientOf(s, p.id)) {
           p.health = 'healthy';
-          log(s, 'staff_recovered', `${p.name}: лёгкое ранение зажило.`);
+          log(s, 'staff_recovered', `${p.name}: лёгкое ранение зажило.`, [p.id]);
         }
         p.fatigue = Math.max(0, p.fatigue - BALANCE_REST);
       }
@@ -356,11 +406,13 @@ function advanceMinute(s: GameState) {
   const arrived = moveSquads(s);
   for (const sq of s.squads) {
     if (sq.status !== 'on_scene' || !sq.operation || arrived.has(sq.id)) continue;
+    const opCommander = sq.operation.commanderId;
     const report = tickScene(s, sq);
     if (!report) continue;
     const word = report.outcome === 'success' ? 'успешно' : report.outcome === 'partial' ? 'частично' : 'провалена';
-    log(s, 'operation_completed', `Операция «${report.squadName}» (${report.incidentTitle}) завершена: ${word}.`);
-    for (const c of report.casualties) log(s, c.after === 'dead' ? 'staff_killed' : 'staff_injured', `${c.name}: ${HEALTH_LOG[c.after]}.`);
+    log(s, 'operation_completed', `Операция «${report.squadName}» (${report.incidentTitle}) завершена: ${word}.`, report.memberIds);
+    for (const c of report.casualties) log(s, c.after === 'dead' ? 'staff_killed' : 'staff_injured', `${c.name}: ${HEALTH_LOG[c.after]}.`, [c.staffId]);
+    applyOperationToRelations(s, report, opCommander, staffLog(s));
   }
   for (const inc of s.incidents) {
     if (inc.deadlineType === 'escalate' && (inc.state === 'new' || inc.state === 'acknowledged') && s.minute >= inc.deadlineMinute) {
@@ -411,6 +463,11 @@ function post(s: GameState, kind: TransactionKind, amount: number, note: string)
   s.economy.balance += amount;
 }
 
-function log(s: GameState, type: string, text: string) {
-  s.log.push({ id: s.nextIds.event++, shift: s.shift, minute: s.minute, type, text });
+function log(s: GameState, type: string, text: string, staffIds?: string[]) {
+  s.log.push({ id: s.nextIds.event++, shift: s.shift, minute: s.minute, type, text, ...(staffIds?.length ? { staffIds: [...new Set(staffIds)] } : {}) });
+}
+/** Журнал для вспомогательных модулей: сотрудник определяется по имени в тексте записи. */
+function staffLog(s: GameState) {
+  return (type: string, text: string, ids?: string[]) =>
+    log(s, type, text, ids ?? s.staff.filter((p) => text.startsWith(p.name) || text.includes(` ${p.name}`)).map((p) => p.id));
 }

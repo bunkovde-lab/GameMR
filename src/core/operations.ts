@@ -1,3 +1,4 @@
+import { hasEffect } from './career';
 import opsFile from '../../content/operations_v1.json';
 import { SQUADS_DEMO } from './content';
 import { DISPATCH_RULES, equipmentType, incidentProfile, tacticById } from './dispatch';
@@ -122,6 +123,8 @@ export function resolveOperation(s: GameState, sq: Squad, inc: Incident): Operat
   const members = [...sq.memberIds].sort().map((id) => s.staff.find((x) => x.id === id)).filter((x): x is Staff => !!x);
   const casualties: OperationReport['casualties'] = [];
   let anyContact = false;
+  // W6.2: командир с «Эвакуацией раненых» один раз за операцию выводит человека из-под смертельного исхода.
+  let rescue = hasEffect(s.staff.find((x) => x.id === op.commanderId && x.health !== 'dead'), 'rescue_cmd');
   for (const m of members) {
     const before = m.health;
     if (roll(s) < C.contactByRisk[riskLevel]! + C.contactBonus[outcome]) {
@@ -130,7 +133,9 @@ export function resolveOperation(s: GameState, sq: Squad, inc: Incident): Operat
         const fatiguePts = Math.min(3, Math.floor(m.fatigue / DISPATCH_RULES.forecast.fatiguePerPoint));
         if (roll(s) < C.seriousGivenInjury + C.seriousPerFatiguePoint * fatiguePts) {
           const death = C.deathGivenSerious + (outcome === 'failure' ? C.deathBonusOnFailure : 0);
-          m.health = roll(s) < death ? 'dead' : worse(m.health, 'serious_injury');
+          const dies = roll(s) < death;
+          if (dies && rescue && m.id !== op.commanderId) { rescue = false; m.health = worse(m.health, 'critical'); }
+          else m.health = dies ? 'dead' : worse(m.health, 'serious_injury');
         } else {
           m.health = m.health === 'light_injury' ? 'serious_injury' : worse(m.health, 'light_injury');
         }
@@ -181,6 +186,7 @@ export function resolveOperation(s: GameState, sq: Squad, inc: Incident): Operat
     incidentTitle: inc.title,
     squadId: sq.id,
     squadName: sq.name,
+    memberIds: members.map((m) => m.id),
     tactic: op.tactic,
     outcome,
     decisions: op.decisions,

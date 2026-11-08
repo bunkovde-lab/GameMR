@@ -1,0 +1,74 @@
+{
+  "_status": "PROVISIONAL_RULE — W6 часть 2: развитие (ТЗ §7.1–7.2), модификации (§7.3), отношения (§7.5). Названия узлов, органов и систем — рабочие, НЕ канон лора (вопрос к арт-директору/лору, см. DECISIONS OPEN-08). Числа — гипотезы до баланса W10.",
+  "skillPoints": { "xpPerPoint": 10, "_note": "Очки навыков дают опыт; ранг их не даёт (ТЗ §7.1: XP и ранг не тождественны)." },
+  "branches": {
+    "command": {
+      "label": "Тактическое командование",
+      "hint": "координация, снижение потерь, варианты спасения",
+      "nodes": [
+        { "id": "cmd1", "tier": 1, "label": "Координация группы", "desc": "Командир с этим навыком снижает риск для группы на одну ступень.", "effect": "risk_down_cmd", "points": 1, "cost": 3, "shifts": 1, "rankMin": 1 },
+        { "id": "cmd2", "tier": 2, "label": "Сборная группа", "desc": "Под этим командиром группа, собранная вручную, действует как штатная (C = 1).", "effect": "cohesion_cmd", "points": 2, "cost": 5, "shifts": 1, "rankMin": 2, "stat": { "key": "authority", "min": 3 } },
+        { "id": "cmd3", "tier": 3, "label": "Эвакуация раненых", "desc": "Командир выводит тяжелораненых: один раз за операцию критическое ранение вместо гибели подчинённого.", "effect": "rescue_cmd", "points": 3, "cost": 8, "shifts": 2, "rankMin": 3, "stat": { "key": "authority", "min": 3 } }
+      ]
+    },
+    "counterintel": {
+      "label": "Контрразведка",
+      "hint": "противоречия, агентура, ложные сведения",
+      "nodes": [
+        { "id": "ci1", "tier": 1, "label": "Сверка показаний", "desc": "Сотрудник в группе даёт +1 к проверенной разведке (I), не выше предела.", "effect": "intel_any", "points": 1, "cost": 3, "shifts": 1, "rankMin": 1 },
+        { "id": "ci2", "tier": 2, "label": "Работа с досье", "desc": "Глубокая проверка кандидатов стоит вдвое дешевле, пока сотрудник в строю.", "effect": "cheap_check", "points": 2, "cost": 5, "shifts": 1, "rankMin": 2, "stat": { "key": "analysis", "min": 3 } },
+        { "id": "ci3", "tier": 3, "label": "Ложный след", "desc": "Открывается в расследованиях (W7). Сейчас не действует.", "effect": "later", "points": 3, "cost": 8, "shifts": 2, "rankMin": 3, "stat": { "key": "analysis", "min": 4 } }
+      ]
+    },
+    "operations": {
+      "label": "Оперативное мастерство",
+      "hint": "задержание, скрытый подход, кризисные тактики",
+      "nodes": [
+        { "id": "op1", "tier": 1, "label": "Штатное задержание", "desc": "+1 к соответствию тактики «Задержание» (T), не выше +2.", "effect": "tactic:arrest", "points": 1, "cost": 3, "shifts": 1, "rankMin": 1 },
+        { "id": "op2", "tier": 2, "label": "Скрытый подход", "desc": "+1 к соответствию тактики «Разведка» (T), не выше +2.", "effect": "tactic:recon", "points": 2, "cost": 5, "shifts": 1, "rankMin": 2, "stat": { "key": "reaction", "min": 3 } },
+        { "id": "op3", "tier": 3, "label": "Кризисный периметр", "desc": "+1 к соответствию тактики «Карантин» (T), не выше +2.", "effect": "tactic:quarantine", "points": 3, "cost": 8, "shifts": 2, "rankMin": 3, "stat": { "key": "control", "min": 4 } }
+      ]
+    }
+  },
+  "promotion": {
+    "_note": "Звание: аттестация (взнос), опыт, результаты (операции), свободная должность ранга (ТЗ §7.1).",
+    "xpToNext": { "1": 12, "2": 25, "3": 45, "4": 70 },
+    "opsToNext": { "1": 1, "2": 2, "3": 4, "4": 6 },
+    "slotsByRank": { "2": 8, "3": 4, "4": 1, "5": 0 },
+    "fee": { "1": 2, "2": 3, "3": 5, "4": 8 },
+    "salaryStep": 1
+  },
+  "bio": {
+    "_note": "Три категории (ТЗ §7.3): врождённые системы, линейные органы, экспериментальные модификации. Метаболическая нагрузка ограничивает интеграцию новых органов, а не здоровье.",
+    "capacityBase": 2,
+    "capacityPerResilience": 1,
+    "innate": {
+      "all": [{ "id": "innate_core", "label": "Врождённые системы зрелого кровного", "load": 1, "desc": "Не удаляются и не требуют обслуживания. Состав по лору не утверждён." }],
+      "lovchiy": [{ "id": "line_sense", "label": "Сенсорная линия Ловчих", "load": 1, "desc": "Линейный орган: обострённое восприятие следа." }],
+      "biocriminalist": [{ "id": "line_assay", "label": "Тканевой анализатор", "load": 1, "desc": "Линейный орган: экспресс-анализ биоматериала." }]
+    },
+    "organs": [
+      { "id": "org_scent", "label": "Обонятельный узел", "ability": "Сенсорная охота", "desc": "+1 к соответствию тактики «Разведка» (T).", "effect": "tactic:recon", "load": 2, "cost": 10, "shifts": 2, "removable": true, "conflicts": ["line_sense"], "conflictWhy": "дублирует сенсорную линию Ловчих" },
+      { "id": "org_trace", "label": "Хеморецепторная железа", "ability": "Биологические следы", "desc": "+1 к снаряжению (G) на биологических и следовых вызовах.", "effect": "gear_bio", "load": 2, "cost": 12, "shifts": 2, "removable": true, "conflicts": ["line_assay"], "conflictWhy": "конкурирует с тканевым анализатором" },
+      { "id": "org_dermal", "label": "Подкожная мембрана", "ability": "Защитная тактика", "desc": "Снижает риск для группы на одну ступень (не суммируется с «Координацией»).", "effect": "risk_down_any", "load": 3, "cost": 16, "shifts": 3, "removable": false, "conflicts": [], "conflictWhy": "" }
+    ]
+  },
+  "relations": {
+    "_note": "Шкалы −5…+5. Меняются только событиями (операции, ранения, гибель, назначения), без кнопки «дружить» (ТЗ §7.5).",
+    "jointTeamwork": 3,
+    "conflictTrust": -3,
+    "squadmatesStart": { "teamwork": 2, "trust": 1 },
+    "seed": [
+      { "a": "p1", "b": "p2", "trust": 2, "teamwork": 3, "loyalty": 1, "why": "вместе служат в «Аксоне» с первого набора" },
+      { "a": "p3", "b": "p11", "trust": -3, "teamwork": 0, "loyalty": -1, "why": "спор о методах ведения допроса" },
+      { "a": "p9", "b": "p10", "trust": 1, "teamwork": 3, "loyalty": 0, "why": "отработанное взаимодействие в «Резонансе»" }
+    ],
+    "allegianceStart": { "state": 60, "house": 50, "directorate": 55 },
+    "deltas": {
+      "successTeamwork": 1,
+      "failureTrust": -1,
+      "survivedSeriousTrustInCommander": 1,
+      "deathDirectorate": -5
+    }
+  }
+}

@@ -94,6 +94,7 @@ describe('App shell', () => {
     fireEvent.click(screen.getByTestId('confirm-dispatch'));
     const sq = getGame().squads.find((q) => q.id === 'resonance')!;
     expect(sq.memberIds).toEqual(['p9', 'p10', 'p1']);
-    expect(sq.operation).toMatchObject({ tactic: 'recon', commanderId: 'p1', cohesion: 0 });
+    // Состав собран вручную, но Сели Ренн и Гард Верек сработались (W6.2, content/career_v1.json): C = 1.
+    expect(sq.operation).toMatchObject({ tactic: 'recon', commanderId: 'p1', cohesion: 1 });
   });
 });

@@ -10,17 +10,22 @@ import {
 import type { Candidate, DossierStatus, GameState, StaffRole, Stats } from '../../core/types';
 import { dispatch } from '../../store';
 import { Icon } from '../Icon';
+import { Development, History, Modifications, PersonPicker, Relations } from './StaffCareer';
 import { SQUAD_STATUS } from '../labels';
 
 const RANKS = ['I', 'II', 'III', 'IV', 'V'];
-type Tab = 'summary' | 'roster' | 'medical' | 'hiring';
+type Tab = 'summary' | 'roster' | 'medical' | 'hiring' | 'development' | 'mods' | 'relations' | 'history';
 const TABS: { id: Tab; label: string }[] = [
   { id: 'summary', label: 'Сводка' },
   { id: 'roster', label: 'Штат' },
   { id: 'medical', label: 'Медицина' },
   { id: 'hiring', label: 'Найм' },
+  { id: 'development', label: 'Развитие' },
+  { id: 'mods', label: 'Модификации' },
+  { id: 'relations', label: 'Отношения' },
+  { id: 'history', label: 'История' },
 ];
-const LATER = ['Развитие', 'Модификации', 'Отношения', 'История'];
+const PERSONAL: Tab[] = ['development', 'mods', 'relations', 'history'];
 const STAT_LABEL: Record<keyof Stats, string> = { reaction: 'Реакция', analysis: 'Анализ', control: 'Контроль', resilience: 'Стойкость', authority: 'Авторитет' };
 const DOSSIER: Record<DossierStatus, { mark: string; label: string }> = {
   verified: { mark: '✓', label: 'подтверждено' },
@@ -32,6 +37,8 @@ const DOSSIER: Record<DossierStatus, { mark: string; label: string }> = {
 /** Кадры (W6, часть 1): сводка, штат и назначения (UI-14), медицина (UI-10), найм (UI-13). */
 export function StaffScreen({ game, onClose }: { game: GameState; onClose: () => void }) {
   const [tab, setTab] = useState<Tab>('summary');
+  const [personId, setPersonId] = useState('p1');
+  const person = game.staff.find((p) => p.id === personId) ?? game.staff[0]!;
   const alive = game.staff.filter((p) => p.health !== 'dead').length;
   return (
     <section className="panel screen" role="region" aria-label="Кадры" data-testid="staff-screen">
@@ -41,7 +48,6 @@ export function StaffScreen({ game, onClose }: { game: GameState; onClose: () =>
           {TABS.map((t) => (
             <button key={t.id} role="tab" className="btn" aria-selected={tab === t.id} aria-pressed={tab === t.id} onClick={() => setTab(t.id)} data-testid={`staff-tab-${t.id}`}>{t.label}</button>
           ))}
-          {LATER.map((l) => <button key={l} role="tab" className="btn" disabled title="Вторая часть этапа W6" aria-selected={false}>{l}</button>)}
         </div>
         <button className="btn icon-only" onClick={onClose} aria-label="Вернуться к карте"><Icon name="close" /></button>
       </div>
@@ -50,6 +56,18 @@ export function StaffScreen({ game, onClose }: { game: GameState; onClose: () =>
         {tab === 'roster' && <Roster game={game} />}
         {tab === 'medical' && <Medical game={game} />}
         {tab === 'hiring' && <Hiring game={game} />}
+        {PERSONAL.includes(tab) && (
+          <div className="person-split">
+            <PersonPicker game={game} selected={person.id} onSelect={setPersonId} archive={tab === 'history' || tab === 'relations'} />
+            <div className="person-detail">
+              <h3 className="person-name">{person.name}</h3>
+              {tab === 'development' && <Development game={game} p={person} />}
+              {tab === 'mods' && <Modifications game={game} p={person} />}
+              {tab === 'relations' && <Relations game={game} p={person} />}
+              {tab === 'history' && <History game={game} p={person} />}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -82,7 +100,7 @@ function Summary({ game }: { game: GameState }) {
           </tbody>
         </table>
       </div>
-      <p className="empty"><small>Имена и параметры временные (OPEN-08). Развитие, модификации, отношения и история — вторая часть W6.</small></p>
+      <p className="empty"><small>Имена и параметры временные (OPEN-08).</small></p>
     </>
   );
 }
@@ -161,7 +179,7 @@ function Medical({ game }: { game: GameState }) {
         <ul className="plain-list member-rows">
           {game.medical.patients.map((pt) => (
             <li key={pt.staffId} data-testid={`patient-${pt.staffId}`}>
-              <span>{name(pt.staffId)}<small>{HEALTH_LOG[pt.injury]} · {PLANS[pt.plan].label.toLowerCase()} · {pt.status === 'queued' ? 'ждёт места' : `ещё ${pt.shiftsLeft} смен.`}</small></span>
+              <span>{name(pt.staffId)}<small>{pt.kind === 'implant' ? `реабилитация после установки органа` : `${HEALTH_LOG[pt.injury]} · ${PLANS[pt.plan].label.toLowerCase()}`} · {pt.status === 'queued' ? 'ждёт места' : `ещё ${pt.shiftsLeft} смен.`}</small></span>
             </li>
           ))}
         </ul>

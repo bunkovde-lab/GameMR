@@ -1,3 +1,4 @@
+import { groupMods } from './career';
 import dispatchFile from '../../content/dispatch_v1.json';
 import { DISPATCH_COST, INCIDENT_TEMPLATES, ROLE_LABEL } from './content';
 import { buildRoute, etaMinutes, type Route } from './map/graph';
@@ -72,7 +73,9 @@ export function memberBlocker(s: GameState, staffId: string, squadId: string): s
   const h = UNFIT[p.health];
   if (h) return h;
   if (p.fatigue >= DISPATCH_RULES.squad.exhaustedFatigue) return 'переутомление';
-  if (s.medical.patients.some((x) => x.staffId === staffId)) return 'на лечении';
+  const pt = s.medical.patients.find((x) => x.staffId === staffId);
+  if (pt) return pt.kind === 'implant' ? 'реабилитация после установки органа' : 'на лечении';
+  if (p.training) return 'на обучении';
   if (p.adaptation > 0) return 'адаптация после найма';
   const other = s.squads.find((q) => q.id !== squadId && q.memberIds.includes(staffId));
   if (other && other.status !== 'ready') return `занят: отряд «${other.name}»`;
@@ -146,10 +149,12 @@ export function forecastTerms(s: GameState, d: DispatchDraft): ForecastTerms {
   const I = Math.min(R_.intelMax, prof.intel + tacticById(d.tactic).intelBonus);
   const sq = s.squads.find((q) => q.id === d.squadId);
   const standing = sq ? [...sq.memberIds].sort().join() : '';
-  const C: 0 | 1 = members.length > 0 && standing === [...d.memberIds].sort().join() ? 1 : 0;
-  const T = prof.tacticFit[d.tactic] ?? 0;
+  const mods = groupMods(s, d.memberIds, d.commanderId, d.tactic, prof.tags);
+  const I_ = Math.min(R_.intelMax, I + mods.dI);
+  const C: 0 | 1 = members.length > 0 && (standing === [...d.memberIds].sort().join() || mods.cohesion) ? 1 : 0;
+  const T = Math.min(2, (prof.tacticFit[d.tactic] ?? 0) + mods.dT);
   const tags = new Set(prof.tags);
-  const G = Math.min(R_.gearMax, d.equipmentIds.filter((id) => {
+  const G = Math.min(R_.gearMax, mods.dG + d.equipmentIds.filter((id) => {
     const u = s.equipment.find((e) => e.id === id);
     return u && equipmentType(u.typeId)?.tags.some((t) => tags.has(t));
   }).length);
@@ -158,9 +163,9 @@ export function forecastTerms(s: GameState, d: DispatchDraft): ForecastTerms {
   const roles = new Set(members.map((m) => m.role));
   const R = Math.min(R_.roleDeficitMax, prof.requiredRoles.filter((r) => !roles.has(r)).length);
   const w = R_.weights;
-  const A = S.reduce((a, v, i) => a + v * (w[i] ?? 0), 0) + I + C + T + G - F - R;
+  const A = S.reduce((a, v, i) => a + v * (w[i] ?? 0), 0) + I_ + C + T + G - F - R;
   const D = prof.difficulty;
-  return { S, I, C, T, G, F, R, A, D, M: A - D };
+  return { S, I: I_, C, T, G, F, R, A, D, M: A - D };
 }
 
 const clamp = (lo: number, hi: number, v: number) => Math.min(hi, Math.max(lo, v));
@@ -187,7 +192,9 @@ const RISK_WORD = ['низкий', 'низкий', 'средний', 'высок
 /** Словесный риск для группы: тактика, усталость и нехватка ролей (ТЗ §6.3: потери — отдельные проверки W5). */
 export function riskLevel(s: GameState, d: DispatchDraft): number {
   const t = forecastTerms(s, d);
-  return Math.min(4, tacticById(d.tactic).squadRisk + (t.F >= 2 ? 1 : 0) + (t.R > 0 ? 1 : 0));
+  const inc = s.incidents.find((i) => i.id === d.incidentId);
+  const mods = groupMods(s, d.memberIds, d.commanderId, d.tactic, inc ? incidentProfile(inc).tags : []);
+  return Math.max(0, Math.min(4, tacticById(d.tactic).squadRisk + (t.F >= 2 ? 1 : 0) + (t.R > 0 ? 1 : 0) + mods.dRisk));
 }
 export const riskWord = (level: number) => RISK_WORD[Math.max(0, Math.min(4, level))]!;
 export function squadRisk(s: GameState, d: DispatchDraft): string {

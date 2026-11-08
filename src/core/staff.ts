@@ -78,12 +78,17 @@ export function advanceMedical(s: GameState, log: (type: string, text: string) =
     if (pt.shiftsLeft > 0) continue;
     if (roll(s) < PLANS[pt.plan].complication) {
       pt.shiftsLeft = 1;
-      log('treatment_complication', `${person.name}: осложнение, лечение продлено на смену.`);
+      log('treatment_complication', `${person.name}: осложнение, ${pt.kind === 'implant' ? 'реабилитация' : 'лечение'} продлена на смену.`);
+      continue;
+    }
+    s.medical.patients = s.medical.patients.filter((x) => x !== pt);
+    person.fatigue = STAFF_RULES.medical.returnFatigue;
+    if (pt.kind === 'implant' && pt.organId) {
+      person.implants.push(pt.organId);
+      log('implant_installed', `${person.name}: реабилитация завершена, орган интегрирован.`);
       continue;
     }
     person.health = 'healthy';
-    person.fatigue = STAFF_RULES.medical.returnFatigue;
-    s.medical.patients = s.medical.patients.filter((x) => x !== pt);
     log('treatment_finished', `${person.name} выписан(а) и вернулся(лась) к службе.`);
   }
   for (const pt of s.medical.patients.filter((x) => x.status === 'queued')) {
@@ -190,6 +195,7 @@ export function hireCandidate(s: GameState, c: Candidate): Staff {
   const person: Staff = {
     id: `p${n}`, name: c.name, role: c.role, rank: c.rank, xp: 0, stats: { ...c.stats }, health: 'healthy', fatigue: 10,
     salary: c.salary, adaptation: c.adaptation, patron: c.patron,
+    skills: [], training: null, implants: [], allegiance: { state: 55, house: 50, directorate: 50 },
   };
   s.staff.push(person);
   s.candidates = s.candidates.filter((x) => x.id !== c.id);

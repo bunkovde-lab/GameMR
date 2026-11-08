@@ -2,7 +2,7 @@
  * Доменная модель W2 — подмножество ТЗ §5.2, необходимое для одной смены.
  * Деньги хранятся целым числом в сотых долях РЕ (cents), чтобы избежать ошибок округления.
  */
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 
 import type { Route } from './map/graph';
 
@@ -79,6 +79,8 @@ export interface OperationReport {
   incidentTitle: string;
   squadId: string;
   squadName: string;
+  /** W6.2: состав на момент развязки (для истории и отношений) */
+  memberIds: string[];
   tactic: TacticId;
   outcome: Outcome;
   decisions: { stage: string; label: string; result: string }[];
@@ -122,7 +124,18 @@ export interface Staff {
   adaptation: number;
   /** W6: скрытая рекомендация/обязательство перед Домом (ТЗ §7.6), раскрывается проверкой */
   patron: string | null;
+  /** W6.2: изученные узлы развития (ТЗ §7.2) */
+  skills: string[];
+  /** W6.2: идущий курс — сотрудник вне активного состава */
+  training: { nodeId: string; shiftsLeft: number } | null;
+  /** W6.2: установленные органы (ТЗ §7.3); врождённые системы выводятся из роли и не хранятся */
+  implants: string[];
+  /** W6.2: преданность государству / Дому / дирекции, 0…100 (ТЗ §7.5) */
+  allegiance: { state: number; house: number; directorate: number };
 }
+
+/** ТЗ §7.5: связь двух сотрудников, шкалы −5…+5 */
+export interface Relation { a: string; b: string; trust: number; teamwork: number; loyalty: number }
 
 /** ТЗ §7.4: медицинские планы */
 export type MedicalPlanId = 'standard' | 'accelerated' | 'regenerative';
@@ -134,6 +147,9 @@ export interface Patient {
   shiftsLeft: number;
   injury: HealthState;
   since: number;
+  /** W6.2: 'implant' — установка органа с реабилитацией, занимает место клиники */
+  kind?: 'injury' | 'implant';
+  organId?: string;
 }
 
 /** ТЗ §7.6: статусы сведений досье */
@@ -194,7 +210,7 @@ export interface Incident {
   createdShift: number;
 }
 
-export type TransactionKind = 'funding' | 'salary' | 'dispatch' | 'treatment' | 'hiring' | 'check';
+export type TransactionKind = 'funding' | 'salary' | 'dispatch' | 'treatment' | 'hiring' | 'check' | 'training' | 'promotion' | 'implant';
 
 export interface Transaction {
   id: number;
@@ -219,6 +235,8 @@ export interface WorldEvent {
   minute: number;
   type: string;
   text: string;
+  /** W6.2: к кому относится запись — из этого строится история службы (ТЗ §7.7) */
+  staffIds?: string[];
 }
 
 export interface ShiftReport {
@@ -259,6 +277,7 @@ export interface GameState {
   operationReports: OperationReport[];
   medical: { patients: Patient[] };
   candidates: Candidate[];
+  relations: Relation[];
   nextIds: { event: number; transaction: number; incident: number; report: number; staff: number; candidate: number };
 }
 
@@ -287,6 +306,10 @@ export type Command =
   | { type: 'START_TREATMENT'; staffId: string; plan: MedicalPlanId }
   | { type: 'DEEP_CHECK'; candidateId: string }
   | { type: 'HIRE'; candidateId: string }
+  | { type: 'START_COURSE'; staffId: string; nodeId: string }
+  | { type: 'PROMOTE'; staffId: string }
+  | { type: 'INSTALL_ORGAN'; staffId: string; organId: string }
+  | { type: 'REMOVE_ORGAN'; staffId: string; organId: string }
   | { type: 'ACK_OPERATION_REPORT'; reportId: number }
   | { type: 'END_SHIFT' }
   | { type: 'ADVANCE_SHIFT' };

@@ -13,6 +13,7 @@ import { Modal } from '../Modal';
 import { Portrait } from '../Portrait';
 import { groupMods } from '../../core/career';
 import { SQUAD_STATUS } from '../labels';
+import { PERMIT_NAME, POLITICS, emergencyRisk, legalRequirement, permitBlocker, requestBlocker, riskWord } from '../../core/politics';
 
 interface Props {
   game: GameState;
@@ -191,11 +192,12 @@ export function DispatchDialog({ game, incidentId, initialSquadId, onClose, onPr
               <ul className="pick-list tactics">
                 {TACTICS.map((t) => {
                   const why = tacticBlocker(game, t.id, draft.memberIds, draft.equipmentIds);
+                  const legal = permitBlocker(game, incidentId, t.id) ? legalRequirement(inc, t.id) : null;
                   return (
                     <li key={t.id}>
                       <button className="btn pick" aria-pressed={draft.tactic === t.id} disabled={!!why} onClick={() => setTactic(t.id)} data-testid={`tactic-${t.id}`}>
                         <b>{t.label}</b>
-                        <small>{why ?? `риск для группы: ${['низкий', 'низкий', 'средний', 'высокий'][t.squadRisk]}`}</small>
+                        <small>{why ?? `риск для группы: ${['низкий', 'низкий', 'средний', 'высокий'][t.squadRisk]}`}{!why && legal ? ` · нужно ${PERMIT_NAME[legal.permit]}` : ''}</small>
                       </button>
                     </li>
                   );
@@ -206,6 +208,26 @@ export function DispatchDialog({ game, incidentId, initialSquadId, onClose, onPr
                   На месте +{tactic.sceneMinutes} мин · риск для горожан: {civilianRiskWord(tactic.id)} · улики {tactic.evidence} · {tactic.escape}.
                 </p>
               )}
+              {tactic && permitBlocker(game, incidentId, tactic.id) && (() => {
+                const req = legalRequirement(inc, tactic.id)!;
+                const reqWhy = requestBlocker(game, incidentId, req.permit);
+                const E = POLITICS.permits.emergency;
+                return (
+                  <div className="legal-box" data-testid="legal-box">
+                    <p><b>Нужно {PERMIT_NAME[req.permit]}.</b> {req.why}</p>
+                    <div className="row-actions wrap">
+                      <button className="btn" disabled={!!reqWhy} onClick={() => dispatch({ type: 'REQUEST_PERMIT', incidentId, kind: req.permit })} data-testid="dispatch-request-permit">
+                        Запросить {req.permit === 'judicial' ? 'ордер' : 'допуск'} · ≈{POLITICS.permits[req.permit].reviewMinutes} мин
+                      </button>
+                      <button className="btn" aria-pressed={!!draft.emergency} onClick={() => setDraft({ ...draft, emergency: !draft.emergency })} data-testid="toggle-emergency">
+                        {draft.emergency ? '✓ ' : ''}Чрезвычайное основание
+                      </button>
+                    </div>
+                    {reqWhy && <small className="why">{reqWhy}</small>}
+                    <small className="muted">Чрезвычайное основание: решение записывается на руководителя, проверка в начале смены {game.shift + 1}, риск признания нарушением {riskWord(emergencyRisk(game, inc))}. При нарушении штраф {E.fine} РЕ, суд строже к следующим запросам.</small>
+                  </div>
+                );
+              })()}
             </>
           )}
         </div>

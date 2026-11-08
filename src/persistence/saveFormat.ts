@@ -3,6 +3,7 @@ import { initialEquipment } from '../core/dispatch';
 import { allegianceStart, initialRelations } from '../core/career';
 import { initialFacilities } from '../core/facilities';
 import { RESEARCH } from '../core/research';
+import { initialPolitics } from '../core/politics';
 
 /** Формат файла сохранения и экспорта. */
 export interface SaveFile {
@@ -74,6 +75,8 @@ const MIGRATIONS: Record<number, (s: Record<string, unknown>) => Record<string, 
   6: (s) => ({ ...s, facilities: initialFacilities(), construction: [] }),
   /** v7 (W7) → v8 (W7.2): исследования и запас реагентов. */
   7: (s) => ({ ...s, research: [], resources: { reagents: RESEARCH.reagents.start } }),
+  /** v8 (W7.2) → v9 (W8): отношения с Домами, коалиции, разрешения и договоры. */
+  8: (s) => ({ ...s, politics: initialPolitics() }),
 };
 
 export function toSaveFile(state: GameState, label: string, now: Date): SaveFile {
@@ -111,6 +114,8 @@ export function parseSave(raw: unknown): LoadResult {
 function validateState(s: Record<string, unknown>): string | null {
   const arrays = ['districts', 'staff', 'squads', 'incidents', 'roadClosures', 'equipment', 'log', 'reports', 'operationReports', 'candidates', 'relations', 'construction', 'research'] as const;
   for (const k of arrays) if (!Array.isArray(s[k])) return `нет раздела ${k}`;
+  const pol = s.politics as Record<string, unknown> | undefined;
+  if (!isObject(pol) || !isObject(pol.standing) || !Array.isArray(pol.permits) || !Array.isArray(pol.deals) || !Array.isArray(pol.offers)) return 'нет раздела politics';
   if (!Number.isInteger(s.shift) || (s.shift as number) < 1) return 'неверный номер смены';
   if (!Number.isInteger(s.minute) || (s.minute as number) < 0) return 'неверное время';
   if (!['BRIEFING', 'ACTIVE', 'REVIEW_PENDING', 'SHIFT_REPORT'].includes(s.phase as string)) return 'неверная фаза смены';

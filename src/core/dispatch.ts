@@ -1,5 +1,6 @@
 import { groupMods } from './career';
 import { forecastNarrow, researchOf } from './research';
+import { permitBlocker } from './politics';
 import dispatchFile from '../../content/dispatch_v1.json';
 import { DISPATCH_COST, INCIDENT_TEMPLATES, ROLE_LABEL } from './content';
 import { buildRoute, etaMinutes, type Route } from './map/graph';
@@ -60,6 +61,8 @@ export interface DispatchDraft {
   memberIds: string[];
   commanderId: string;
   equipmentIds: string[];
+  /** W8: действовать по чрезвычайному основанию, если документа для тактики нет */
+  emergency?: boolean;
 }
 
 const UNFIT: Partial<Record<Staff['health'], string>> = {
@@ -133,6 +136,7 @@ export function recommendedTactic(s: GameState, d: DispatchDraft): TacticId {
   let bestKey = -Infinity;
   for (const t of TACTICS) {
     if (tacticBlocker(s, t.id, d.memberIds, d.equipmentIds)) continue;
+    if (permitBlocker(s, d.incidentId, t.id, d.emergency)) continue;
     const f = computeForecast(s, { ...d, tactic: t.id });
     const key = f.p * 10 - t.squadRisk * 0.01;
     if (key > bestKey) { bestKey = key; best = t.id; }
@@ -241,6 +245,8 @@ export function planDispatch(s: GameState, d: DispatchDraft): DispatchPlan {
   }
   const tb = tacticBlocker(s, d.tactic, d.memberIds, d.equipmentIds);
   if (tb) blockers.push(`Тактика «${tacticById(d.tactic).label}»: ${tb}.`);
+  const pb = permitBlocker(s, d.incidentId, d.tactic, d.emergency);
+  if (pb) blockers.push(`Тактика «${tacticById(d.tactic).label}»: ${pb}`);
   const target = districtById(inc.districtId);
   const route = target ? buildRoute(sq.currentNodeId, target.serviceNode, s.roadClosures) : null;
   if (!route) blockers.push('Маршрут недоступен: дороги перекрыты.');

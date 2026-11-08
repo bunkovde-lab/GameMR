@@ -13,6 +13,10 @@ import {
 import {
   RANK_NAMES, advanceTraining, applyOperationToRelations, courseBlocker, hasEffect, nodeById, organBlocker, organById, promotionStatus, salaryStep,
 } from './career';
+import {
+  POLITICS, acceptBlocker, acceptDeal, advancePolitics, breakDeal, checkDeals, dealDef, decidePermits, houseById, legalRequirement, makePermit,
+  needsEmergency, permitFor, requestBlocker,
+} from './politics';
 import { buildRoute, shortestPath } from './map/graph';
 import { districtById, edgeById, spawnPosition } from './map/mapConfig';
 import { nextInt } from './rng';
@@ -123,10 +127,23 @@ export function reduce(state: GameState, command: Command): CommandResult {
         equipmentIds,
         commanderId: command.commanderId ?? (command.memberIds ? bestCommander(s, memberIds) : base.commanderId),
         tactic: command.tactic ?? (command.memberIds || command.equipmentIds ? recommendedTactic(s, { ...base, memberIds, equipmentIds }) : base.tactic),
+        emergency: command.emergency,
       };
       const plan = planDispatch(s, draft);
       if (plan.blockers.length) return reject(plan.blockers[0]!);
       const route = plan.route!;
+      // W8: документ для тактики — использовать выданный или зафиксировать чрезвычайное основание.
+      const req = legalRequirement(inc, draft.tactic);
+      if (req) {
+        const doc = permitFor(s, inc.id, req.permit);
+        if (doc) { doc.status = 'used'; doc.note = `Использовано: выезд «${sq.name}».`; }
+        else if (needsEmergency(s, inc.id, draft.tactic)) {
+          const p = makePermit(s, inc, 'emergency', draft.tactic);
+          p.note = `Выезд «${sq.name}», тактика «${tacticById(draft.tactic).label}». Проверка в смене ${p.reviewShift}.`;
+          s.politics.permits.push(p);
+          log(s, 'emergency_authority', `Чрезвычайное основание: ${inc.title}. Ответственный — руководитель дирекции; проверка в начале смены ${p.reviewShift}.`);
+        }
+      }
       const cohesion = forecastTerms(s, draft).C;
       // Ручной состав: выбранные переходят в этот отряд, не поехавшие остаются в резерве без отряда.
       for (const q of s.squads) if (q.id !== sq.id) q.memberIds = q.memberIds.filter((id) => !memberIds.includes(id));
@@ -322,6 +339,39 @@ export function reduce(state: GameState, command: Command): CommandResult {
       log(s, 'fabricated', `Изготовлено: ${equipmentType(f.typeId)?.label ?? f.typeId}, ${f.units} ед.`);
       return { ok: true, state: s };
     }
+    case 'REQUEST_PERMIT': {
+      const why = requestBlocker(s, command.incidentId, command.kind);
+      if (why) return reject(why);
+      const inc = s.incidents.find((i) => i.id === command.incidentId)!;
+      const p = makePermit(s, inc, command.kind);
+      s.politics.permits.push(p);
+      const fee = toCents(POLITICS.permits[command.kind].fee);
+      if (fee) post(s, 'permit_fee', -fee, `Пошлина: ${command.kind === 'judicial' ? 'ордер' : 'допуск'} по вызову «${inc.title}»`);
+      log(s, 'permit_requested', `Запрошено ${command.kind === 'judicial' ? 'судебное разрешение' : 'межведомственное разрешение'} (${p.issuer}): ${inc.title}. Решение ≈ через ${POLITICS.permits[command.kind].reviewMinutes} мин.`);
+      return { ok: true, state: s };
+    }
+    case 'ACCEPT_DEAL': {
+      const why = acceptBlocker(s, command.offerId);
+      if (why) return reject(why);
+      const offer = s.politics.offers.find((o) => o.id === command.offerId)!;
+      acceptDeal(s, offer, (a, n) => post(s, 'deal', a, n), (t, x) => log(s, t, x));
+      return { ok: true, state: s };
+    }
+    case 'DECLINE_DEAL': {
+      const offer = s.politics.offers.find((o) => o.id === command.offerId);
+      if (!offer) return reject('Предложение не найдено или истекло.');
+      const def = dealDef(offer.templateId)!;
+      s.politics.offers = s.politics.offers.filter((o) => o !== offer);
+      s.politics.standing[def.houseId] = Math.max(-100, (s.politics.standing[def.houseId] ?? 0) + POLITICS.declineStanding);
+      log(s, 'deal_declined', `Отклонено предложение ${houseById(def.houseId)!.label}: «${def.title}».`);
+      return { ok: true, state: s };
+    }
+    case 'BREAK_DEAL': {
+      const deal = s.politics.deals.find((d) => d.id === command.dealId && d.status === 'active');
+      if (!deal) return reject('Действующий договор не найден.');
+      breakDeal(s, deal, 'дирекция расторгла договор.', (a, n) => post(s, 'sanction', a, n), (t, x) => log(s, t, x));
+      return { ok: true, state: s };
+    }
     case 'END_SHIFT': {
       if (s.phase !== 'ACTIVE' && s.phase !== 'REVIEW_PENDING') return reject('Сейчас нельзя завершить смену.');
       if (pendingDecision(s)) return reject('Сначала примите решение по операции.');
@@ -351,6 +401,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
           log(s, 'upkeep_arrears', `Не хватило средств на содержание объектов: долг ${(upkeep - paidUp) / 100} РЕ.`);
         }
       }
+      checkDeals(s, (a, n) => post(s, 'deal', a, n), (t, x) => log(s, t, x));
       const ledger = s.economy.ledger.filter((t) => t.shift === s.shift);
       const open = s.incidents.filter(isOpen);
       const ops = s.operationReports.filter((r) => r.shift === s.shift);
@@ -399,6 +450,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
       }, (type, text) => log(s, type, text));
       repairEquipment(s, (type, text) => log(s, type, text));
       advanceResearch(s, (amount, note) => { post(s, 'research', amount, note); return true; }, (type, text, ids) => log(s, type, text, ids));
+      advancePolitics(s, (a, n) => post(s, a < 0 ? 'sanction' : 'deal', a, n), (t, x) => log(s, t, x));
       for (const p of s.staff) if (p.adaptation > 0) p.adaptation -= 1;
       // Лёгкие ранения заживают сами (ТЗ §7.4), усталость снижается.
       for (const p of s.staff) {
@@ -507,6 +559,7 @@ function advanceMinute(s: GameState) {
     for (const c of report.casualties) log(s, c.after === 'dead' ? 'staff_killed' : 'staff_injured', `${c.name}: ${HEALTH_LOG[c.after]}.`, [c.staffId]);
     applyOperationToRelations(s, report, opCommander, staffLog(s));
   }
+  decidePermits(s, (t, x) => log(s, t, x));
   for (const inc of s.incidents) {
     if (inc.deadlineType === 'escalate' && (inc.state === 'new' || inc.state === 'acknowledged') && s.minute >= inc.deadlineMinute) {
       inc.state = 'escalated';

@@ -2,6 +2,7 @@ import researchFile from '../../content/research_v1.json';
 import { toCents } from './content';
 import { researchCells } from './facilities';
 import { nextFloat } from './rng';
+import { dealReagents } from './politics';
 import type { GameState, Project, ProjectStatus, ResearchProtocol, Staff, StaffRole } from './types';
 
 /**
@@ -104,7 +105,7 @@ export function refreshResearch(s: GameState) {
 }
 
 export const reagentSupply = (s: GameState) =>
-  R.reagents.supplyPerShift + PROJECTS.filter((d) => isDone(s, d.id)).reduce((a, d) => a + (d.effect?.reagentSupply ?? 0), 0);
+  R.reagents.supplyPerShift + dealReagents(s) + PROJECTS.filter((d) => isDone(s, d.id)).reduce((a, d) => a + (d.effect?.reagentSupply ?? 0), 0);
 
 /** Между сменами: поставка реагентов, затем стадии проектов в ячейках. */
 export function advanceResearch(s: GameState, pay: (amount: number, note: string) => boolean, log: (type: string, text: string, ids?: string[]) => void) {

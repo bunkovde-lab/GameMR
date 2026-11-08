@@ -1,3 +1,4 @@
+import { dealBeds, dealPaymentsDue } from './politics';
 import facilitiesFile from '../../content/facilities_v1.json';
 import { toCents } from './content';
 import type { Build, FacilityId, GameState } from './types';
@@ -36,7 +37,7 @@ function cap(s: GameState, id: FacilityId, key: keyof NonNullable<LevelDef['effe
   const defs = facilityDef(id).levels.filter((l) => l.level <= lv && l.effect?.[key] !== undefined);
   return defs.at(-1)?.effect?.[key] ?? fallback;
 }
-export const medicalCapacity = (s: GameState) => ({ beds: cap(s, 'medical', 'beds', 2), capsules: cap(s, 'medical', 'capsules', 1) });
+export const medicalCapacity = (s: GameState) => ({ beds: cap(s, 'medical', 'beds', 2) + dealBeds(s), capsules: cap(s, 'medical', 'capsules', 1) });
 export const candidatesPerVacancy = (s: GameState) => cap(s, 'analytics', 'candidates', 3);
 export const repairsPerShift = (s: GameState) => cap(s, 'tech', 'repairs', 1);
 export const earlyWarning = (s: GameState) => cap(s, 'ops', 'earlyWarning', 0);
@@ -54,9 +55,10 @@ export const reserved = (s: GameState) => s.construction.reduce((a, b) => a + (b
 export function financeSummary(s: GameState) {
   const salary = salaryPerShift(s);
   const upkeep = upkeepPerShift(s);
-  const obligations = salary + upkeep + s.economy.unpaidObligations;
+  const deals = dealPaymentsDue(s);
+  const obligations = salary + upkeep + deals + s.economy.unpaidObligations;
   const res = reserved(s);
-  return { balance: s.economy.balance, reserved: res, salary, upkeep, unpaid: s.economy.unpaidObligations, obligations, free: s.economy.balance - res - obligations };
+  return { balance: s.economy.balance, reserved: res, salary, upkeep, deals, unpaid: s.economy.unpaidObligations, obligations, free: s.economy.balance - res - obligations };
 }
 
 // ---------- Строительная очередь ----------

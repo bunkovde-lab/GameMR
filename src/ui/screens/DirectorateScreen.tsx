@@ -9,20 +9,24 @@ import type { GameState, StaffRole, TransactionKind } from '../../core/types';
 import { dispatch } from '../../store';
 import { Icon } from '../Icon';
 import { ProjectsTab } from './ProjectsTab';
+import { AuthorityTab, PoliticsTab } from './PoliticsTabs';
+import { politicsSummary } from '../../core/politics';
 
-type Tab = 'overview' | 'finance' | 'infra' | 'projects';
+type Tab = 'overview' | 'finance' | 'infra' | 'projects' | 'authority' | 'politics';
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'Обзор' },
   { id: 'finance', label: 'Финансы' },
   { id: 'infra', label: 'Инфраструктура' },
   { id: 'projects', label: 'Проекты' },
+  { id: 'authority', label: 'Полномочия' },
+  { id: 'politics', label: 'Политика Домов' },
 ];
-const LATER = [{ label: 'Полномочия', stage: 'W8' }];
 
 const KIND_LABEL: Record<TransactionKind, string> = {
   funding: 'Финансирование', subsidy: 'Субсидия', salary: 'Жалование', upkeep: 'Содержание объектов', dispatch: 'Выезды',
   treatment: 'Лечение', hiring: 'Найм', check: 'Проверки', training: 'Обучение', promotion: 'Аттестация', implant: 'Органы',
   construction: 'Строительство', research: 'Исследования', fabrication: 'Изготовление',
+  permit_fee: 'Пошлины', sanction: 'Санкции', deal: 'Договоры с Домами',
 };
 
 /** W7 (часть 1): Дирекция — обзор (UI-15), финансы (UI-16), инфраструктура (UI-17). */
@@ -36,7 +40,6 @@ export function DirectorateScreen({ game, onClose }: { game: GameState; onClose:
           {TABS.map((t) => (
             <button key={t.id} role="tab" className="btn" aria-selected={tab === t.id} onClick={() => setTab(t.id)} data-testid={`dir-tab-${t.id}`}>{t.label}</button>
           ))}
-          {LATER.map((l) => <button key={l.label} role="tab" className="btn" disabled aria-selected={false} title={`Появится: ${l.stage}`}>{l.label}</button>)}
         </div>
         <button className="btn icon-only" onClick={onClose} aria-label="Вернуться к карте"><Icon name="close" /></button>
       </div>
@@ -45,6 +48,8 @@ export function DirectorateScreen({ game, onClose }: { game: GameState; onClose:
         {tab === 'finance' && <Finance game={game} />}
         {tab === 'infra' && <Infrastructure game={game} />}
         {tab === 'projects' && <ProjectsTab game={game} />}
+        {tab === 'authority' && <AuthorityTab game={game} />}
+        {tab === 'politics' && <PoliticsTab game={game} />}
       </div>
     </section>
   );
@@ -63,6 +68,9 @@ function Overview({ game }: { game: GameState }) {
   if (untreated.length) problems.push({ tone: 'bad', text: `Тяжелораненые без лечения: ${untreated.map((p) => p.name).join(', ')}.` });
   for (const b of blocked) problems.push({ tone: 'warn', text: `${facilityDef(b.facilityId).label}: стройка остановлена, нет средств на этап.` });
   if (damaged) problems.push({ tone: 'warn', text: `Повреждённое снаряжение: ${damaged} ед. (ремонт в техсекторе между сменами).` });
+  const pol = politicsSummary(game);
+  if (pol.violations) problems.push({ tone: 'bad', text: `Нарушения по проверкам за последние смены: ${pol.violations}. Суд строже к запросам.` });
+  if (pol.reviews) problems.push({ tone: 'warn', text: `Чрезвычайные действия ждут проверки: ${pol.reviews}.` });
   if (openVac.length) problems.push({ tone: 'warn', text: `Вакансии: ${openVac.map((r) => `${ROLE_LABEL[r].toLowerCase()} (${vac[r]})`).join(', ')}.` });
   const nextSubsidy = SUBSIDY.shifts.find((x) => x >= game.shift);
   return (
@@ -83,7 +91,7 @@ function Overview({ game }: { game: GameState }) {
       <ul className="plain-list">
         {nextSubsidy && <li>Субсидия {SUBSIDY.amount} РЕ после смены {nextSubsidy}, если безопасность города не ниже {SUBSIDY.minSafety}% (сейчас {citySafety(game)}%). Не гарантирована.</li>}
         <li>Монтажных бригад: {buildSlots(game)}. Остальные работы ждут очереди.</li>
-        <li>Полномочия и согласования появятся на этапе W8.</li>
+        <li>Договоры с Домами: действуют {pol.deals}, предложений {pol.offers}. Запросов разрешений на рассмотрении: {pol.pending}.</li>
       </ul>
     </div>
   );
@@ -114,6 +122,7 @@ function Finance({ game }: { game: GameState }) {
           <dl className="kv">
             <dt>Жалование</dt><dd>{formatRe(f.salary)} РЕ</dd>
             <dt>Содержание объектов</dt><dd>{formatRe(f.upkeep)} РЕ</dd>
+            <dt>Платежи по договорам</dt><dd data-testid="fin-deals">{formatRe(f.deals)} РЕ</dd>
             <dt>Долг</dt><dd>{formatRe(f.unpaid)} РЕ</dd>
           </dl>
         </section>

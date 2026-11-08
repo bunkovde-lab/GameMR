@@ -422,3 +422,33 @@ li.kia b { color: var(--bad); }
   .screen-tabs { order: 3; flex-basis: 100%; }
 }
 .screen.panel { background: linear-gradient(var(--panel), var(--panel)), var(--bg); }
+
+/* ---------- W6.2: развитие, модификации, отношения, история ---------- */
+.person-split { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 14px; align-items: start; }
+.person-picker { display: grid; gap: 6px; position: sticky; top: 0; max-height: 100%; }
+.person-picker .btn.pick { min-height: var(--tap); }
+.person-picker .kia b { text-decoration: line-through; }
+.person-name { margin: 0 0 8px; font-size: 20px; }
+.career { display: grid; gap: 10px; }
+.branch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.node-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.node-list li { display: grid; gap: 6px; }
+.node-list li > span { display: grid; gap: 2px; }
+.node-list small, .why { color: var(--muted); font-size: 12px; line-height: 1.35; }
+.why { color: var(--amber); display: block; }
+.node-list li.learned b { color: var(--green); }
+.tag { justify-self: start; font-size: 12px; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--stroke2); }
+.tag.good { color: var(--green); border-color: var(--green); }
+.promo { display: grid; gap: 8px; justify-items: start; }
+td.good { color: var(--green); }
+td.bad { color: var(--bad); }
+.history-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.history-list li { display: grid; gap: 2px; padding: 6px 0; border-bottom: 1px solid var(--stroke2); }
+.history-list small { color: var(--muted); }
+.group-notes { font-size: 13px; color: var(--cyan); }
+@media (max-width: 950px) {
+  .person-split { grid-template-columns: 1fr; }
+  .person-picker { position: static; display: flex; overflow-x: auto; gap: 6px; padding-bottom: 4px; }
+  .person-picker .btn.pick { flex: 0 0 auto; width: auto; }
+  .branch-grid { grid-template-columns: 1fr; }
+}

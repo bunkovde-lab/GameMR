@@ -1,5 +1,6 @@
 import { SCHEMA_VERSION, type GameState } from '../core/types';
 import { initialEquipment } from '../core/dispatch';
+import { allegianceStart, initialRelations } from '../core/career';
 
 /** Формат файла сохранения и экспорта. */
 export interface SaveFile {
@@ -56,6 +57,17 @@ const MIGRATIONS: Record<number, (s: Record<string, unknown>) => Record<string, 
     staff: (s.staff as Record<string, unknown>[]).map((p) => ({ ...p, adaptation: 0, patron: null })),
     squads: (s.squads as Record<string, unknown>[]).map((q) => ({ ...q, commanderId: null })),
   }),
+  /** v5 (W6) → v6 (W6.2): навыки, курсы, органы, преданность, связи. Старые записи журнала остаются без привязки к людям. */
+  5: (s) => {
+    const next = {
+      ...s,
+      staff: (s.staff as Record<string, unknown>[]).map((p) => ({ ...p, skills: [], training: null, implants: [], allegiance: allegianceStart() })),
+      operationReports: (s.operationReports as Record<string, unknown>[]).map((r) => ({ ...r, memberIds: [] })),
+      relations: [],
+    };
+    initialRelations(next as unknown as GameState);
+    return next;
+  },
 };
 
 export function toSaveFile(state: GameState, label: string, now: Date): SaveFile {
@@ -91,7 +103,7 @@ export function parseSave(raw: unknown): LoadResult {
 }
 
 function validateState(s: Record<string, unknown>): string | null {
-  const arrays = ['districts', 'staff', 'squads', 'incidents', 'roadClosures', 'equipment', 'log', 'reports', 'operationReports', 'candidates'] as const;
+  const arrays = ['districts', 'staff', 'squads', 'incidents', 'roadClosures', 'equipment', 'log', 'reports', 'operationReports', 'candidates', 'relations'] as const;
   for (const k of arrays) if (!Array.isArray(s[k])) return `нет раздела ${k}`;
   if (!Number.isInteger(s.shift) || (s.shift as number) < 1) return 'неверный номер смены';
   if (!Number.isInteger(s.minute) || (s.minute as number) < 0) return 'неверное время';

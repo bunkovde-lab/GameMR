@@ -10,6 +10,7 @@ import { formatRe } from '../../core/selectors';
 import type { GameState, TacticId } from '../../core/types';
 import { dispatch } from '../../store';
 import { Modal } from '../Modal';
+import { groupMods } from '../../core/career';
 import { SQUAD_STATUS } from '../labels';
 
 interface Props {
@@ -38,6 +39,7 @@ export function DispatchDialog({ game, incidentId, initialSquadId, onClose, onPr
   const plan = useMemo(() => (draft ? planDispatch(game, draft) : null), [game, draft]);
   if (!inc) return null;
   const prof = incidentProfile(inc);
+  const groupNotes = draft ? groupMods(game, draft.memberIds, draft.commanderId, draft.tactic, prof.tags).notes : [];
   const district = districtById(inc.districtId)!;
   const cls = DISPATCH_RULES.classes[prof.incidentClass];
   const active = game.phase === 'ACTIVE';
@@ -222,6 +224,11 @@ export function DispatchDialog({ game, incidentId, initialSquadId, onClose, onPr
                 <dt>Снаряжение</dt><dd data-testid="dispatch-gear">{draft.equipmentIds.map((id) => equipmentType(game.equipment.find((e) => e.id === id)?.typeId ?? '')?.label).join(', ') || 'нет'}</dd>
                 <dt>Стоимость</dt><dd>{formatRe(DISPATCH_COST)} РЕ</dd>
               </dl>
+              {groupNotes.length > 0 && (
+                <ul className="plain-list group-notes" data-testid="group-notes">
+                  {groupNotes.map((n) => <li key={n}>{n}</li>)}
+                </ul>
+              )}
               {plan.missingRoles.length > 0 && <p className="warn" data-testid="missing-roles">Нет в группе: {plan.missingRoles.join(', ')}. Прогноз снижен.</p>}
             </>
           )}

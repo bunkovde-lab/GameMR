@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 // W4: быстрая отправка и ручная настройка (ТЗ §6.2–6.4, UI-03/UI-04).
 

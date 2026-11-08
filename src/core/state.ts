@@ -1,5 +1,5 @@
 import { BALANCE, DISTRICTS, INCIDENT_TEMPLATES, SQUAD_MEMBERS, SQUADS_DEMO, STAFF_START, toCents } from './content';
-import { initialEquipment } from './dispatch';
+import { bestCommander, computeForecast, initialEquipment, riskLevel } from './dispatch';
 import { seedRng } from './rng';
 import { SCHEMA_VERSION, type GameState, type Incident, type IncidentState } from './types';
 
@@ -24,7 +24,7 @@ export function createInitialState(seed: number = DEFAULT_SEED): GameState {
     };
   });
 
-  return {
+  const state: GameState = {
     schemaVersion: SCHEMA_VERSION,
     seed,
     rng: seedRng(seed),
@@ -67,6 +67,27 @@ export function createInitialState(seed: number = DEFAULT_SEED): GameState {
     equipment: initialEquipment(),
     log: [{ id: 1, shift: 1, minute: 0, type: 'campaign_started', text: 'Вы приняли руководство Городской дирекцией безопасности.' }],
     reports: [],
-    nextIds: { event: 2, transaction: 1, incident: 1 },
+    operationReports: [],
+    nextIds: { event: 2, transaction: 1, incident: 1, report: 1 },
   };
+  seedOperationsInProgress(state);
+  return state;
+}
+
+/**
+ * Демо-старт: «Вектор» уже на месте вооружённой вылазки (особое событие). Параметры его выезда
+ * считаются той же формулой, что и обычная отправка, чтобы развязка шла по общим правилам.
+ */
+function seedOperationsInProgress(s: GameState) {
+  for (const sq of s.squads) {
+    if (sq.status !== 'on_scene' || !sq.assignedIncidentId) continue;
+    const inc = s.incidents.find((i) => i.id === sq.assignedIncidentId);
+    if (!inc) continue;
+    const draft = { squadId: sq.id, incidentId: inc.id, tactic: 'arrest' as const, memberIds: [...sq.memberIds], commanderId: bestCommander(s, sq.memberIds), equipmentIds: [] };
+    sq.operation = {
+      incidentId: inc.id, tactic: draft.tactic, commanderId: draft.commanderId, equipmentIds: [], cohesion: 1,
+      forecast: computeForecast(s, draft), riskLevel: riskLevel(s, draft),
+      phase: 'scene', timer: 5, stageIndex: 0, pDelta: 0, riskDelta: 0, civil: 0, evidence: 0, decisions: [],
+    };
+  }
 }

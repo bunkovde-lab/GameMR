@@ -4,6 +4,7 @@ import { createInitialState } from '../../src/core/state';
 import { isOpen } from '../../src/core/selectors';
 import { nextFloat, seedRng } from '../../src/core/rng';
 import type { Command, GameState } from '../../src/core/types';
+import { runAuto, tick } from './helpers';
 
 const run = (s: GameState, cmds: Command[]) => cmds.reduce((acc, c) => reduce(acc, c).state, s);
 const ok = (s: GameState, c: Command) => {
@@ -11,7 +12,7 @@ const ok = (s: GameState, c: Command) => {
   if (!r.ok) throw new Error(r.reason);
   return r.state;
 };
-const fullShift = (s: GameState) => run(s, [{ type: 'START_SHIFT' }, { type: 'TICK', minutes: 720 }, { type: 'END_SHIFT' }]);
+const fullShift = (s: GameState) => runAuto(s, [{ type: 'START_SHIFT' }, { type: 'TICK', minutes: 720 }, { type: 'END_SHIFT' }]);
 
 /** Детерминированный генератор случайных последовательностей команд для property-тестов. */
 function randomCommands(seed: number, n: number, staffIds: string[], squadIds: string[], incIds: string[]): Command[] {
@@ -27,6 +28,8 @@ function randomCommands(seed: number, n: number, staffIds: string[], squadIds: s
     () => ({ type: 'ASSIGN_STAFF', staffId: pick(staffIds), squadId: pick(squadIds) }),
     () => ({ type: 'END_SHIFT' }),
     () => ({ type: 'ADVANCE_SHIFT' }),
+    () => ({ type: 'DISPATCH_SQUAD', squadId: pick(squadIds), incidentId: pick(incIds) }),
+    () => ({ type: 'CHOOSE_OPTION', squadId: pick(squadIds), optionId: pick(['observe', 'cut', 'enter', 'hold', 'flank', 'chase', 'talk', 'seal', 'nope']) }),
   ];
   return Array.from({ length: n }, () => pick(gen)());
 }
@@ -105,7 +108,7 @@ describe('shift cycle (ТЗ §2.2)', () => {
     expect(s.phase).toBe('BRIEFING');
     s = ok(s, { type: 'START_SHIFT' });
     expect(s.phase).toBe('ACTIVE');
-    s = ok(s, { type: 'TICK', minutes: 800 });
+    s = tick(s, 800);
     expect([s.phase, s.minute, s.paused]).toEqual(['REVIEW_PENDING', 720, true]);
     s = ok(s, { type: 'END_SHIFT' });
     expect(s.phase).toBe('SHIFT_REPORT');
@@ -148,7 +151,7 @@ describe('shift cycle (ТЗ §2.2)', () => {
   });
   it('escalation lowers district safety and is written to the log', () => {
     let s = ok(createInitialState(), { type: 'START_SHIFT' });
-    s = ok(s, { type: 'TICK', minutes: 12 }); // medriot: срок 12 минут
+    s = tick(s, 12); // medriot: срок 12 минут
     expect(s.incidents.find((i) => i.id === 'medriot')!.state).toBe('escalated');
     expect(s.districts.find((d) => d.id === 'medical')!.safety).toBe(70);
     expect(s.log.at(-1)!.type).toBe('incident_escalated');

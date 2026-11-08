@@ -70,7 +70,7 @@
     "deadlineMinutes": 38,
     "state": "new",
     "flags": [],
-    "incidentClass": "complex",
+    "incidentClass": "special",
     "difficulty": 14,
     "requirements": [
       "reaction",

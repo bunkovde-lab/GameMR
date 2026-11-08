@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { reduce } from '../../src/core/reduce';
 import { createInitialState } from '../../src/core/state';
-import { SCHEMA_VERSION, type Command, type GameState } from '../../src/core/types';
+import { SCHEMA_VERSION, type Command } from '../../src/core/types';
 import { parseSave, toSaveFile } from '../../src/persistence/saveFormat';
 import { exportJson } from '../../src/persistence/saveStore';
+import { runAuto } from './helpers';
 
-const run = (s: GameState, cmds: Command[]) => cmds.reduce((acc, c) => reduce(acc, c).state, s);
+const run = runAuto;
 const played = () =>
   run(createInitialState(), [
     { type: 'START_SHIFT' }, { type: 'ACKNOWLEDGE_INCIDENT', incidentId: 'bioleak' }, { type: 'TICK', minutes: 300 },

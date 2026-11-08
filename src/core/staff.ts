@@ -1,5 +1,6 @@
 import staffFile from '../../content/staff_v1.json';
 import { toCents } from './content';
+import { candidatesPerVacancy, medicalCapacity } from './facilities';
 import { nextFloat, nextInt } from './rng';
 import type {
   Candidate, DossierStatus, GameState, HealthState, MedicalPlanId, Patient, Squad, Staff, StaffRole, Stats,
@@ -55,7 +56,7 @@ export function treatmentForecast(s: GameState, staffId: string, plan: MedicalPl
   const injury = p?.health ?? 'healthy';
   const shifts = def.shifts[injury] ?? 1;
   const cost = toCents((STAFF_RULES.medical.baseCost[injury] ?? 0) * def.costMult);
-  const queued = bedsUsed(s) >= STAFF_RULES.medical.beds;
+  const queued = bedsUsed(s) >= medicalCapacity(s).beds;
   const complication = def.complication < 0.1 ? 'низкий' : def.complication < 0.2 ? 'умеренный' : 'повышенный';
   let blocker: string | null = null;
   if (!p) blocker = 'Сотрудник не найден.';
@@ -63,7 +64,7 @@ export function treatmentForecast(s: GameState, staffId: string, plan: MedicalPl
   else if (!def.for.includes(injury)) blocker = `План «${def.label}» не показан при этом состоянии.`;
   else if (patientOf(s, staffId)) blocker = `${p.name} уже в клинике.`;
   else if (s.squads.some((q) => q.memberIds.includes(staffId) && ['en_route', 'on_scene', 'returning'].includes(q.status))) blocker = `${p.name} на задании.`;
-  else if (def.needsCapsule && capsulesUsed(s) >= STAFF_RULES.medical.capsules) blocker = 'Нет свободной регенерационной капсулы.';
+  else if (def.needsCapsule && capsulesUsed(s) >= medicalCapacity(s).capsules) blocker = 'Нет свободной регенерационной капсулы.';
   else if (def.needsCapsule && queued) blocker = 'Нет свободного места для регенерации.';
   else if (!queued && s.economy.balance < cost) blocker = 'Недостаточно средств на лечение.';
   return { cost, shifts, returnShift: s.shift + shifts + (queued ? 1 : 0), complication, queued, blocker };
@@ -92,8 +93,8 @@ export function advanceMedical(s: GameState, log: (type: string, text: string) =
     log('treatment_finished', `${person.name} выписан(а) и вернулся(лась) к службе.`);
   }
   for (const pt of s.medical.patients.filter((x) => x.status === 'queued')) {
-    if (bedsUsed(s) >= STAFF_RULES.medical.beds) break;
-    if (PLANS[pt.plan].needsCapsule && capsulesUsed(s) >= STAFF_RULES.medical.capsules) continue;
+    if (bedsUsed(s) >= medicalCapacity(s).beds) break;
+    if (PLANS[pt.plan].needsCapsule && capsulesUsed(s) >= medicalCapacity(s).capsules) continue;
     const person = s.staff.find((x) => x.id === pt.staffId)!;
     const cost = toCents((STAFF_RULES.medical.baseCost[pt.injury] ?? 0) * PLANS[pt.plan].costMult);
     if (!pay(-cost, `Лечение: ${person.name}`)) {
@@ -175,7 +176,7 @@ export function refreshCandidates(s: GameState) {
   s.candidates = s.candidates.filter((c) => open[c.role] > 0);
   for (const r of ROLES) {
     if (open[r] <= 0 || s.candidates.some((c) => c.role === r)) continue;
-    for (let i = 0; i < STAFF_RULES.candidatesPerVacancy; i++) s.candidates.push(makeCandidate(s, r));
+    for (let i = 0; i < candidatesPerVacancy(s); i++) s.candidates.push(makeCandidate(s, r));
   }
 }
 

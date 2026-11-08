@@ -8,7 +8,7 @@ const ITEMS: NavItem[] = [
   { id: 'map', label: 'Карта', icon: 'map', view: 'map' },
   { id: 'staff', label: 'Кадры', icon: 'users', view: 'staff' },
   { id: 'investigations', label: 'Расследования', icon: 'search', stage: 'W9' },
-  { id: 'directorate', label: 'Дирекция', icon: 'briefcase', stage: 'W7' },
+  { id: 'directorate', label: 'Дирекция', icon: 'briefcase', view: 'directorate' },
 ];
 
 interface Props { current: ViewId; onOpen: (view: ViewId) => void; canEndShift: boolean; onEndShift: () => void }

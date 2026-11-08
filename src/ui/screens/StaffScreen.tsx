@@ -10,6 +10,7 @@ import {
 import type { Candidate, DossierStatus, GameState, StaffRole, Stats } from '../../core/types';
 import { dispatch } from '../../store';
 import { Icon } from '../Icon';
+import { medicalCapacity } from '../../core/facilities';
 import { Development, History, Modifications, PersonPicker, Relations } from './StaffCareer';
 import { SQUAD_STATUS } from '../labels';
 
@@ -164,7 +165,7 @@ function Roster({ game }: { game: GameState }) {
 }
 
 function Medical({ game }: { game: GameState }) {
-  const M = STAFF_RULES.medical;
+  const M = medicalCapacity(game);
   const injured = game.staff.filter((p) => TREATABLE.includes(p.health) && !patientOf(game, p.id));
   const name = (id: string) => game.staff.find((p) => p.id === id)?.name ?? id;
   return (

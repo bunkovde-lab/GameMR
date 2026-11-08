@@ -2,7 +2,7 @@
  * Доменная модель W2 — подмножество ТЗ §5.2, необходимое для одной смены.
  * Деньги хранятся целым числом в сотых долях РЕ (cents), чтобы избежать ошибок округления.
  */
-export const SCHEMA_VERSION = 6;
+export const SCHEMA_VERSION = 7;
 
 import type { Route } from './map/graph';
 
@@ -210,7 +210,23 @@ export interface Incident {
   createdShift: number;
 }
 
-export type TransactionKind = 'funding' | 'salary' | 'dispatch' | 'treatment' | 'hiring' | 'check' | 'training' | 'promotion' | 'implant';
+export type TransactionKind =
+  | 'funding' | 'salary' | 'dispatch' | 'treatment' | 'hiring' | 'check' | 'training' | 'promotion' | 'implant'
+  | 'upkeep' | 'construction' | 'subsidy';
+
+/** W7: восемь объектов дирекции (ТЗ §9.1) */
+export type FacilityId = 'ops' | 'lab' | 'medical' | 'analytics' | 'detention' | 'tech' | 'training' | 'archive';
+/** W7: работа строительной очереди. Деньги списываются поэтапно, остаток — зарезервирован (ТЗ §8.2). */
+export interface Build {
+  facilityId: FacilityId;
+  toLevel: number;
+  /** Полная стоимость и уже оплачено, в сотых РЕ */
+  cost: number;
+  paid: number;
+  shiftsTotal: number;
+  shiftsDone: number;
+  status: 'active' | 'queued' | 'blocked';
+}
 
 export interface Transaction {
   id: number;
@@ -278,6 +294,8 @@ export interface GameState {
   medical: { patients: Patient[] };
   candidates: Candidate[];
   relations: Relation[];
+  facilities: Record<FacilityId, number>;
+  construction: Build[];
   nextIds: { event: number; transaction: number; incident: number; report: number; staff: number; candidate: number };
 }
 
@@ -311,6 +329,9 @@ export type Command =
   | { type: 'INSTALL_ORGAN'; staffId: string; organId: string }
   | { type: 'REMOVE_ORGAN'; staffId: string; organId: string }
   | { type: 'ACK_OPERATION_REPORT'; reportId: number }
+  | { type: 'QUEUE_UPGRADE'; facilityId: FacilityId }
+  | { type: 'CANCEL_UPGRADE'; facilityId: FacilityId }
+  | { type: 'PRIORITIZE_UPGRADE'; facilityId: FacilityId }
   | { type: 'END_SHIFT' }
   | { type: 'ADVANCE_SHIFT' };
 

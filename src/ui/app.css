@@ -452,3 +452,22 @@ td.bad { color: var(--bad); }
   .person-picker .btn.pick { flex: 0 0 auto; width: auto; }
   .branch-grid { grid-template-columns: 1fr; }
 }
+
+/* ---------- W7: дирекция ---------- */
+.fin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+.neg { color: var(--bad); }
+.problems li.bad { color: var(--bad); }
+.problems li.warn { color: var(--amber); }
+.fin-legend { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.fin-legend .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
+.sw.inc, .bar.inc { background: #2f9fb8; }
+.sw.exp, .bar.exp { background: #e0484c; }
+.fin-chart { display: flex; gap: 14px; align-items: flex-end; height: 140px; padding: 8px 4px 0; border-bottom: 1px solid var(--stroke2); }
+.fin-col { flex: 0 1 72px; height: 100%; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.fin-col small { color: var(--muted); font-size: 12px; }
+.fin-bars { flex: 1; width: 100%; display: flex; gap: 2px; align-items: flex-end; justify-content: center; }
+.fin-bars .bar { width: 22px; min-height: 2px; border-radius: 4px 4px 0 0; }
+.fin-bars .bar:hover { filter: brightness(1.25); }
+.facility { gap: 6px; }
+.fac-now { margin: 0; }
+.facility .btn { justify-self: start; }

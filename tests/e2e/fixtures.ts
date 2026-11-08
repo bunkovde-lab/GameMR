@@ -7,13 +7,13 @@ export { expect } from '@playwright/test';
  * и перекрывают экран. Здесь они закрываются «как игрок»: первый приказ, затем «Принято».
  */
 export const test = base.extend({
-  page: async ({ page }, use) => {
+  page: async ({ page }, provide) => {
     await page.addLocatorHandler(page.getByTestId('decision-dialog'), async () => {
       await page.locator('[data-testid^="option-"]').first().click();
     });
     await page.addLocatorHandler(page.getByTestId('operation-report'), async () => {
       await page.getByTestId('ack-report').click();
     });
-    await use(page);
+    await provide(page);
   },
 });

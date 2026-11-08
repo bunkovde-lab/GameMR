@@ -100,6 +100,8 @@ test('MAP-017/019/020: dispatch shows route and ETA, pause freezes it, squad arr
   await option.hover();
   await expect(page.getByTestId('route-preview')).toHaveCount(1);
   await option.click();
+  await page.getByTestId('confirm-dispatch').click();
+  await expect(page.getByTestId('dispatch-dialog')).toHaveCount(0);
   await expect(page.getByTestId('card-state')).toContainText('в пути');
   await expect(page.getByTestId('route-active')).toHaveCount(1);
   await expect(page.getByTestId('stat-budget')).toContainText('103,75');

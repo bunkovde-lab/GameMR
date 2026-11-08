@@ -7,7 +7,28 @@
     "severity": "critical",
     "deadlineMinutes": 12,
     "state": "new",
-    "flags": []
+    "flags": [],
+    "incidentClass": "complex",
+    "difficulty": 14,
+    "requirements": [
+      "control",
+      "authority",
+      "resilience"
+    ],
+    "requiredRoles": [
+      "guard"
+    ],
+    "intel": 1,
+    "tacticFit": {
+      "recon": -1,
+      "arrest": 1,
+      "suppression": 1,
+      "quarantine": 0
+    },
+    "tags": [
+      "riot"
+    ],
+    "known": "Пациенты отделения модификаций захватили пост охраны. Среди персонала есть раненые."
   },
   {
     "id": "bioleak",
@@ -17,7 +38,28 @@
     "severity": "high",
     "deadlineMinutes": 27,
     "state": "new",
-    "flags": []
+    "flags": [],
+    "incidentClass": "complex",
+    "difficulty": 11,
+    "requirements": [
+      "analysis",
+      "resilience",
+      "control"
+    ],
+    "requiredRoles": [
+      "biocriminalist"
+    ],
+    "intel": 1,
+    "tacticFit": {
+      "recon": 0,
+      "arrest": -1,
+      "suppression": -2,
+      "quarantine": 2
+    },
+    "tags": [
+      "bio"
+    ],
+    "known": "Сработали датчики герметичности в лаборатории тканевых культур. Источник утечки не установлен."
   },
   {
     "id": "raid",
@@ -27,7 +69,29 @@
     "severity": "high",
     "deadlineMinutes": 38,
     "state": "new",
-    "flags": []
+    "flags": [],
+    "incidentClass": "complex",
+    "difficulty": 14,
+    "requirements": [
+      "reaction",
+      "control",
+      "resilience"
+    ],
+    "requiredRoles": [
+      "guard",
+      "lovchiy"
+    ],
+    "intel": 0,
+    "tacticFit": {
+      "recon": 1,
+      "arrest": 0,
+      "suppression": 1,
+      "quarantine": -2
+    },
+    "tags": [
+      "assault"
+    ],
+    "known": "Вооружённая группа проникла на склад реагентов. Численность и цель неизвестны."
   },
   {
     "id": "missing",
@@ -37,7 +101,28 @@
     "severity": "medium",
     "deadlineMinutes": 44,
     "state": "new",
-    "flags": []
+    "flags": [],
+    "incidentClass": "routine",
+    "difficulty": 8,
+    "requirements": [
+      "analysis",
+      "authority",
+      "reaction"
+    ],
+    "requiredRoles": [
+      "investigator"
+    ],
+    "intel": 1,
+    "tacticFit": {
+      "recon": 1,
+      "arrest": 1,
+      "suppression": -2,
+      "quarantine": -1
+    },
+    "tags": [
+      "trace"
+    ],
+    "known": "Регистратор архива родословных не вышел на смену. Его пропуск использован ночью."
   },
   {
     "id": "illegal",
@@ -47,6 +132,28 @@
     "severity": "medium",
     "deadlineMinutes": 56,
     "state": "new",
-    "flags": []
+    "flags": [],
+    "incidentClass": "routine",
+    "difficulty": 11,
+    "requirements": [
+      "analysis",
+      "control",
+      "authority"
+    ],
+    "requiredRoles": [
+      "biocriminalist"
+    ],
+    "intel": 0,
+    "tacticFit": {
+      "recon": 2,
+      "arrest": 1,
+      "suppression": -1,
+      "quarantine": 0
+    },
+    "tags": [
+      "bio",
+      "trace"
+    ],
+    "known": "Сосед сообщил о подпольной операционной в жилом блоке. Сведения не проверены."
   }
 ]

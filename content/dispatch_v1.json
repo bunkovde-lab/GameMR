@@ -1,0 +1,144 @@
+{
+  "_status": "PROVISIONAL_RULE — формула ТЗ v2.0 §6.3 (из ТЗ v1.0), тактики §6.4, снаряжение §6.2. Числа — проверочные гипотезы, не утверждённый баланс; заменяются после симуляции (W10).",
+  "forecast": {
+    "base": 0.55,
+    "perMargin": 0.065,
+    "min": 0.1,
+    "max": 0.95,
+    "weights": [
+      1,
+      1,
+      0.55
+    ],
+    "fatiguePerPoint": 25,
+    "fatigueMax": 3,
+    "roleDeficitMax": 3,
+    "intelMax": 2,
+    "gearMax": 2,
+    "uncertaintyByIntel": [
+      0.15,
+      0.09,
+      0.04
+    ]
+  },
+  "squad": {
+    "maxMembers": 3,
+    "maxEquipment": 2,
+    "exhaustedFatigue": 80
+  },
+  "classes": {
+    "routine": {
+      "label": "Рядовое",
+      "hint": "Автоматический расчёт и краткий отчёт"
+    },
+    "complex": {
+      "label": "Сложное",
+      "hint": "1–2 развилки во время операции (W5)"
+    },
+    "special": {
+      "label": "Особое",
+      "hint": "Отдельная сцена и несколько этапов (W5)"
+    }
+  },
+  "tactics": [
+    {
+      "id": "recon",
+      "label": "Разведка, скрытый подход",
+      "intelBonus": 1,
+      "sceneMinutes": 6,
+      "squadRisk": 1,
+      "civilianRisk": 2,
+      "evidence": "сохраняются",
+      "escape": "возможен уход противника",
+      "needsRoles": [
+        "lovchiy",
+        "investigator"
+      ],
+      "needsText": "нужен Ловчий или следователь"
+    },
+    {
+      "id": "arrest",
+      "label": "Штатное задержание",
+      "intelBonus": 0,
+      "sceneMinutes": 2,
+      "squadRisk": 2,
+      "civilianRisk": 1,
+      "evidence": "сохраняются",
+      "escape": "уход затруднён",
+      "needsRoles": [],
+      "needsText": ""
+    },
+    {
+      "id": "suppression",
+      "label": "Силовое подавление",
+      "intelBonus": 0,
+      "sceneMinutes": 0,
+      "squadRisk": 3,
+      "civilianRisk": 3,
+      "evidence": "частично теряются",
+      "escape": "уход маловероятен",
+      "needsRoles": [
+        "guard",
+        "lovchiy"
+      ],
+      "needsText": "нужен страж или Ловчий"
+    },
+    {
+      "id": "quarantine",
+      "label": "Карантин и изоляция",
+      "intelBonus": 0,
+      "sceneMinutes": 4,
+      "squadRisk": 1,
+      "civilianRisk": 2,
+      "evidence": "сохраняются",
+      "escape": "район перекрыт",
+      "needsRoles": [
+        "biocriminalist"
+      ],
+      "needsEquipment": [
+        "biosuit"
+      ],
+      "needsText": "нужен биокриминалист или биозащитный костюм"
+    }
+  ],
+  "equipmentTypes": [
+    {
+      "id": "riot_kit",
+      "label": "Штурмовой комплект",
+      "tags": [
+        "riot",
+        "assault"
+      ],
+      "consumable": false,
+      "count": 2
+    },
+    {
+      "id": "biosuit",
+      "label": "Биозащитный костюм",
+      "tags": [
+        "bio"
+      ],
+      "consumable": false,
+      "count": 3
+    },
+    {
+      "id": "tracer",
+      "label": "Сканер следов",
+      "tags": [
+        "trace"
+      ],
+      "consumable": false,
+      "count": 2
+    },
+    {
+      "id": "sedative",
+      "label": "Седативные заряды",
+      "tags": [
+        "riot",
+        "assault"
+      ],
+      "consumable": true,
+      "count": 4
+    }
+  ]
+}

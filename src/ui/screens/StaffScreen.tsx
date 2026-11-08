@@ -10,6 +10,7 @@ import {
 import type { Candidate, DossierStatus, GameState, StaffRole, Stats } from '../../core/types';
 import { dispatch } from '../../store';
 import { Icon } from '../Icon';
+import { Portrait } from '../Portrait';
 import { medicalCapacity } from '../../core/facilities';
 import { Development, History, Modifications, PersonPicker, Relations } from './StaffCareer';
 import { SQUAD_STATUS } from '../labels';
@@ -61,7 +62,10 @@ export function StaffScreen({ game, onClose }: { game: GameState; onClose: () =>
           <div className="person-split">
             <PersonPicker game={game} selected={person.id} onSelect={setPersonId} archive={tab === 'history' || tab === 'relations'} />
             <div className="person-detail">
-              <h3 className="person-name">{person.name}</h3>
+              <div className="person-head">
+                <Portrait id={person.id} name={person.name} health={person.health} size="lg" />
+                <div><h3 className="person-name">{person.name}</h3><small>{ROLE_LABEL[person.role]} · ранг {RANKS[person.rank - 1]}</small></div>
+              </div>
               {tab === 'development' && <Development game={game} p={person} />}
               {tab === 'mods' && <Modifications game={game} p={person} />}
               {tab === 'relations' && <Relations game={game} p={person} />}
@@ -88,7 +92,7 @@ function Summary({ game }: { game: GameState }) {
               const pt = patientOf(game, p.id);
               return (
                 <tr key={p.id} data-testid={`staff-${p.id}`} className={p.health === 'dead' ? 'kia' : undefined}>
-                  <td>{p.name}</td>
+                  <td><span className="name-cell"><Portrait id={p.id} name={p.name} health={p.health} size="xs" />{p.name}</span></td>
                   <td>{ROLE_LABEL[p.role]}</td>
                   <td>{RANKS[p.rank - 1]}</td>
                   <td>{p.health === 'dead' ? 'архив' : sq ? `«${sq.name}»` : 'резерв'}</td>
@@ -131,7 +135,7 @@ function Roster({ game }: { game: GameState }) {
               <ul className="plain-list member-rows">
                 {q.memberIds.map((id) => (
                   <li key={id}>
-                    <span>{name(id)}{cmd?.id === id ? <em className="cmd"> · командир</em> : ''}<small>{ROLE_LABEL[game.staff.find((p) => p.id === id)!.role]}{memberBlocker(game, id, q.id) && !busy ? ` · ${memberBlocker(game, id, q.id)}` : ''}</small></span>
+                    <span className="face-row"><Portrait id={id} name={name(id)} health={game.staff.find((p) => p.id === id)!.health} size="sm" /><span className="pick-text"><span>{name(id)}{cmd?.id === id ? <em className="cmd"> · командир</em> : ''}</span><small>{ROLE_LABEL[game.staff.find((p) => p.id === id)!.role]}{memberBlocker(game, id, q.id) && !busy ? ` · ${memberBlocker(game, id, q.id)}` : ''}</small></span></span>
                     <span className="row-actions">
                       <button className="btn" disabled={busy || cmd?.id === id} onClick={() => dispatch({ type: 'SET_COMMANDER', squadId: q.id, staffId: id })} data-testid={`make-cmd-${id}`}>Командир</button>
                       <button className="btn" disabled={busy} onClick={() => dispatch({ type: 'UNASSIGN_STAFF', staffId: id })} data-testid={`to-reserve-${id}`}>В резерв</button>
@@ -149,7 +153,7 @@ function Roster({ game }: { game: GameState }) {
           <ul className="plain-list member-rows">
             {res.map((p) => (
               <li key={p.id}>
-                <span>{p.name}<small>{ROLE_LABEL[p.role]} · {HEALTH_LOG[p.health]}{memberBlocker(game, p.id, '') ? ` · ${memberBlocker(game, p.id, '')}` : ''}</small></span>
+                <span className="face-row"><Portrait id={p.id} name={p.name} health={p.health} size="sm" /><span className="pick-text">{p.name}<small>{ROLE_LABEL[p.role]} · {HEALTH_LOG[p.health]}{memberBlocker(game, p.id, '') ? ` · ${memberBlocker(game, p.id, '')}` : ''}</small></span></span>
                 <span className="row-actions wrap">
                   {game.squads.filter((q) => q.status === 'ready' && q.memberIds.length < 3).map((q) => (
                     <button key={q.id} className="btn" onClick={() => dispatch({ type: 'ASSIGN_STAFF', staffId: p.id, squadId: q.id })} data-testid={`assign-${p.id}-${q.id}`}>→ «{q.name}»</button>
@@ -190,7 +194,7 @@ function Medical({ game }: { game: GameState }) {
         <div className="card-grid">
           {injured.map((p) => (
             <article key={p.id} className="sq-card" data-testid={`injured-${p.id}`}>
-              <header><b>{p.name}</b><small className={`health h-${p.health}`}>{HEALTH_LOG[p.health]}</small></header>
+              <header><span className="face-row"><Portrait id={p.id} name={p.name} health={p.health} size="sm" /><b>{p.name}</b></span><small className={`health h-${p.health}`}>{HEALTH_LOG[p.health]}</small></header>
               <ul className="pick-list one-col">
                 {PLAN_IDS.map((plan) => {
                   const f = treatmentForecast(game, p.id, plan);

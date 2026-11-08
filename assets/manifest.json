@@ -35,233 +35,233 @@
       "file": "assets/characters/portrait_p01_mara_kass.png",
       "category": "characters",
       "role": "Портрет сотрудника Мара Касс, Ловчий, ранг 3",
-      "status": "approved",
+      "status": "integrated",
       "width": 512,
       "height": 640,
       "alpha": false,
       "sha256": "352c0f754a9bc59a62b3095a1924a589de0dad274915cb649dcaadcc3ec8a8cb",
       "source": "ART-005: единая серия 12 портретов, утверждённая владельцем 2026-11-08",
       "approvedBy": "Дмитрий",
-      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Статус approved — не integrated."
+      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p01.webp (256×320) и face_p01.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
     },
     {
       "id": "PORTRAIT_P02",
       "file": "assets/characters/portrait_p02_kord_rein.png",
       "category": "characters",
       "role": "Портрет сотрудника Корд Рейн, Страж, ранг 3",
-      "status": "approved",
+      "status": "integrated",
       "width": 512,
       "height": 640,
       "alpha": false,
       "sha256": "b8e9eda511cd46c3a72ccad6e612eeed1d5473a94d8bba0cc855fc307056d225",
       "source": "ART-005: единая серия 12 портретов, утверждённая владельцем 2026-11-08",
       "approvedBy": "Дмитрий",
-      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Статус approved — не integrated."
+      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p02.webp (256×320) и face_p02.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
     },
     {
       "id": "PORTRAIT_P03",
       "file": "assets/characters/portrait_p03_irma_vess.png",
       "category": "characters",
       "role": "Портрет сотрудника Ирма Весс, Следователь, ранг 2",
-      "status": "approved",
+      "status": "integrated",
       "width": 512,
       "height": 640,
       "alpha": false,
       "sha256": "5fcaa3f01fd90d62935c00c4e3781083943a64b0618fec0f3756ef27d29240ff",
       "source": "ART-005: единая серия 12 портретов, утверждённая владельцем 2026-11-08",
       "approvedBy": "Дмитрий",
-      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Статус approved — не integrated."
+      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p03.webp (256×320) и face_p03.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
     },
     {
       "id": "PORTRAIT_P04",
       "file": "assets/characters/portrait_p04_elias_vern.png",
       "category": "characters",
       "role": "Портрет сотрудника Элиас Верн, Страж, ранг 2",
-      "status": "approved",
+      "status": "integrated",
       "width": 512,
       "height": 640,
       "alpha": false,
       "sha256": "dc7a69bd89e2aa325d6a1c34b9d45d09dbcefacaee9edb35f3e47cd9dba1e9cf",
       "source": "ART-005: единая серия 12 портретов, утверждённая владельцем 2026-11-08",
       "approvedBy": "Дмитрий",
-      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Статус approved — не integrated."
+      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p04.webp (256×320) и face_p04.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
     },
     {
       "id": "PORTRAIT_P05",
       "file": "assets/characters/portrait_p05_sai_tessa.png",
       "category": "characters",
       "role": "Портрет сотрудника Сай Тесса, Биокриминалист, ранг 2",
-      "status": "approved",
+      "status": "integrated",
       "width": 512,
       "height": 640,
       "alpha": false,
       "sha256": "2ee8a27cf0d5bd4de412cb18d7d5af37787085a30135b751c20a9737b7e855b2",
       "source": "ART-005: единая серия 12 портретов, утверждённая владельцем 2026-11-08",
       "approvedBy": "Дмитрий",
-      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Статус approved — не integrated."
+      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p05.webp (256×320) и face_p05.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
     },
     {
       "id": "PORTRAIT_P06",
       "file": "assets/characters/portrait_p06_arden_lass.png",
       "category": "characters",
       "role": "Портрет сотрудника Арден Ласс, Страж, ранг 2",
-      "status": "approved",
+      "status": "integrated",
       "width": 512,
       "height": 640,
       "alpha": false,
       "sha256": "53b48976552c4da5c27d042eb9bf6b03d6ce19df5827ce94e5bed9b789a93359",
       "source": "ART-005: единая серия 12 портретов, утверждённая владельцем 2026-11-08",
       "approvedBy": "Дмитрий",
-      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Статус approved — не integrated."
+      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p06.webp (256×320) и face_p06.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
     },
     {
       "id": "PORTRAIT_P07",
       "file": "assets/characters/portrait_p07_neira_tor.png",
       "category": "characters",
       "role": "Портрет сотрудника Нейра Тор, Биокриминалист, ранг 2",
-      "status": "approved",
+      "status": "integrated",
       "width": 512,
       "height": 640,
       "alpha": false,
       "sha256": "382605f2253141c55fd50cf63fdede20f64278e18b795de0c99c5625c2b01772",
       "source": "ART-005: единая серия 12 портретов, утверждённая владельцем 2026-11-08",
       "approvedBy": "Дмитрий",
-      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Статус approved — не integrated."
+      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p07.webp (256×320) и face_p07.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
     },
     {
       "id": "PORTRAIT_P08",
       "file": "assets/characters/portrait_p08_tarn_sev.png",
       "category": "characters",
       "role": "Портрет сотрудника Тарн Сев, Аналитик / техник, ранг 1",
-      "status": "approved",
+      "status": "integrated",
       "width": 512,
       "height": 640,
       "alpha": false,
       "sha256": "e6430a45ddf2612c6ac71a5891e1b7f7373c81916321c2ff994c23053776cad9",
       "source": "ART-005: единая серия 12 портретов, утверждённая владельцем 2026-11-08",
       "approvedBy": "Дмитрий",
-      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Статус approved — не integrated."
+      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p08.webp (256×320) и face_p08.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
     },
     {
       "id": "PORTRAIT_P09",
       "file": "assets/characters/portrait_p09_seli_renn.png",
       "category": "characters",
       "role": "Портрет сотрудника Сели Ренн, Следователь, ранг 3",
-      "status": "approved",
+      "status": "integrated",
       "width": 512,
       "height": 640,
       "alpha": false,
       "sha256": "2218b1a0b95e0791423d7b60690267de9434e314543086173459739f50e11618",
       "source": "ART-005: единая серия 12 портретов, утверждённая владельцем 2026-11-08",
       "approvedBy": "Дмитрий",
-      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Статус approved — не integrated."
+      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p09.webp (256×320) и face_p09.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
     },
     {
       "id": "PORTRAIT_P10",
       "file": "assets/characters/portrait_p10_gard_verek.png",
       "category": "characters",
       "role": "Портрет сотрудника Гард Верек, Страж, ранг 2",
-      "status": "approved",
+      "status": "integrated",
       "width": 512,
       "height": 640,
       "alpha": false,
       "sha256": "17b42f3e944083a3c4708aa849ae220a67d6d8775b69ad5181c823afad12d43b",
       "source": "ART-005: единая серия 12 портретов, утверждённая владельцем 2026-11-08",
       "approvedBy": "Дмитрий",
-      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Статус approved — не integrated."
+      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p10.webp (256×320) и face_p10.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
     },
     {
       "id": "PORTRAIT_P11",
       "file": "assets/characters/portrait_p11_lika_ort.png",
       "category": "characters",
       "role": "Портрет сотрудника Лика Орт, Следователь, ранг 2",
-      "status": "approved",
+      "status": "integrated",
       "width": 512,
       "height": 640,
       "alpha": false,
       "sha256": "8d858a491dda255b614b3578ee8685a408653da67ad80827ce851e4206c8c92d",
       "source": "ART-005: единая серия 12 портретов, утверждённая владельцем 2026-11-08",
       "approvedBy": "Дмитрий",
-      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Статус approved — не integrated."
+      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p11.webp (256×320) и face_p11.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
     },
     {
       "id": "PORTRAIT_P12",
       "file": "assets/characters/portrait_p12_ran_vett.png",
       "category": "characters",
       "role": "Портрет сотрудника Ран Ветт, Ловчий, ранг 2",
-      "status": "approved",
+      "status": "integrated",
       "width": 512,
       "height": 640,
       "alpha": false,
       "sha256": "8af1361a635801e92ce409b9c134e032571b117ad553a47b33e5042d2e4a5cc6",
       "source": "ART-005: единая серия 12 портретов, утверждённая владельцем 2026-11-08",
       "approvedBy": "Дмитрий",
-      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Статус approved — не integrated."
+      "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p12.webp (256×320) и face_p12.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
     },
     {
       "id": "ART008_BTN_DEFAULT_9S",
       "file": "assets/ui/kit_v2/btn_default_9s.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "approved",
+      "status": "integrated",
       "width": 256,
       "height": 96,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
       "approvedBy": "Дмитрий",
-      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude."
+      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude. Подключён в src/ui/kit-png.css (9-slice через border-image псевдоэлементом; размеры и зона касания кнопок не меняются)."
     },
     {
       "id": "ART008_BTN_DISABLED_9S",
       "file": "assets/ui/kit_v2/btn_disabled_9s.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "approved",
+      "status": "integrated",
       "width": 256,
       "height": 96,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
       "approvedBy": "Дмитрий",
-      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude."
+      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude. Подключён в src/ui/kit-png.css (9-slice через border-image псевдоэлементом; размеры и зона касания кнопок не меняются)."
     },
     {
       "id": "ART008_BTN_HOVER_9S",
       "file": "assets/ui/kit_v2/btn_hover_9s.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "approved",
+      "status": "integrated",
       "width": 256,
       "height": 96,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
       "approvedBy": "Дмитрий",
-      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude."
+      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude. Подключён в src/ui/kit-png.css (9-slice через border-image псевдоэлементом; размеры и зона касания кнопок не меняются)."
     },
     {
       "id": "ART008_BTN_PRESSED_9S",
       "file": "assets/ui/kit_v2/btn_pressed_9s.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "approved",
+      "status": "integrated",
       "width": 256,
       "height": 96,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
       "approvedBy": "Дмитрий",
-      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude."
+      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude. Подключён в src/ui/kit-png.css (9-slice через border-image псевдоэлементом; размеры и зона касания кнопок не меняются)."
     },
     {
       "id": "ART008_BTN_SELECTED_9S",
       "file": "assets/ui/kit_v2/btn_selected_9s.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "approved",
+      "status": "integrated",
       "width": 256,
       "height": 96,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
       "approvedBy": "Дмитрий",
-      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude."
+      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude. Подключён в src/ui/kit-png.css (9-slice через border-image псевдоэлементом; размеры и зона касания кнопок не меняются)."
     },
     {
       "id": "ART008_CREST_DIRECTORATE",
@@ -320,26 +320,26 @@
       "file": "assets/ui/kit_v2/panel_frame_9s.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "approved",
+      "status": "integrated",
       "width": 512,
       "height": 512,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
       "approvedBy": "Дмитрий",
-      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude."
+      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude. Подключён в src/ui/kit-png.css (9-slice через border-image псевдоэлементом; размеры и зона касания кнопок не меняются)."
     },
     {
       "id": "ART008_PORTRAIT_FRAME",
       "file": "assets/ui/kit_v2/portrait_frame.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "approved",
+      "status": "integrated",
       "width": 512,
       "height": 640,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
       "approvedBy": "Дмитрий",
-      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude."
+      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude. Подключён в src/ui/kit-png.css (9-slice через border-image псевдоэлементом; размеры и зона касания кнопок не меняются)."
     },
     {
       "id": "ART008_SQUAD_BANNER_AXON",
@@ -424,13 +424,13 @@
       "file": "assets/ui/kit_v2/squad_card_9s.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "approved",
+      "status": "integrated",
       "width": 512,
       "height": 192,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
       "approvedBy": "Дмитрий",
-      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude."
+      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude. Подключён в src/ui/kit-png.css (9-slice через border-image псевдоэлементом; размеры и зона касания кнопок не меняются)."
     }
   ]
 }

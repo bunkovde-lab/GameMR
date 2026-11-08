@@ -4,6 +4,7 @@ import { optionPDelta, pendingDecision } from '../../core/operations';
 import type { GameState, OperationReport } from '../../core/types';
 import { dispatch } from '../../store';
 import { Modal } from '../Modal';
+import { Portrait } from '../Portrait';
 
 const OUTCOME: Record<OperationReport['outcome'], { label: string; tone: string }> = {
   success: { label: 'Успех', tone: 'good' },
@@ -29,9 +30,12 @@ export function DecisionDialog({ game }: { game: GameState }) {
       className="wide"
     >
       <p className="hint">Время остановлено до приказа.</p>
-      <blockquote className="report-quote">
-        {p.stage.text}
-        {commander && <footer>— {commander.name}, командир группы</footer>}
+      <blockquote className={`report-quote${commander ? ' with-face' : ''}`}>
+        {commander && <Portrait id={commander.id} name={commander.name} health={commander.health} size="sm" />}
+        <div>
+          {p.stage.text}
+          {commander && <footer>— {commander.name}, командир группы</footer>}
+        </div>
       </blockquote>
       {op.decisions.length > 0 && (
         <ol className="plain-list decisions-so-far">
@@ -87,11 +91,17 @@ export function OperationReportDialog({ game }: { game: GameState }) {
         </section>
         <section>
           <h4 className="section-title">Личный состав</h4>
+          <div className="report-faces" data-testid="report-faces">
+            {r.memberIds.map((id) => {
+              const m = game.staff.find((x) => x.id === id);
+              return m ? <Portrait key={id} id={id} name={m.name} health={m.health} size="sm" /> : null;
+            })}
+          </div>
           {r.casualties.length === 0
             ? <p className="muted" data-testid="report-no-casualties">Без потерь и ранений.</p>
             : (
               <ul className="plain-list" data-testid="report-casualties">
-                {r.casualties.map((c) => <li key={c.staffId} className={c.after === 'dead' ? 'kia' : ''}><b>{c.name}</b>: {HEALTH_LOG[c.after]}</li>)}
+                {r.casualties.map((c) => <li key={c.staffId} className={`face-row${c.after === 'dead' ? ' kia' : ''}`}><Portrait id={c.staffId} name={c.name} health={c.after} size="sm" /><span><b>{c.name}</b>: {HEALTH_LOG[c.after]}</span></li>)}
               </ul>
             )}
           <p className="hint">Опыт +{r.xp} выжившим, усталость +{r.fatigue}.</p>

@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
-  CASES, CASE_RULES, absMinute, admissibility, analysisView, caseDef, caseFile, caseForecast, concludeBlocker, evidenceDef, interrogationBlocker,
-  linkStatus, openCaseFromReport, timelineView, workerBlocker,
+  CASES, CASE_RULES, actionBlocker, actionPermitState, analysisView, caseDef, caseFile, caseForecast, concludeBlocker, evidenceDef,
+  interrogationBlocker, linkStatus, openCaseFromReport, pairStatus, resolveRef, timelineComplete, timelineView,
 } from '../../src/core/investigations';
-import { memberBlocker } from '../../src/core/dispatch';
+import { CAMPAIGN, computeEnding } from '../../src/core/campaign';
+import { SPECIAL_OPS, activeOp, opAvailability, opState, optionBlocker } from '../../src/core/specialOps';
+import { hasFlag, setFlag } from '../../src/core/flags';
 import { reduce } from '../../src/core/reduce';
 import { createInitialState } from '../../src/core/state';
 import { parseSave, toSaveFile } from '../../src/persistence/saveFormat';
@@ -13,78 +15,84 @@ import { ok, tick } from './helpers';
 const started = (seed?: number) => ok(createInitialState(seed), { type: 'START_SHIFT' });
 const report = (incidentId: string, evidence: 'done' | 'partial' | 'failed' = 'done') =>
   ({ incidentId, memberIds: [], tasks: [{ label: 'Сохранность улик', result: evidence }] }) as unknown as OperationReport;
-/** Дело открыто так, как его открывает развязка операции. */
-const withCase = (caseId = 'c1', evidence: 'done' | 'partial' | 'failed' = 'done', seed?: number) => {
-  const s = structuredClone(started(seed));
+/** Дело открыто так, как его открывает развязка операции (смена переставлена в окно дела). */
+const withCase = (caseId = 'c1', evidence: 'done' | 'partial' | 'failed' = 'done', seed?: number, s0?: GameState) => {
+  const s = structuredClone(s0 ?? started(seed));
   const d = caseDef(caseId)!;
+  if (s.shift < d.fromShift) s.shift = d.fromShift;
   openCaseFromReport(s, report(d.templateId, evidence), d.templateId, () => {});
   return s;
 };
 const file = (s: GameState, id = 'c1') => caseFile(s, id)!;
-/** Довести все задачи до конца, не трогая остальной мир. */
-const finish = (s: GameState) => tick(s, 120);
-/** Поставить результат анализа напрямую — для проверок правил, не зависящих от броска. */
-const setAnalysis = (s: GameState, caseId: string, id: string, a: CaseFile['evidence'][number]['analysis']) => {
+const finish = (s: GameState) => tick(s, 200);
+/** Положить улику в дело и выставить результат проверки — для правил, не зависящих от броска. */
+const put = (s: GameState, caseId: string, id: string, a: CaseFile['evidence'][number]['analysis'] = 'confirmed') => {
   const f = file(s, caseId);
-  if (!f.evidence.some((e) => e.id === id)) f.evidence.push({ id, foundShift: 1, analysis: 'none', checks: 0, questionable: false });
+  if (!f.evidence.some((e) => e.id === id)) f.evidence.push({ id, foundShift: s.shift, analysis: 'none', checks: 0, questionable: false });
   f.evidence.find((e) => e.id === id)!.analysis = a;
 };
+const grant = (s: GameState, caseId: string, actionId: string) => {
+  s = ok(s, { type: 'REQUEST_CASE_PERMIT', caseId, actionId });
+  const p = s.politics.permits.find((x) => x.caseId === caseId && x.actionId === actionId)!;
+  p.status = 'granted';
+  return s;
+};
+const nextShift = (s: GameState) => ok(ok(ok(tick(s, 720), { type: 'END_SHIFT' }), { type: 'ADVANCE_SHIFT' }), { type: 'START_SHIFT' });
 
-describe('W9 case content (ТЗ §11.1)', () => {
-  it('three cases, each with 6–10 significant evidence plus traps, 3–5 hypotheses, two plausible readings and a forgery', () => {
-    expect(CASES).toHaveLength(3);
+describe('W9 content: «Неисполненный жребий» (сценарий PR #27)', () => {
+  it('three linked cases with 3–5 hypotheses, exactly one true version, a forgery and only resolvable references', () => {
+    expect(CASES.map((c) => c.number)).toEqual([418, 431, 447]);
     for (const c of CASES) {
-      expect(c.evidence.length).toBeGreaterThanOrEqual(6);
-      expect(c.evidence.length).toBeLessThanOrEqual(11);
       expect(c.hypotheses.length).toBeGreaterThanOrEqual(3);
       expect(c.hypotheses.length).toBeLessThanOrEqual(5);
-      expect(c.hypotheses.map((h) => h.id)).toContain(c.truth);
-      // Ложная версия тоже на что-то опирается: хотя бы одна улика её «поддерживает» (явно или подлогом).
-      const supported = new Set(c.evidence.flatMap((e) => [...Object.entries(e.bears), ...Object.entries(e.fakeBears ?? {})].filter(([, b]) => b === 'supports').map(([h]) => h)));
-      expect([...supported].filter((h) => h !== c.truth).length).toBeGreaterThanOrEqual(1);
+      expect(c.hypotheses.filter((h) => h.grade === 'true')).toHaveLength(1);
       expect(c.evidence.some((e) => e.forged)).toBe(true);
-      // Все ссылки в контенте ведут на существующие улики и людей.
-      const ids = new Set(c.evidence.map((e) => e.id));
-      for (const e of c.evidence) {
-        for (const r of [...(e.reveals ?? []), ...(e.conflictsWith ?? [])]) expect(ids.has(r)).toBe(true);
-        if (e.origin.startsWith('person:')) expect(c.persons.some((p) => `person:${p.id}` === e.origin)).toBe(true);
-        if (e.slot !== undefined) expect(e.slot).toBeLessThan(c.slots.length);
-      }
-      for (const p of c.persons) for (const m of ['standard', 'present', 'skilled', 'pressure'] as const) {
-        const line = p[m];
-        if (line?.reveals) expect(ids.has(line.reveals)).toBe(true);
-        if (line?.needs) expect(ids.has(line.needs)).toBe(true);
+      const known = (r: string) => {
+        const [cid, eid] = r.includes(':') ? r.split(':') : [c.id, r];
+        return !!evidenceDef(caseDef(cid!)!, eid!);
+      };
+      for (const e of c.edges) expect(known(e.a) && known(e.b), `${c.id} edge ${e.a}-${e.b}`).toBe(true);
+      for (const a of c.actions) for (const r of [...(a.requires ?? []), ...a.reveals]) expect(known(r), `${c.id} ${a.id} ${r}`).toBe(true);
+      for (const p of c.persons) for (const l of p.lines) for (const r of [...(l.needs ?? []), ...(l.reveals ? [l.reveals] : [])]) expect(known(r), `${c.id} ${p.id} ${r}`).toBe(true);
+      // Каждая не-сценная улика откуда-то добывается.
+      for (const e of c.evidence.filter((x) => x.origin !== 'scene')) {
+        const [kind, id] = e.origin.split(':');
+        if (kind === 'action') expect(c.actions.find((a) => a.id === id)?.reveals, e.id).toContain(e.id);
+        else expect(c.persons.find((p) => p.id === id)?.lines.some((l) => l.reveals === e.id), e.id).toBe(true);
       }
     }
   });
 
-  it('no dead end: the true version can reach the charge threshold without pressure', () => {
-    for (const c of CASES) {
-      const s = withCase(c.id);
-      const f = file(s, c.id);
-      // Всё, что достижимо без усиленного допроса: место, анализы, стандартные, предъявление, тактическая беседа.
-      const reachable = c.evidence.filter((e) => e.origin === 'scene' || e.origin.startsWith('analysis:') ||
-        c.persons.some((p) => (['standard', 'present', 'skilled'] as const).some((m) => p[m]?.reveals === e.id)));
-      const good = reachable.filter((e) => e.bears[c.truth] === 'supports');
-      expect(good.length).toBeGreaterThanOrEqual(CASE_RULES.chargeMin);
-      for (const e of good) {
-        setAnalysis(s, c.id, e.id, e.forged ? 'forgery' : 'confirmed');
-        f.links.push({ evidenceId: e.id, hypothesisId: c.truth });
-      }
-      expect(concludeBlocker(s, c.id, 'charge', c.truth)).toBeNull();
+  it('the cases are linked: case №431 and №447 compare evidence from earlier cases', () => {
+    expect(caseDef('c2')!.edges.some((e) => e.b.startsWith('c1:'))).toBe(true);
+    expect(caseDef('c3')!.edges.some((e) => e.b.startsWith('c2:'))).toBe(true);
+    expect(caseDef('c2')!.actions.find((a) => a.id === 'a_crosscheck')!.requires).toEqual(['c1:e03', 'c1:e08']);
+  });
+
+  it('campaign has 12 shifts, two special operations with 4 phases × 3 options and three endings', () => {
+    expect(CAMPAIGN.nodes.map((n) => n.shift)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    expect(Object.keys(CAMPAIGN.endings).sort()).toEqual(['collapse', 'cost', 'order']);
+    expect(SPECIAL_OPS).toHaveLength(2);
+    for (const o of SPECIAL_OPS) {
+      expect(o.phases).toHaveLength(4);
+      for (const p of o.phases) expect(p.options).toHaveLength(3);
+      expect(o.objectives.length).toBeGreaterThanOrEqual(4);
     }
   });
 });
 
 describe('W9 opening a case', () => {
-  it('first operation on the matching call opens the case with scene evidence; lost custody means fewer, questionable items', () => {
-    const full = file(withCase('c1', 'done'));
+  it('the matching call opens the case with scene evidence; lost custody means fewer, questionable items', () => {
     const scene = caseDef('c1')!.evidence.filter((e) => e.origin === 'scene').length;
-    expect(full.evidence).toHaveLength(scene);
-    expect(file(withCase('c1', 'partial')).evidence).toHaveLength(scene - 1);
+    expect(file(withCase('c1', 'done')).evidence).toHaveLength(scene);
     const bad = file(withCase('c1', 'failed'));
-    expect(bad.evidence.length).toBeLessThan(scene);
     expect(bad.evidence.every((e) => e.questionable)).toBe(true);
+  });
+
+  it('cases open only in their shift window: the shift-1 «Нелегальная модификация» call does not open №431', () => {
+    const s = structuredClone(started());
+    expect(openCaseFromReport(s, report('illegal'), 'illegal', () => {})).toBeNull();
+    expect(openCaseFromReport(s, report('missing'), 'missing', () => {})).not.toBeNull();
   });
 
   it('a real dispatch to «Пропажа регистратора» opens case №418 after the operation', () => {
@@ -95,197 +103,286 @@ describe('W9 opening a case', () => {
   });
 });
 
-describe('W9 board: links and analysis (ТЗ §11.2)', () => {
-  it('a link is proposed until the evidence is checked, then supported or contradicted — no truth percentage', () => {
-    let s = withCase();
-    s = ok(s, { type: 'LINK_EVIDENCE', caseId: 'c1', evidenceId: 'e1', hypothesisId: 'h1' });
+describe('W9 evidence board: links and comparisons', () => {
+  it('a link is proposed until the evidence is checked; an undetected forgery supports the wrong version', () => {
+    const s = withCase();
     const d = caseDef('c1')!;
-    expect(linkStatus(file(s), d, 'e1', 'h1').status).toBe('proposed');
-    expect(reduce(s, { type: 'LINK_EVIDENCE', caseId: 'c1', evidenceId: 'e1', hypothesisId: 'h1' }).ok).toBe(false);
-    setAnalysis(s, 'c1', 'e1', 'confirmed');
-    expect(linkStatus(file(s), d, 'e1', 'h1').status).toBe('contradicted');
-    s = ok(s, { type: 'UNLINK_EVIDENCE', caseId: 'c1', evidenceId: 'e1', hypothesisId: 'h1' });
-    expect(file(s).links).toHaveLength(0);
+    expect(linkStatus(file(s), d, 'e02', 'h1d').status).toBe('proposed');
+    put(s, 'c1', 'e02');
+    expect(linkStatus(file(s), d, 'e02', 'h1d').status).toBe('supported');
+    expect(linkStatus(file(s), d, 'e02', 'h1c').status).toBe('contradicted');
+    put(s, 'c1', 'e03', 'misled');
+    expect(linkStatus(file(s), d, 'e03', 'h1c').status).toBe('supported');
+    expect(analysisView(file(s).evidence.find((e) => e.id === 'e03')!, evidenceDef(d, 'e03')!).word).toBe('проверено');
+    put(s, 'c1', 'e03', 'forgery');
+    expect(linkStatus(file(s), d, 'e03', 'h1c').status).toBe('contradicted');
   });
 
-  it('analysis needs a free specialist, takes time and reagents for lab work, and frees the person after', () => {
+  it('comparing two checked items confirms a real connection and rejects a false one', () => {
     let s = withCase();
-    expect(reduce(s, { type: 'ANALYZE_EVIDENCE', caseId: 'c1', evidenceId: 'e5', staffId: 'p2' }).ok).toBe(false); // страж — не по должности
-    const reagents = s.resources.reagents;
-    s = ok(s, { type: 'ANALYZE_EVIDENCE', caseId: 'c1', evidenceId: 'e5', staffId: 'p7' });
-    expect(s.resources.reagents).toBe(reagents - 1);
-    expect(workerBlocker(s, 'p7', ['biocriminalist'])).toMatch(/делом/);
-    expect(memberBlocker(s, 'p7', 'axon')).toBe('работает по делу');
-    expect(file(s).tasks[0]!.doneAt).toBe(absMinute(s) + 90);
+    s = ok(s, { type: 'LINK_PAIR', caseId: 'c1', a: 'e01', b: 'e02' });
+    expect(pairStatus(s, file(s), 'e01', 'e02').status).toBe('proposed');
+    put(s, 'c1', 'e01');
+    put(s, 'c1', 'e02');
+    const st = pairStatus(s, file(s), 'e01', 'e02');
+    expect(st.status).toBe('supported');
+    expect(st.edge?.insight).toBeTruthy();
+    put(s, 'c1', 'e05');
+    expect(pairStatus(s, file(s), 'e01', 'e05').status).toBe('contradicted');
+    expect(reduce(s, { type: 'LINK_PAIR', caseId: 'c1', a: 'e01', b: 'e02' }).ok).toBe(false);
+    s = ok(s, { type: 'UNLINK_PAIR', caseId: 'c1', a: 'e02', b: 'e01' });
+    expect(file(s).pairs).toEqual([]);
+  });
+
+  it('evidence from an earlier case can be pinned to the new board', () => {
+    let s = withCase('c1');
+    put(s, 'c1', 'e05');
+    s = withCase('c2', 'done', undefined, s);
+    put(s, 'c2', 'e04');
+    expect(reduce(s, { type: 'LINK_PAIR', caseId: 'c2', a: 'e04', b: 'c1:e06' }).ok).toBe(false);
+    s = ok(s, { type: 'LINK_PAIR', caseId: 'c2', a: 'e04', b: 'c1:e05' });
+    expect(pairStatus(s, file(s, 'c2'), 'e04', 'c1:e05').status).toBe('supported');
+  });
+});
+
+describe('W9 investigative actions and permits', () => {
+  it('closed House records need an interagency permit: request, fee, wait, then the action reveals evidence', () => {
+    let s = withCase();
+    expect(actionBlocker(s, 'c1', 'a_list')).toMatch(/допуск/);
+    const before = s.economy.balance;
+    s = ok(s, { type: 'REQUEST_CASE_PERMIT', caseId: 'c1', actionId: 'a_list' });
+    expect(s.economy.balance).toBeLessThanOrEqual(before);
+    expect(actionPermitState(s, file(s), caseDef('c1')!.actions[0]!)).toBe('pending');
+    expect(reduce(s, { type: 'REQUEST_CASE_PERMIT', caseId: 'c1', actionId: 'a_list' }).ok).toBe(false);
+    s = tick(s, 240);
+    const p = s.politics.permits.find((x) => x.caseId === 'c1')!;
+    expect(['granted', 'denied']).toContain(p.status);
+    if (p.status === 'denied') p.status = 'granted';
+    s = ok(s, { type: 'CASE_ACTION', caseId: 'c1', actionId: 'a_list', staffId: 'p8' });
+    expect(s.politics.permits.find((x) => x.caseId === 'c1')!.status).toBe('used');
     s = finish(s);
-    expect(file(s).tasks).toHaveLength(0);
-    expect(file(s).evidence.find((e) => e.id === 'e5')!.analysis).not.toBe('none');
-    expect(workerBlocker(s, 'p7', ['biocriminalist'])).toBeNull();
+    expect(file(s).evidence.some((e) => e.id === 'e03')).toBe(true);
   });
 
-  it('an undetected forgery looks exactly like a checked item and supports the false version', () => {
-    const s = withCase();
-    const d = caseDef('c1')!;
-    const def = evidenceDef(d, 'e2')!;
-    setAnalysis(s, 'c1', 'e2', 'misled');
-    const ev = file(s).evidence.find((e) => e.id === 'e2')!;
-    expect(analysisView(ev, def).word).toBe(analysisView({ ...ev, analysis: 'confirmed' }, { ...def, forged: false }).word);
-    expect(linkStatus(file(s), d, 'e2', 'h1').status).toBe('supported');
-    setAnalysis(s, 'c1', 'e2', 'forgery');
-    expect(linkStatus(file(s), d, 'e2', 'h1').status).toBe('contradicted');
-  });
-
-  it('a better analyst detects forgeries more often (deterministic over seeds)', () => {
-    const detect = (staffId: string) => {
-      let n = 0;
-      for (let seed = 1; seed <= 40; seed++) {
-        let s = withCase('c1', 'done', seed);
-        s = finish(ok(s, { type: 'ANALYZE_EVIDENCE', caseId: 'c1', evidenceId: 'e2', staffId }));
-        if (file(s).evidence.find((e) => e.id === 'e2')!.analysis === 'forgery') n++;
-      }
-      return n;
-    };
-    expect(detect('p9')).toBeGreaterThan(detect('p11')); // анализ 5 против 3
-  });
-
-  it('confirmed analysis reveals follow-up evidence', () => {
-    const s = withCase();
-    s.investigations.cases[0]!.evidence.find((e) => e.id === 'e1')!.checks = 5; // повторные проверки почти всегда успешны
-    const r = finish(ok(s, { type: 'ANALYZE_EVIDENCE', caseId: 'c1', evidenceId: 'e1', staffId: 'p9' }));
-    expect(file(r).evidence.map((e) => e.id)).toContain('e7');
-  });
-});
-
-describe('W9 reconstruction (ТЗ §11.3)', () => {
-  it('player places evidence; a wrong slot is flagged, two sources in their own slots reveal a contradiction', () => {
+  it('actions need prerequisite evidence and the right role; the worker is busy meanwhile', () => {
     let s = withCase();
-    const d = caseDef('c1')!;
-    s = ok(s, { type: 'PLACE_EVIDENCE', caseId: 'c1', evidenceId: 'e2', slot: 0 });
-    expect(timelineView(file(s), d).placed[0]!.fits).toBe(false);
-    s = ok(s, { type: 'PLACE_EVIDENCE', caseId: 'c1', evidenceId: 'e2', slot: 1 });
-    s = ok(s, { type: 'PLACE_EVIDENCE', caseId: 'c1', evidenceId: 'e4', slot: 3 });
-    expect(timelineView(file(s), d).conflicts).toEqual([['e2', 'e4']]);
-    expect(reduce(s, { type: 'PLACE_EVIDENCE', caseId: 'c1', evidenceId: 'e1', slot: 1 }).ok).toBe(false); // без времени
-    s = ok(s, { type: 'PLACE_EVIDENCE', caseId: 'c1', evidenceId: 'e4', slot: null });
-    expect(timelineView(file(s), d).conflicts).toEqual([]);
-  });
-});
-
-describe('W9 interrogation (ТЗ §11.4)', () => {
-  it('presenting needs a checked piece of evidence; skilled talk needs analysis 4+', () => {
-    const s = withCase();
-    expect(interrogationBlocker(s, 'c1', 'p2', 'standard', 'p9')).toMatch(/оснований/); // посредник ещё неизвестен
-    expect(interrogationBlocker(s, 'c1', 'p1', 'present', 'p9')).toMatch(/проверьте/);
-    expect(interrogationBlocker(s, 'c1', 'p3', 'skilled', 'p11')).toMatch(/анализ/);
-    expect(interrogationBlocker(s, 'c1', 'p3', 'skilled', 'p9')).toBeNull();
-    expect(interrogationBlocker(s, 'c1', 'p1', 'standard', 'p2')).toMatch(/должности/);
-  });
-
-  it('pressure gives low-reliability testimony, taints the person, and costs Open Circuit standing', () => {
-    let s = withCase();
-    setAnalysis(s, 'c1', 'e7', 'confirmed');
-    s = ok(s, { type: 'INTERROGATE', caseId: 'c1', personId: 'p2', method: 'present', staffId: 'p9' });
+    expect(actionBlocker(s, 'c1', 'a_search')).toMatch(/Маршрут контейнера/);
+    expect(actionBlocker(s, 'c1', 'a_pay', 'p2')).toMatch(/должности/);
+    s = ok(s, { type: 'CASE_ACTION', caseId: 'c1', actionId: 'a_pay', staffId: 'p8' });
+    expect(reduce(s, { type: 'ANALYZE_EVIDENCE', caseId: 'c1', evidenceId: 'e01', staffId: 'p8' }).ok).toBe(false);
     s = finish(s);
-    expect(file(s).evidence.find((e) => e.id === 'e8')!.questionable).toBe(false);
-    const open = s.politics.coalitions.open!;
-    s = finish(ok(s, { type: 'INTERROGATE', caseId: 'c1', personId: 'p2', method: 'pressure', staffId: 'p9' }));
-    const f = file(s);
-    expect(f.evidence.find((e) => e.id === 'e10')!.questionable).toBe(true);
-    expect(f.evidence.find((e) => e.id === 'e8')!.questionable).toBe(true); // всё сказанное этим человеком — под сомнением
-    expect(admissibility(s, f, f.evidence.find((e) => e.id === 'e8')!, evidenceDef(caseDef('c1')!, 'e8')!).ok).toBe(false);
-    expect(s.politics.coalitions.open).toBe(open - 2);
-    expect(reduce(s, { type: 'INTERROGATE', caseId: 'c1', personId: 'p2', method: 'pressure', staffId: 'p9' }).ok).toBe(false);
+    expect(file(s).evidence.some((e) => e.id === 'e05')).toBe(true);
+  });
+
+  it('finding Idan by the end of shift 3 lets him be questioned in person', () => {
+    let s = withCase();
+    put(s, 'c1', 'e06');
+    s = ok(s, { type: 'CASE_ACTION', caseId: 'c1', actionId: 'a_search', staffId: 'p9' });
+    s = finish(s);
+    expect(hasFlag(s, 'c1_idan_found')).toBe(true);
+    expect(interrogationBlocker(s, 'c1', 'p3', 'l1')).toBeNull();
   });
 });
 
-describe('W9 conclusion (ТЗ §11.5)', () => {
-  const ready = (hyp: string, ids: string[], seed?: number) => {
-    const s = withCase('c1', 'done', seed);
-    for (const id of ids) {
-      setAnalysis(s, 'c1', id, evidenceDef(caseDef('c1')!, id)!.forged ? 'forgery' : 'confirmed');
-      file(s).links.push({ evidenceId: id, hypothesisId: hyp });
+describe('W9 interrogation: present specific evidence', () => {
+  it('a question opens only with the evidence it refers to, and presenting needs a checked item', () => {
+    let s = withCase();
+    put(s, 'c1', 'e03');
+    expect(interrogationBlocker(s, 'c1', 'p1', 'l2')).toMatch(/улики/);
+    put(s, 'c1', 'e08', 'none');
+    expect(interrogationBlocker(s, 'c1', 'p1', 'l2')).toMatch(/Сначала проверьте/);
+    put(s, 'c1', 'e08');
+    expect(interrogationBlocker(s, 'c1', 'p1', 'l2', 'p9')).toBeNull();
+    s = ok(s, { type: 'INTERROGATE', caseId: 'c1', personId: 'p1', lineId: 'l2', staffId: 'p9' });
+    s = finish(s);
+    expect(file(s).asked).toContain('p1:l2');
+    expect(reduce(s, { type: 'INTERROGATE', caseId: 'c1', personId: 'p1', lineId: 'l2', staffId: 'p9' }).ok).toBe(false);
+  });
+
+  it('protection unlocks testimony that pressure cannot; pressure taints and closes the trust lines', () => {
+    let s = withCase();
+    s = ok(s, { type: 'INTERROGATE', caseId: 'c1', personId: 'p2', lineId: 'l1', staffId: 'p9' });
+    s = finish(s);
+    expect(file(s).evidence.some((e) => e.id === 'e04')).toBe(true);
+    s = ok(s, { type: 'INTERROGATE', caseId: 'c1', personId: 'p2', lineId: 'l3', staffId: 'p9' });
+    s = finish(s);
+    put(s, 'c1', 'e02');
+    put(s, 'c1', 'e04');
+    expect(interrogationBlocker(s, 'c1', 'p2', 'l2')).toMatch(/не доверяет/);
+    expect(file(s).evidence.find((e) => e.id === 'e04')!.questionable).toBe(true);
+  });
+});
+
+describe('W9 reconstruction', () => {
+  it('a wrong slot is flagged; the sequence is complete when every timed item is in place', () => {
+    let s = withCase();
+    const d = caseDef('c1')!;
+    for (const id of ['e04', 'e06', 'e07']) put(s, 'c1', id, 'none');
+    s = ok(s, { type: 'PLACE_EVIDENCE', caseId: 'c1', evidenceId: 'e01', slot: 3 });
+    expect(timelineView(file(s), d).placed.find((p) => p.evidenceId === 'e01')!.fits).toBe(false);
+    const order: Record<string, number> = { e01: 1, e02: 1, e04: 0, e06: 2, e07: 3 };
+    for (const [id, slot] of Object.entries(order)) s = ok(s, { type: 'PLACE_EVIDENCE', caseId: 'c1', evidenceId: id, slot });
+    expect(timelineComplete(file(s), d)).toBe(true);
+    expect(reduce(s, { type: 'PLACE_EVIDENCE', caseId: 'c1', evidenceId: 'e05', slot: 0 }).ok).toBe(false);
+  });
+});
+
+describe('W9 conclusion per case', () => {
+  it('a charge needs enough admissible supported links; the audit needs two confirmed comparisons', () => {
+    let s = withCase();
+    expect(concludeBlocker(s, 'c1', 'charge_noris', 'h1d')).toMatch(/Мало оснований/);
+    for (const id of ['e02', 'e05', 'e06']) {
+      put(s, 'c1', id);
+      s = ok(s, { type: 'LINK_EVIDENCE', caseId: 'c1', evidenceId: id, hypothesisId: 'h1d' });
     }
+    expect(caseForecast(s, file(s), 'h1d').admissibleSupported).toBe(3);
+    expect(concludeBlocker(s, 'c1', 'charge_noris', 'h1d')).toBeNull();
+    expect(concludeBlocker(s, 'c1', 'charge_noris', 'h1a')).toMatch(/Выберите версию/);
+    expect(concludeBlocker(s, 'c1', 'audit')).toMatch(/сопоставлений/);
+    put(s, 'c1', 'e01');
+    s = ok(s, { type: 'LINK_PAIR', caseId: 'c1', a: 'e01', b: 'e02' });
+    s = ok(s, { type: 'LINK_PAIR', caseId: 'c1', a: 'e05', b: 'e06' });
+    expect(concludeBlocker(s, 'c1', 'audit')).toBeNull();
+    s = ok(s, { type: 'CONCLUDE_CASE', caseId: 'c1', conclusionId: 'audit' });
+    expect(file(s).status).toBe('concluded');
+    expect(hasFlag(s, 'c1_evidence_lawful')).toBe(true);
+  });
+
+  it('closing as a disciplinary case gives money now and resurfaces later', () => {
+    let s = withCase();
+    const before = s.economy.balance;
+    s = ok(s, { type: 'CONCLUDE_CASE', caseId: 'c1', conclusionId: 'discipline' });
+    expect(s.economy.balance).toBeGreaterThan(before);
+    expect(file(s).revealShift).toBe(s.shift + CASE_RULES.revealAfterShifts);
+  });
+
+  it('cooperation with the surgeon is possible only after she agreed under protection', () => {
+    const s = withCase('c2');
+    expect(concludeBlocker(s, 'c2', 'cooperate')).toMatch(/Ашер/);
+    setFlag(s, 'c2_surgeon_cooperates');
+    expect(concludeBlocker(s, 'c2', 'cooperate')).toBeNull();
+  });
+});
+
+describe('W9 campaign: story decisions and shifts', () => {
+  it('story incidents arrive at shifts 5 and 9; an unanswered offer counts as refused', () => {
+    let s = started();
+    for (let i = 1; i < 3; i++) s = nextShift(s);
+    expect(s.shift).toBe(3);
+    const h2 = s.politics.standing.h2!;
+    s = ok(ok(tick(s, 720), { type: 'END_SHIFT' }), { type: 'ADVANCE_SHIFT' });
+    expect(s.campaign.choices['3']).toBe('refuse');
+    expect(s.politics.standing.h2).toBeLessThan(h2);
+    s = ok(s, { type: 'START_SHIFT' });
+    s = nextShift(s);
+    expect(s.shift).toBe(5);
+    expect(s.incidents.filter((i) => i.templateId === 'illegal' && i.createdShift === 5)).toHaveLength(1);
+  });
+
+  it('accepting Noris’s offer closes case №418 as a disciplinary matter', () => {
+    let s = withCase();
+    s.shift = 3;
+    s = ok(s, { type: 'STORY_CHOICE', shift: 3, optionId: 'accept' });
+    expect(file(s).decision?.conclusionId).toBe('discipline');
+    expect(hasFlag(s, 'c1_hushed')).toBe(true);
+    expect(reduce(s, { type: 'STORY_CHOICE', shift: 3, optionId: 'refuse' }).ok).toBe(false);
+  });
+});
+
+describe('W9 special operations', () => {
+  const opReady = (seed?: number) => {
+    const s = withCase('c2', 'done', seed);
+    s.shift = 6;
+    s.squads.find((q) => q.id === 'axon')!.status = 'ready';
     return s;
   };
 
-  it('charging needs enough admissible supported links; the forecast is about evidence, not truth', () => {
-    const s = ready('h2', ['e1', 'e3']);
-    expect(concludeBlocker(s, 'c1', 'charge', 'h2')).toMatch(/Мало оснований/);
-    expect(concludeBlocker(s, 'c1', 'close')).toBeNull();
-    const fc = caseForecast(s, file(s), 'h2');
-    expect(fc).toMatchObject({ supported: 2, admissibleSupported: 2, contradicted: 0 });
-    expect(Object.keys(fc)).not.toContain('truth');
+  it('opens in its window only when the case is open; time stops while the operation runs', () => {
+    expect(opAvailability(started(), 'op1').open).toBe(false);
+    let s = opReady();
+    expect(opAvailability(s, 'op1').open).toBe(true);
+    s = ok(s, { type: 'START_SPECIAL_OP', opId: 'op1', squadId: 'axon' });
+    expect(activeOp(s)?.id).toBe('op1');
+    expect(reduce(s, { type: 'TICK', minutes: 10 }).ok).toBe(false);
+    expect(reduce(s, { type: 'END_SHIFT' }).ok).toBe(false);
   });
 
-  it('a right charge improves the district; a false version cannot be charged on thin evidence', () => {
-    const right = ready('h2', ['e1', 'e3', 'e4', 'e7']);
-    const trust = right.districts.find((d) => d.id === 'admin')!.civilianTrust;
-    let r = right;
-    for (let seed = 0; seed < 5 && file(r).status === 'open'; seed++) r = ok(r, { type: 'CONCLUDE_CASE', caseId: 'c1', decision: 'charge', hypothesisId: 'h2' });
-    expect(file(r).status).toBe('charged');
-    expect(r.districts.find((d) => d.id === 'admin')!.civilianTrust).toBeGreaterThan(trust);
-    expect(file(r).revealShift).toBeUndefined();
-
-    // Ложная версия «Палата» на седативе и показаниях дежурной: двух связей мало.
-    const wrong = withCase();
-    setAnalysis(wrong, 'c1', 'e5', 'confirmed');
-    setAnalysis(wrong, 'c1', 'e6', 'confirmed');
-    setAnalysis(wrong, 'c1', 'e2', 'misled');
-    file(wrong).links.push({ evidenceId: 'e5', hypothesisId: 'h3' }, { evidenceId: 'e6', hypothesisId: 'h3' });
-    expect(concludeBlocker(wrong, 'c1', 'charge', 'h3')).toMatch(/Мало/);
-    // Подлог без выявления «подтверждает» побег: три связи — и суд может принять неверную версию.
-    const fled = withCase();
-    setAnalysis(fled, 'c1', 'e2', 'misled');
-    file(fled).links.push({ evidenceId: 'e2', hypothesisId: 'h1' });
-    expect(concludeBlocker(fled, 'c1', 'charge', 'h1')).toMatch(/Мало/);
+  it('a lawful option needs the case warrant; emergency entry creates a review; the report scores each objective', () => {
+    let s = opReady(3);
+    s = ok(s, { type: 'START_SPECIAL_OP', opId: 'op1', squadId: 'axon' });
+    expect(optionBlocker(s, activeOp(s)!, 'cordon')).toMatch(/ордер/);
+    const permits = s.politics.permits.length;
+    s = ok(s, { type: 'SPECIAL_OP_CHOICE', opId: 'op1', optionId: 'breach' });
+    expect(s.politics.permits.length).toBe(permits + 1);
+    expect(s.politics.permits.at(-1)!.kind).toBe('emergency');
+    for (const o of ['talk', 'evacuate', 'leave']) s = ok(s, { type: 'SPECIAL_OP_CHOICE', opId: 'op1', optionId: o });
+    const op = opState(s, 'op1')!;
+    expect(op.status).toBe('done');
+    expect(op.report!.objectives).toHaveLength(5);
+    expect(hasFlag(s, 'c2_patients_saved')).toBe(true);
+    expect(s.squads.find((q) => q.id === 'axon')!.status).toBe('resting');
+    s = ok(s, { type: 'ACK_SPECIAL_OP', opId: 'op1' });
+    expect(opState(s, 'op1')!.report!.seen).toBe(true);
   });
 
-  it('a wrongly accepted charge is revealed later with a legal violation', () => {
-    const s = withCase();
-    file(s).status = 'charged';
-    file(s).decision = { kind: 'charge', hypothesisId: 'h1', shift: 1, court: 'accepted' };
-    file(s).revealShift = 3;
-    let r = ok(tick(s, 720), { type: 'END_SHIFT' });
-    r = ok(r, { type: 'ADVANCE_SHIFT' });
-    expect(file(r).revealed).toBeFalsy();
-    r = ok(ok(tick(ok(r, { type: 'START_SHIFT' }), 720), { type: 'END_SHIFT' }), { type: 'ADVANCE_SHIFT' });
-    expect(file(r).revealed).toBe(true);
-    expect(r.politics.violations).toContain(3);
-    expect(r.log.some((e) => e.type === 'case_revealed')).toBe(true);
+  it('with a granted warrant the lawful options open', () => {
+    let s = opReady();
+    put(s, 'c2', 'e02');
+    s = grant(s, 'c2', 'a_protocols');
+    s = ok(s, { type: 'START_SPECIAL_OP', opId: 'op1', squadId: 'axon' });
+    expect(optionBlocker(s, activeOp(s)!, 'cordon')).toBeNull();
   });
 
-  it('expertise costs money, rechecks once, and blocks while tasks run', () => {
-    let s = withCase();
-    expect(reduce(s, { type: 'REQUEST_EXPERTISE', caseId: 'c1' }).ok).toBe(false); // нечего перепроверять
-    setAnalysis(s, 'c1', 'e2', 'misled');
-    const bal = s.economy.balance;
-    s = ok(s, { type: 'REQUEST_EXPERTISE', caseId: 'c1' });
-    expect(s.economy.balance).toBe(bal - CASE_RULES.expertise.fee * 100);
-    expect(reduce(s, { type: 'REQUEST_EXPERTISE', caseId: 'c1' }).ok).toBe(false);
-    s = ok(s, { type: 'ANALYZE_EVIDENCE', caseId: 'c1', evidenceId: 'e3', staffId: 'p9' });
-    expect(concludeBlocker(s, 'c1', 'close')).toMatch(/Дождитесь/);
+  it('a missed window is a consequence too', () => {
+    let s = started();
+    s.shift = 12;
+    s = ok(ok(tick(s, 720), { type: 'END_SHIFT' }), { type: 'ADVANCE_SHIFT' });
+    expect(hasFlag(s, 'op2_missed')).toBe(true);
+    expect(hasFlag(s, 'c3_crisis_failed')).toBe(true);
+  });
+});
+
+describe('W9 endings', () => {
+  it('the end of shift 12 picks an ending from what happened, not from points', () => {
+    let s = started();
+    s.shift = 12;
+    s = ok(tick(s, 720), { type: 'END_SHIFT' });
+    expect(s.campaign.ending).toBe('collapse'); // кризис в лаборатории без Дирекции, ни одного решения по делам
+    s = ok(s, { type: 'ACK_ENDING' });
+    expect(s.campaign.endingSeen).toBe(true);
   });
 
-  it('transfer and close end the case; closing an unsolved case surfaces later', () => {
-    const t = ok(withCase(), { type: 'CONCLUDE_CASE', caseId: 'c1', decision: 'transfer' });
-    expect(file(t).status).toBe('transferred');
-    expect(t.politics.standing.h2).toBe(5);
-    const c = ok(withCase(), { type: 'CONCLUDE_CASE', caseId: 'c1', decision: 'close' });
-    expect(file(c).revealShift).toBe(3);
-    expect(reduce(c, { type: 'LINK_EVIDENCE', caseId: 'c1', evidenceId: 'e1', hypothesisId: 'h1' }).ok).toBe(false);
+  it('strong lawful decisions plus admissible lab proof give «Порядок удержан»; closed deals give «Порядок ценой людей»', () => {
+    const s = structuredClone(started());
+    s.campaign.ops.push({ id: 'op2', squadId: 'axon', memberIds: [], startedShift: 11, phase: 4, choices: [], risk: 0, status: 'done', scores: {}, report: { outcome: 'success', objectives: [], casualties: [], notes: [], seen: true } });
+    for (const id of ['c1', 'c2'] as const) {
+      const d = caseDef(id)!;
+      s.investigations.cases.push({ id, incidentId: d.templateId, openedShift: 1, status: 'concluded', evidence: [], links: [], pairs: [], timeline: {}, working: null, asked: [], actionsDone: [], tasks: [], expertiseBonus: 0, decision: { conclusionId: id === 'c1' ? 'audit' : 'cooperate', shift: 2 } });
+    }
+    setFlag(s, 'c3_sample_admissible');
+    expect(computeEnding(s).id).toBe('order');
+    setFlag(s, 'campaign_closed_compact');
+    expect(computeEnding(s).id).toBe('cost');
   });
 });
 
 describe('W9 saves', () => {
-  it('v9 saves migrate; a case in progress round-trips and keeps determinism', () => {
+  it('v9 saves migrate with an empty campaign; a case in progress round-trips deterministically', () => {
     let s = withCase();
-    s = ok(s, { type: 'ANALYZE_EVIDENCE', caseId: 'c1', evidenceId: 'e5', staffId: 'p7' });
+    s = ok(s, { type: 'ANALYZE_EVIDENCE', caseId: 'c1', evidenceId: 'e01', staffId: 'p8' });
     const back = parseSave(JSON.parse(JSON.stringify(toSaveFile(s, 'тест', new Date(0)))));
     expect(back.ok && back.state.investigations.cases[0]!.tasks).toHaveLength(1);
     if (back.ok) expect(finish(back.state).rng).toEqual(finish(s).rng);
     const old = structuredClone(s) as unknown as Record<string, unknown>;
     delete old.investigations;
+    delete old.campaign;
     const legacy = parseSave({ format: 'gamemr-save', schemaVersion: 9, savedAt: '', label: '', state: { ...old, schemaVersion: 9 } });
     expect(legacy.ok && legacy.state.investigations.cases).toEqual([]);
+    expect(legacy.ok && legacy.state.campaign.flags).toEqual([]);
+  });
+
+  it('cross-case references resolve through the saved state', () => {
+    const s = withCase('c2', 'done', undefined, withCase('c1'));
+    expect(resolveRef(s, 'c2', 'c1:e01').ev).toBeDefined();
   });
 });

@@ -2,6 +2,7 @@ import { formatRe, isOpen } from '../core/selectors';
 import type { GameState } from '../core/types';
 import { dispatch } from '../store';
 import { Modal } from './Modal';
+import { StoryCard } from './screens/CampaignPanel';
 
 export function BriefingDialog({ game, onOpenSettings }: { game: GameState; onOpenSettings: () => void }) {
   const open = game.incidents.filter(isOpen);
@@ -13,6 +14,7 @@ export function BriefingDialog({ game, onOpenSettings }: { game: GameState; onOp
         <dt>Открытые вызовы</dt><dd>{open.length}</dd>
         <dt>Готовые отряды</dt><dd>{ready} из {game.squads.length}</dd>
       </dl>
+      <StoryCard game={game} compact />
       <div className="modal-actions">
         <button className="btn" onClick={onOpenSettings} data-testid="briefing-saves">Сохранения</button>
         <button className="btn primary" onClick={() => dispatch({ type: 'START_SHIFT' })} data-testid="start-shift">

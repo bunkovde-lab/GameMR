@@ -18,9 +18,12 @@ import {
   needsEmergency, permitFor, requestBlocker,
 } from './politics';
 import {
-  advanceInvestigations, advanceInvestigationsShift, analysisBlocker, caseDef, caseFile, concludeBlocker, concludeCase, evidenceDef, expertiseBlocker,
-  interrogationBlocker, linkBlocker, openCaseFromReport, personDef, requestExpertise, startAnalysis, startInterrogation, METHOD_LABEL,
+  actionBlocker, actionDef, advanceInvestigations, advanceInvestigationsShift, analysisBlocker, caseDef, caseFile, casePermitBlocker, concludeBlocker,
+  concludeCase, decideCasePermits, evidenceDef, expertiseBlocker, hasPair, interrogationBlocker, linkBlocker, makeCasePermit, openCaseFromReport,
+  pairBlocker, personDef, requestExpertise, startAction, startAnalysis, startInterrogation, METHOD_LABEL,
 } from './investigations';
+import { applyStoryChoice, beginStoryShift, finishCampaign, settleStoryShift, storyChoiceBlocker } from './campaign';
+import { activeOp, advanceOps, chooseOpOption, opDef, optionBlocker, startOp, startOpBlocker } from './specialOps';
 import { buildRoute, shortestPath } from './map/graph';
 import { districtById, edgeById, spawnPosition } from './map/mapConfig';
 import { nextInt } from './rng';
@@ -65,6 +68,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
       if (s.phase !== 'ACTIVE' || s.paused) return reject('Время остановлено.');
       if (!Number.isInteger(command.minutes) || command.minutes < 1) return reject('Некорректный шаг времени.');
       if (pendingDecision(s)) return reject('Ожидается решение по операции.');
+      if (activeOp(s)) return reject(`Идёт особая операция «${opDef(activeOp(s)!.id)!.title}»: примите решение.`);
       for (let i = 0; i < command.minutes && s.phase === 'ACTIVE' && !pendingDecision(s); i++) advanceMinute(s);
       return { ok: true, state: s };
     }
@@ -399,6 +403,21 @@ export function reduce(state: GameState, command: Command): CommandResult {
       }
       return { ok: true, state: s };
     }
+    case 'LINK_PAIR':
+    case 'UNLINK_PAIR': {
+      const why = pairBlocker(s, command.caseId, command.a, command.b);
+      if (why) return reject(why);
+      const f = caseFile(s, command.caseId)!;
+      const has = hasPair(f, command.a, command.b);
+      if (command.type === 'LINK_PAIR') {
+        if (has) return reject('Эти улики уже сопоставлены.');
+        f.pairs.push({ a: command.a, b: command.b });
+      } else {
+        if (!has) return reject('Такого сопоставления нет.');
+        f.pairs = f.pairs.filter((p) => !((p.a === command.a && p.b === command.b) || (p.a === command.b && p.b === command.a)));
+      }
+      return { ok: true, state: s };
+    }
     case 'SET_WORKING_HYPOTHESIS': {
       const f = caseFile(s, command.caseId);
       if (!f || f.status !== 'open') return reject('Дело не найдено или уже решено.');
@@ -419,11 +438,33 @@ export function reduce(state: GameState, command: Command): CommandResult {
       return { ok: true, state: s };
     }
     case 'INTERROGATE': {
-      const why = interrogationBlocker(s, command.caseId, command.personId, command.method, command.staffId);
+      const why = interrogationBlocker(s, command.caseId, command.personId, command.lineId, command.staffId);
       if (why) return reject(why);
-      startInterrogation(s, command.caseId, command.personId, command.method, command.staffId);
+      startInterrogation(s, command.caseId, command.personId, command.lineId, command.staffId);
       const p = s.staff.find((x) => x.id === command.staffId)!;
-      log(s, 'interrogation_started', `${p.name}: ${METHOD_LABEL[command.method].toLowerCase()} — ${personDef(caseDef(command.caseId)!, command.personId)!.name}.`, [p.id]);
+      const person = personDef(caseDef(command.caseId)!, command.personId)!;
+      const line = person.lines.find((l) => l.id === command.lineId)!;
+      log(s, 'interrogation_started', `${p.name}: ${METHOD_LABEL[line.method].toLowerCase()} — ${person.name}.`, [p.id]);
+      return { ok: true, state: s };
+    }
+    case 'CASE_ACTION': {
+      const why = actionBlocker(s, command.caseId, command.actionId, command.staffId);
+      if (why) return reject(why);
+      startAction(s, command.caseId, command.actionId, command.staffId);
+      const p = s.staff.find((x) => x.id === command.staffId)!;
+      log(s, 'case_action_started', `${p.name}: ${actionDef(caseDef(command.caseId)!, command.actionId)!.label.toLowerCase()}.`, [p.id]);
+      return { ok: true, state: s };
+    }
+    case 'REQUEST_CASE_PERMIT': {
+      const why = casePermitBlocker(s, command.caseId, command.actionId);
+      if (why) return reject(why);
+      const f = caseFile(s, command.caseId)!;
+      const a = actionDef(caseDef(f.id)!, command.actionId)!;
+      const permit = makeCasePermit(s, f, a);
+      s.politics.permits.push(permit);
+      const fee = toCents(POLITICS.permits[a.permit!].fee);
+      if (fee) post(s, 'permit_fee', -fee, `Пошлина: ${permit.target}`);
+      log(s, 'permit_requested', `${permit.target}: запрос направлен (${permit.issuer}).`);
       return { ok: true, state: s };
     }
     case 'REQUEST_EXPERTISE': {
@@ -433,14 +474,46 @@ export function reduce(state: GameState, command: Command): CommandResult {
       return { ok: true, state: s };
     }
     case 'CONCLUDE_CASE': {
-      const why = concludeBlocker(s, command.caseId, command.decision, command.hypothesisId);
+      const why = concludeBlocker(s, command.caseId, command.conclusionId, command.hypothesisId);
       if (why) return reject(why);
-      concludeCase(s, command.caseId, command.decision, command.hypothesisId, (a, n) => post(s, 'sanction', a, n), (t, x) => log(s, t, x));
+      concludeCase(s, command.caseId, command.conclusionId, command.hypothesisId, (a, n) => post(s, a < 0 ? 'sanction' : 'deal', a, n), (t, x) => log(s, t, x));
+      return { ok: true, state: s };
+    }
+    case 'STORY_CHOICE': {
+      const why = storyChoiceBlocker(s, command.shift, command.optionId);
+      if (why) return reject(why);
+      applyStoryChoice(s, command.shift, command.optionId, (a, n) => post(s, a < 0 ? 'sanction' : 'deal', a, n), (t, x) => log(s, t, x));
+      return { ok: true, state: s };
+    }
+    case 'START_SPECIAL_OP': {
+      const why = startOpBlocker(s, command.opId, command.squadId);
+      if (why) return reject(why);
+      startOp(s, command.opId, command.squadId, (t, x, ids) => log(s, t, x, ids));
+      return { ok: true, state: s };
+    }
+    case 'SPECIAL_OP_CHOICE': {
+      const op = activeOp(s);
+      if (!op || op.id !== command.opId) return reject('Эта операция сейчас не идёт.');
+      const why = optionBlocker(s, op, command.optionId);
+      if (why) return reject(why);
+      chooseOpOption(s, op, command.optionId, (a, n) => post(s, a < 0 ? 'sanction' : 'deal', a, n), (t, x, ids) => log(s, t, x, ids));
+      return { ok: true, state: s };
+    }
+    case 'ACK_SPECIAL_OP': {
+      const op = s.campaign.ops.find((o) => o.id === command.opId);
+      if (!op?.report) return reject('Отчёт не найден.');
+      op.report.seen = true;
+      return { ok: true, state: s };
+    }
+    case 'ACK_ENDING': {
+      if (!s.campaign.ending) return reject('Кампания ещё идёт.');
+      s.campaign.endingSeen = true;
       return { ok: true, state: s };
     }
     case 'END_SHIFT': {
       if (s.phase !== 'ACTIVE' && s.phase !== 'REVIEW_PENDING') return reject('Сейчас нельзя завершить смену.');
       if (pendingDecision(s)) return reject('Сначала примите решение по операции.');
+      if (activeOp(s)) return reject('Сначала завершите особую операцию.');
       // Начало смены — до её первой транзакции (платежи между сменами относятся к новой смене).
       const opening = s.economy.balance - s.economy.ledger.filter((t) => t.shift === s.shift).reduce((x, t) => x + t.amount, 0);
       post(s, 'funding', toCents(BALANCE.fundingPerShift), 'Финансирование смены');
@@ -468,6 +541,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
         }
       }
       checkDeals(s, (a, n) => post(s, 'deal', a, n), (t, x) => log(s, t, x));
+      settleStoryShift(s, (a, n) => post(s, a < 0 ? 'sanction' : 'deal', a, n), (t, x) => log(s, t, x));
       const ledger = s.economy.ledger.filter((t) => t.shift === s.shift);
       const open = s.incidents.filter(isOpen);
       const ops = s.operationReports.filter((r) => r.shift === s.shift);
@@ -491,6 +565,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
       s.phase = 'SHIFT_REPORT';
       s.paused = true;
       log(s, 'shift_ended', `Смена ${s.shift} завершена. Открытых вызовов: ${open.length}.`);
+      finishCampaign(s, (t, x) => log(s, t, x));
       return { ok: true, state: s };
     }
 
@@ -518,6 +593,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
       advanceResearch(s, (amount, note) => { post(s, 'research', amount, note); return true; }, (type, text, ids) => log(s, type, text, ids));
       advancePolitics(s, (a, n) => post(s, a < 0 ? 'sanction' : 'deal', a, n), (t, x) => log(s, t, x));
       advanceInvestigationsShift(s, (a, n) => post(s, 'sanction', a, n), (type, text, ids) => log(s, type, text, ids));
+      advanceOps(s, (a, n) => post(s, 'sanction', a, n), (type, text, ids) => log(s, type, text, ids));
       for (const p of s.staff) if (p.adaptation > 0) p.adaptation -= 1;
       // Лёгкие ранения заживают сами (ТЗ §7.4), усталость снижается.
       for (const p of s.staff) {
@@ -532,6 +608,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
       for (const inc of s.incidents) if (isOpen(inc)) inc.deadlineMinute = Math.max(0, inc.deadlineMinute - BALANCE.shift.lengthMinutes);
       spawnIncidents(s, BALANCE.incidentsPerNewShift);
       refreshCandidates(s);
+      beginStoryShift(s, (t, x) => log(s, t, x));
       log(s, 'shift_briefing', `Брифинг смены ${s.shift}.`);
       return { ok: true, state: s };
     }
@@ -629,6 +706,7 @@ function advanceMinute(s: GameState) {
     if (tpl) openCaseFromReport(s, report, tpl, (type, text, ids) => log(s, type, text, ids));
   }
   decidePermits(s, (t, x) => log(s, t, x));
+  decideCasePermits(s, (t, x) => log(s, t, x));
   advanceInvestigations(s, (type, text, ids) => log(s, type, text, ids));
   for (const inc of s.incidents) {
     if (inc.deadlineType === 'escalate' && (inc.state === 'new' || inc.state === 'acknowledged') && s.minute >= inc.deadlineMinute) {

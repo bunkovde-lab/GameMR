@@ -12,6 +12,8 @@ import { BottomNav } from './ui/shell/BottomNav';
 import { StaffScreen } from './ui/screens/StaffScreen';
 import { DirectorateScreen } from './ui/screens/DirectorateScreen';
 import { InvestigationsScreen } from './ui/screens/InvestigationsScreen';
+import { EndingDialog, SpecialOpDialog, SpecialOpReportDialog } from './ui/CampaignDialogs';
+import { activeOp, unseenOpReport } from './core/specialOps';
 import { BriefingDialog, EndShiftConfirm, ShiftReportDialog } from './ui/PhaseDialogs';
 import { SettingsDialog } from './ui/SettingsDialog';
 import { Toast } from './ui/Toast';
@@ -107,11 +109,13 @@ export function App() {
         <BottomNav current={ui.view} onOpen={(view) => uiDispatch({ type: 'OPEN_VIEW', view })} canEndShift={canEndShift} onEndShift={() => setConfirmEnd(true)} />
       </div>
       {game.phase === 'BRIEFING' && !settingsOpen && <BriefingDialog game={game} onOpenSettings={() => setSettingsOpen(true)} />}
-      {game.phase === 'SHIFT_REPORT' && !settingsOpen && <ShiftReportDialog game={game} />}
+      {game.phase === 'SHIFT_REPORT' && !settingsOpen && (game.campaign.ending && !game.campaign.endingSeen ? <EndingDialog game={game} /> : <ShiftReportDialog game={game} />)}
       {confirmEnd && canEndShift && <EndShiftConfirm game={game} onCancel={() => setConfirmEnd(false)} />}
       {dispatchFor && game.phase === 'ACTIVE' && (
         <DispatchDialog game={game} incidentId={dispatchFor.incidentId} initialSquadId={dispatchFor.squadId} onClose={() => setDispatchFor(null)} onPreview={preview} />
       )}
+      {game.phase === 'ACTIVE' && !settingsOpen && activeOp(game) && <SpecialOpDialog game={game} />}
+      {game.phase !== 'BRIEFING' && !settingsOpen && !activeOp(game) && unseenOpReport(game) && <SpecialOpReportDialog game={game} />}
       {game.phase !== 'BRIEFING' && !settingsOpen && !dispatchFor && <DecisionDialog game={game} />}
       {game.phase !== 'BRIEFING' && !settingsOpen && !dispatchFor && !pendingDecision(game) && <OperationReportDialog game={game} />}
       {settingsOpen && <SettingsDialog onClose={() => setSettingsOpen(false)} />}

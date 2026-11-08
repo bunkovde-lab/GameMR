@@ -1,61 +1,77 @@
 import casesFile from '../../content/cases_v1.json';
 import { INCIDENT_TEMPLATES, toCents } from './content';
-import { applyDelta, houseById } from './politics';
+import { hasFlag, setFlag } from './flags';
+import { POLITICS, applyDelta, coalitionStrong, hasAccess, houseById, recentViolations } from './politics';
 import { nextFloat } from './rng';
 import { DEPLOYED, caseTaskOf } from './selectors';
 import type {
-  AnalysisResult, CaseDecisionKind, CaseEvidence, CaseFile, CaseTask, GameState, InterrogationMethod, OperationReport, StaffRole,
+  AnalysisResult, CaseEvidence, CaseFile, CaseTask, GameState, InterrogationMethod, OperationReport, Permit, StaffRole,
 } from './types';
 
 /**
- * W9: расследования (ТЗ §11). Доска, связи, анализ, реконструкция, допросы, правовое заключение.
- * Скрытая истина (truth, bears, forged) хранится только в контенте и никогда не показывается до решения.
+ * W9: расследования (ТЗ §11, сценарий docs/story/W9_CASES_v1.md).
+ * Доска (улика→версия и улика↔улика), следственные действия с разрешениями, анализ, реконструкция,
+ * допросы по предметным вопросам, правовое заключение. Скрытая истина (grade, bears, forged) — только в ядре.
  */
 
 export type Bearing = 'supports' | 'contradicts';
 export type LinkStatus = 'proposed' | 'supported' | 'contradicted';
 export interface EvidenceDef {
   id: string; type: string; origin: string; title: string; source: string; text: string;
-  slot?: number; conflictsWith?: string[]; analysis: 'lab' | 'desk'; reveals?: string[];
+  slot?: number; conflictsWith?: string[]; analysis: 'lab' | 'desk'; setsFlag?: string;
   bears: Record<string, Bearing>; forged?: boolean; fakeBears?: Record<string, Bearing>; resultText: string; fakeText?: string;
 }
-interface Line { text: string; reveals?: string; needs?: string }
+export interface LineDef {
+  id: string; method: InterrogationMethod; text: string; needs?: string[]; reveals?: string; setsFlag?: string;
+  standing?: Record<string, number>; violation?: boolean;
+}
 export interface PersonDef {
-  id: string; name: string; role: string; portrait: string; requires?: string;
-  standard: Line; present?: Line; skilled?: Line; pressure?: Line;
+  id: string; name: string; role: string; portrait: string; houseId?: string; requires?: string[]; requiresFlag?: string; lines: LineDef[];
+}
+export interface ActionDef {
+  id: string; label: string; kind: 'field' | 'desk' | 'lab'; minutes: number; permit?: 'judicial' | 'interagency'; houseId?: string;
+  requires?: string[]; reveals: string[]; weak?: string; hint?: string; flagIfBy?: { shift: number; flag: string };
+}
+export interface EdgeDef { a: string; b: string; question: string; insight: string }
+export interface Effect {
+  trust?: number; safety?: number; standing?: Record<string, number>; coalition?: Record<string, number>; violation?: boolean; money?: number; text?: string;
+}
+export interface ConclusionDef {
+  id: string; kind: 'charge' | 'final' | 'close'; label: string; hint: string; hypotheses?: string[]; needsEdges?: number; needsFlag?: string;
+  money?: number; effects?: Effect; flags?: string[]; reveal?: Effect; strong?: boolean;
 }
 export interface CaseDef {
-  id: string; number: number; title: string; templateId: string; houseId: string; summary: string; truth: string;
-  slots: string[]; hypotheses: { id: string; title: string; text: string }[]; evidence: EvidenceDef[]; persons: PersonDef[];
+  id: string; number: number; title: string; templateId: string; houseId: string; fromShift: number; toShift: number; summary: string;
+  slots: string[]; hypotheses: { id: string; title: string; text: string; grade: 'true' | 'partial' | 'false' }[];
+  evidence: EvidenceDef[]; edges: EdgeDef[]; actions: ActionDef[]; persons: PersonDef[]; conclusions: ConclusionDef[];
 }
-interface Effect { trust?: number; safety?: number; house?: number; violation?: boolean; coalition?: Record<string, number>; text: string }
 interface Rules {
   shiftMinutes: number;
   analysis: Record<'lab' | 'desk', { label: string; minutes: number; reagents: number; roles: StaffRole[]; speedPerLabLevel: number }>;
   quality: { base: number; perAnalysis: number; repeatBonus: number };
   detect: { base: number; perAnalysis: number; repeatBonus: number };
   interrogation: { minutes: number; roles: StaffRole[]; skilledMinAnalysis: number };
+  actionRoles: Record<ActionDef['kind'], StaffRole[]>;
+  casePermit: { judicialBase: number; perAnalyzed: number; trustMin: number; trustBonus: number; violationPenalty: number; interagencyBase: number; standingFactor: number; min: number; max: number };
   chargeMin: number;
-  court: { base: number; perExtra: number; perQuestionable: number; min: number; max: number };
+  court: { base: number; perExtra: number; perQuestionable: number; perEdge: number; min: number; max: number };
   expertise: { fee: number; bonus: number };
   revealAfterShifts: number;
-  effects: Record<'chargeTrue' | 'chargeFalse' | 'revealFalse' | 'transfer' | 'closeUnsolved' | 'pressure', Effect>;
+  rightCharge: Effect;
+  revealFalse: Effect;
+  pressure: Effect;
 }
 
 export const CASE_RULES = casesFile.rules as unknown as Rules;
 export const CASES = casesFile.cases as unknown as CaseDef[];
 export const EVIDENCE_TYPES = casesFile.evidenceTypes as Record<string, string>;
+export const METHOD_LABEL = casesFile.methods as Record<InterrogationMethod, string>;
 export const caseDef = (id: string) => CASES.find((c) => c.id === id);
 export const evidenceDef = (c: CaseDef, id: string) => c.evidence.find((e) => e.id === id);
 export const personDef = (c: CaseDef, id: string) => c.persons.find((p) => p.id === id);
+export const actionDef = (c: CaseDef, id: string) => c.actions.find((a) => a.id === id);
+export const conclusionDef = (c: CaseDef, id: string) => c.conclusions.find((x) => x.id === id);
 export const caseFile = (s: GameState, id: string) => s.investigations.cases.find((c) => c.id === id);
-export const METHOD_LABEL: Record<InterrogationMethod, string> = {
-  standard: 'Стандартный допрос',
-  present: 'Предъявить улику',
-  skilled: 'Тактическая беседа',
-  pressure: 'Усиленный допрос',
-};
-export const DECISION_LABEL: Record<CaseDecisionKind, string> = { charge: 'Обвинение', transfer: 'Материалы переданы Дому', close: 'Дело закрыто' };
 
 const clamp = (lo: number, hi: number, v: number) => Math.min(hi, Math.max(lo, v));
 const roll = (s: GameState) => {
@@ -70,32 +86,43 @@ export const initialInvestigations = (): GameState['investigations'] => ({ cases
 type Log = (type: string, text: string, ids?: string[]) => void;
 type Post = (amount: number, note: string) => void;
 
+// ---------- Ссылки на улики (в т. ч. из других дел) ----------
+
+/** «e05» — улика этого дела, «c1:e05» — улика другого дела. */
+export function resolveRef(s: GameState, caseId: string, ref: string) {
+  const [cid, eid] = ref.includes(':') ? ref.split(':') as [string, string] : [caseId, ref];
+  const d = caseDef(cid);
+  const f = caseFile(s, cid);
+  const def = d && evidenceDef(d, eid);
+  const ev = f?.evidence.find((e) => e.id === eid);
+  return { caseId: cid, id: eid, def, ev, file: f, case: d };
+}
+export const refFound = (s: GameState, caseId: string, ref: string) => !!resolveRef(s, caseId, ref).ev;
+export const refTitle = (s: GameState, caseId: string, ref: string) => {
+  const r = resolveRef(s, caseId, ref);
+  return r.caseId === caseId ? r.def?.title ?? ref : `№${r.case?.number}: ${r.def?.title ?? ref}`;
+};
+const checked = (ev: CaseEvidence | undefined) => !!ev && ev.analysis !== 'none' && ev.analysis !== 'inconclusive';
+
 // ---------- Открытие дела ----------
 
-/** Дело открывается по итогам первой операции на вызове нужного типа. Сколько улик с места дошло, зависит от задачи «Сохранность улик». */
-export function openCaseFromReport(s: GameState, report: OperationReport, templateId: string, log: Log): CaseFile | null {
-  const def = CASES.find((c) => c.templateId === templateId);
+/** Дело открывается по итогам операции на вызове своего типа в своём окне смен (сценарий §9: даже если прошлые улики потеряны). */
+export function openCaseFromReport(s: GameState, report: Pick<OperationReport, 'incidentId' | 'memberIds' | 'tasks'>, templateId: string, log: Log): CaseFile | null {
+  const def = CASES.find((c) => c.templateId === templateId && s.shift >= c.fromShift && s.shift <= c.toShift);
   if (!def || caseFile(s, def.id)) return null;
   const scene = def.evidence.filter((e) => e.origin === 'scene');
   const kept = report.tasks.find((t) => t.label === 'Сохранность улик')?.result ?? 'done';
-  const n = kept === 'done' ? scene.length : kept === 'partial' ? scene.length - 1 : Math.ceil(scene.length / 2);
+  const n = kept === 'done' ? scene.length : kept === 'partial' ? Math.max(1, scene.length - 1) : Math.ceil(scene.length / 2);
   const file: CaseFile = {
-    id: def.id,
-    incidentId: report.incidentId,
-    openedShift: s.shift,
-    status: 'open',
+    id: def.id, incidentId: report.incidentId, openedShift: s.shift, status: 'open',
     evidence: scene.slice(0, n).map((e) => ({
       id: e.id, foundShift: s.shift, analysis: 'none', checks: 0, questionable: kept === 'failed',
       ...(kept === 'failed' ? { custodyNote: 'Цепочка хранения нарушена на месте операции.' } : {}),
     })),
-    links: [],
-    timeline: {},
-    working: null,
-    interviews: [],
-    tasks: [],
-    expertiseBonus: 0,
+    links: [], pairs: [], timeline: {}, working: null, asked: [], actionsDone: [], tasks: [], expertiseBonus: 0,
   };
   s.investigations.cases.push(file);
+  for (const e of scene.slice(0, n)) setFlag(s, e.setsFlag);
   const lost = scene.length - n;
   log('case_opened', `Открыто дело №${def.number} «${def.title}»: ${n} улик с места${lost ? `, ${lost} утрачено при операции` : ''}.`, report.memberIds);
   return file;
@@ -117,10 +144,115 @@ export function workerBlocker(s: GameState, staffId: string, roles: StaffRole[])
   return null;
 }
 
-// ---------- Анализ ----------
-
+const openBlocker = (s: GameState, caseId: string) => {
+  const f = caseFile(s, caseId);
+  if (!f || !caseDef(caseId)) return 'Дело не найдено.';
+  if (f.status !== 'open') return 'Дело уже решено.';
+  if (s.phase !== 'ACTIVE') return 'Работа по делу идёт во время смены.';
+  return null;
+};
 const found = (f: CaseFile, id: string) => f.evidence.find((e) => e.id === id);
 const taskOn = (f: CaseFile, target: string) => f.tasks.find((t) => t.target === target);
+
+function reveal(s: GameState, f: CaseFile, d: CaseDef, ids: (string | undefined)[], log: Log, opts: { questionable?: boolean; note?: string } = {}) {
+  for (const id of ids) {
+    if (!id || found(f, id)) continue;
+    const e = evidenceDef(d, id);
+    if (!e) continue;
+    f.evidence.push({ id, foundShift: s.shift, analysis: 'none', checks: 0, questionable: !!opts.questionable, ...(opts.note ? { custodyNote: opts.note } : {}) });
+    setFlag(s, e.setsFlag);
+    log('evidence_found', `Дело №${d.number}: новая улика — «${e.title}».`);
+  }
+}
+
+// ---------- Следственные действия и разрешения по делу ----------
+
+/** Есть ли законное основание для действия: штатное, выданный документ, договор с Домом или решение кампании. */
+export function actionPermitState(s: GameState, f: CaseFile, a: ActionDef): 'none' | 'granted' | 'pending' | 'missing' {
+  if (!a.permit) return 'none';
+  if (a.permit === 'interagency' && a.houseId && (hasAccess(s, a.houseId) || hasFlag(s, `access_${a.houseId}`))) return 'granted';
+  const mine = s.politics.permits.filter((p) => p.caseId === f.id && p.actionId === a.id);
+  if (mine.some((p) => p.status === 'granted' && p.expiresShift >= s.shift)) return 'granted';
+  if (mine.some((p) => p.status === 'pending')) return 'pending';
+  return 'missing';
+}
+
+export function caseApproval(s: GameState, f: CaseFile, a: ActionDef): number {
+  const R = CASE_RULES.casePermit;
+  if (a.permit === 'interagency') return clamp(R.min, R.max, R.interagencyBase + (s.politics.standing[a.houseId ?? ''] ?? 0) * R.standingFactor);
+  const d = caseDef(f.id)!;
+  const district = s.districts.find((x) => x.id === INCIDENT_TEMPLATES.find((t) => t.id === d.templateId)?.districtId);
+  const analyzed = f.evidence.filter((e) => checked(e)).length;
+  return clamp(R.min, R.max, R.judicialBase + R.perAnalyzed * analyzed + ((district?.civilianTrust ?? 0) >= R.trustMin ? R.trustBonus : 0)
+    + (coalitionStrong(s, 'open') ? POLITICS.permits.judicial.openBonus : 0) - R.violationPenalty * recentViolations(s));
+}
+
+export function casePermitBlocker(s: GameState, caseId: string, actionId: string): string | null {
+  const why = openBlocker(s, caseId);
+  if (why) return why;
+  const f = caseFile(s, caseId)!;
+  const a = actionDef(caseDef(caseId)!, actionId);
+  if (!a || !a.permit) return 'Этому действию разрешение не нужно.';
+  const st = actionPermitState(s, f, a);
+  if (st === 'granted') return 'Разрешение уже есть.';
+  if (st === 'pending') return 'Запрос уже рассматривается.';
+  if (s.economy.balance < toCents(POLITICS.permits[a.permit].fee)) return 'Недостаточно средств на пошлину.';
+  return null;
+}
+
+export function makeCasePermit(s: GameState, f: CaseFile, a: ActionDef): Permit {
+  const d = caseDef(f.id)!;
+  const R = POLITICS.permits[a.permit!];
+  const issuer = a.permit === 'interagency' ? houseById(a.houseId!)!.label : POLITICS.levels.find((l) => l.id === 'judicial')!.issuer;
+  return {
+    id: s.politics.nextId++, kind: a.permit!, incidentId: f.incidentId, caseId: f.id, actionId: a.id,
+    target: `Дело №${d.number}: ${a.label.toLowerCase()}`, scope: [], issuer, legalBasis: R.legalBasis, requirements: [...R.requirements],
+    houseId: a.houseId ?? null, requestedShift: s.shift, decideMinute: s.minute + R.reviewMinutes, expiresShift: s.shift + R.validShifts - 1,
+    reviewShift: null, auditRisk: 0, status: 'pending', note: '',
+  };
+}
+
+/** Решение по запросам дела (вызывается из decidePermits-цикла ядра). */
+export function decideCasePermits(s: GameState, log: Log, all = false) {
+  for (const p of s.politics.permits) {
+    if (!p.caseId || p.status !== 'pending' || (!all && (p.decideMinute ?? 0) > s.minute)) continue;
+    const f = caseFile(s, p.caseId);
+    const a = f && actionDef(caseDef(f.id)!, p.actionId ?? '');
+    if (!f || !a || f.status !== 'open') { p.status = 'expired'; p.note = 'Дело закрыто до решения.'; continue; }
+    const ok = roll(s) < caseApproval(s, f, a);
+    p.status = ok ? 'granted' : 'denied';
+    p.note = ok ? `Выдано: ${p.issuer}.` : p.kind === 'judicial' ? 'Суд счёл основания недостаточными.' : `${p.issuer} отказал в допуске.`;
+    log(ok ? 'permit_granted' : 'permit_denied', `${p.target}: ${p.kind === 'judicial' ? 'ордер' : 'допуск'} ${ok ? 'выдан' : '— отказ'}.`);
+  }
+}
+
+export function actionBlocker(s: GameState, caseId: string, actionId: string, staffId?: string): string | null {
+  const why = openBlocker(s, caseId);
+  if (why) return why;
+  const f = caseFile(s, caseId)!;
+  const d = caseDef(caseId)!;
+  const a = actionDef(d, actionId);
+  if (!a) return 'Нет такого действия.';
+  if (f.actionsDone.includes(a.id)) return 'Уже выполнено.';
+  if (a.reveals.every((id) => found(f, id))) return 'Эти сведения уже есть в деле.';
+  if (taskOn(f, a.id)) return 'Уже выполняется.';
+  const missing = (a.requires ?? []).filter((r) => !refFound(s, caseId, r));
+  if (missing.length) return `Нужно: ${missing.map((r) => `«${refTitle(s, caseId, r)}»`).join(', ')}.`;
+  const st = actionPermitState(s, f, a);
+  if (st === 'pending') return 'Ждём решения по разрешению.';
+  if (st === 'missing') return a.permit === 'judicial' ? 'Нужен ордер суда.' : `Нужен допуск: ${houseById(a.houseId!)?.label}.`;
+  return staffId ? workerBlocker(s, staffId, CASE_RULES.actionRoles[a.kind]) : null;
+}
+
+export function startAction(s: GameState, caseId: string, actionId: string, staffId: string) {
+  const f = caseFile(s, caseId)!;
+  const a = actionDef(caseDef(caseId)!, actionId)!;
+  const permit = s.politics.permits.find((p) => p.caseId === caseId && p.actionId === actionId && p.status === 'granted');
+  if (permit) permit.status = 'used';
+  f.tasks.push({ kind: 'action', target: a.id, staffId, doneAt: absMinute(s) + a.minutes });
+}
+
+// ---------- Анализ ----------
 
 export function analysisMinutes(s: GameState, def: EvidenceDef): number {
   const A = CASE_RULES.analysis[def.analysis];
@@ -128,13 +260,11 @@ export function analysisMinutes(s: GameState, def: EvidenceDef): number {
 }
 
 export function analysisBlocker(s: GameState, caseId: string, evidenceId: string, staffId?: string): string | null {
-  const f = caseFile(s, caseId);
-  const d = caseDef(caseId);
-  if (!f || !d) return 'Дело не найдено.';
-  if (f.status !== 'open') return 'Дело уже решено.';
-  const ev = found(f, evidenceId);
-  const def = evidenceDef(d, evidenceId);
-  if (!ev || !def) return 'Улика не найдена.';
+  const why = openBlocker(s, caseId);
+  if (why) return why;
+  const f = caseFile(s, caseId)!;
+  const def = evidenceDef(caseDef(caseId)!, evidenceId);
+  if (!found(f, evidenceId) || !def) return 'Улика не найдена.';
   if (taskOn(f, evidenceId)) return 'Улика уже в работе.';
   const A = CASE_RULES.analysis[def.analysis];
   if (s.resources.reagents < A.reagents) return `Нужно реагентов: ${A.reagents}.`;
@@ -155,28 +285,53 @@ function analyze(s: GameState, f: CaseFile, ev: CaseEvidence, def: EvidenceDef, 
   const extra = ev.checks * CASE_RULES.quality.repeatBonus + f.expertiseBonus;
   ev.checks += 1;
   if (def.forged) {
+    if (ev.analysis === 'forgery') return 'forgery';
     const p = CASE_RULES.detect.base + CASE_RULES.detect.perAnalysis * analysisStat + extra;
     return roll(s) < p ? 'forgery' : 'misled';
   }
-  // Подтверждённое уже не «разподтверждается» повторной проверкой.
   if (ev.analysis === 'confirmed') return 'confirmed';
   const p = CASE_RULES.quality.base + CASE_RULES.quality.perAnalysis * analysisStat + extra;
   return roll(s) < p ? 'confirmed' : 'inconclusive';
 }
 
-function reveal(s: GameState, f: CaseFile, d: CaseDef, ids: string[] | undefined, log: Log, questionable = false) {
-  for (const id of ids ?? []) {
-    if (found(f, id)) continue;
-    const e = evidenceDef(d, id);
-    if (!e) continue;
-    f.evidence.push({ id, foundShift: s.shift, analysis: 'none', checks: 0, questionable });
-    log('evidence_found', `Дело №${d.number}: новая улика — «${e.title}».`);
-  }
+// ---------- Допросы ----------
+
+export const personAvailable = (s: GameState, f: CaseFile, p: PersonDef) =>
+  (p.requires ?? []).every((r) => refFound(s, f.id, r)) && (!p.requiresFlag || hasFlag(s, p.requiresFlag));
+/** Вопрос открывается только после нужных улик (сценарий §9: не после нескольких нажатий). Предъявлять можно только проверенное. */
+export const lineVisible = (s: GameState, f: CaseFile, line: LineDef) => (line.needs ?? []).every((r) => refFound(s, f.id, r));
+
+export function interrogationBlocker(s: GameState, caseId: string, personId: string, lineId: string, staffId?: string): string | null {
+  const why = openBlocker(s, caseId);
+  if (why) return why;
+  const f = caseFile(s, caseId)!;
+  const d = caseDef(caseId)!;
+  const p = personDef(d, personId);
+  if (!p) return 'Человек не найден.';
+  if (!personAvailable(s, f, p)) return 'Пока нет оснований для встречи.';
+  const line = p.lines.find((l) => l.id === lineId);
+  if (!line) return 'Нет такого вопроса.';
+  if (!lineVisible(s, f, line)) return 'Нужны улики, на которые можно сослаться.';
+  if (f.asked.includes(`${p.id}:${line.id}`)) return 'Уже спрошено.';
+  if (taskOn(f, p.id)) return 'Допрос уже идёт.';
+  const raw = (line.needs ?? []).find((r) => !checked(resolveRef(s, caseId, r).ev));
+  if (raw && line.method !== 'standard') return `Сначала проверьте: «${refTitle(s, caseId, raw)}».`;
+  if (line.method !== 'pressure' && line.method !== 'standard' && f.asked.some((x) => x.startsWith(`${p.id}:`) && p.lines.find((l) => `${p.id}:${l.id}` === x)?.method === 'pressure'))
+    return 'После усиленного допроса человек больше не доверяет дирекции.';
+  return staffId ? workerBlocker(s, staffId, CASE_RULES.interrogation.roles) : null;
+}
+
+export function startInterrogation(s: GameState, caseId: string, personId: string, lineId: string, staffId: string): CaseTask {
+  const f = caseFile(s, caseId)!;
+  const t: CaseTask = { kind: 'interrogate', target: personId, lineId, staffId, doneAt: absMinute(s) + CASE_RULES.interrogation.minutes };
+  f.tasks.push(t);
+  return t;
 }
 
 function completeTask(s: GameState, f: CaseFile, t: CaseTask, log: Log) {
   const d = caseDef(f.id)!;
   const p = s.staff.find((x) => x.id === t.staffId);
+  const ids = p ? [p.id] : undefined;
   f.tasks = f.tasks.filter((x) => x !== t);
   if (t.kind === 'analyze') {
     const ev = found(f, t.target);
@@ -184,22 +339,37 @@ function completeTask(s: GameState, f: CaseFile, t: CaseTask, log: Log) {
     if (!ev || !def) return;
     ev.analysis = analyze(s, f, ev, def, p?.stats.analysis ?? 1);
     const word = ev.analysis === 'inconclusive' ? 'результат неубедителен' : ev.analysis === 'forgery' ? 'выявлен подлог' : 'проверено';
-    log('evidence_analyzed', `${p?.name ?? 'Сотрудник'}: «${def.title}» — ${word}.`, p ? [p.id] : undefined);
-    if (ev.analysis === 'confirmed' || ev.analysis === 'forgery') reveal(s, f, d, def.reveals, log);
+    log('evidence_analyzed', `${p?.name ?? 'Сотрудник'}: «${def.title}» — ${word}.`, ids);
+    return;
+  }
+  if (t.kind === 'action') {
+    const a = actionDef(d, t.target)!;
+    f.actionsDone.push(a.id);
+    log('case_action', `Дело №${d.number}: ${a.label.toLowerCase()} — выполнено.`, ids);
+    reveal(s, f, d, a.reveals, log, a.weak ? { questionable: true, note: a.weak } : {});
+    if (a.flagIfBy && s.shift <= a.flagIfBy.shift) setFlag(s, a.flagIfBy.flag);
     return;
   }
   const person = personDef(d, t.target);
-  const line = person?.[t.method!];
+  const line = person?.lines.find((l) => l.id === t.lineId);
   if (!person || !line) return;
-  f.interviews.push({ personId: person.id, method: t.method!, shift: s.shift, staffId: t.staffId });
-  log('interrogation', `${p?.name ?? 'Сотрудник'} допросил(а): ${person.name}. ${METHOD_LABEL[t.method!]}.`, p ? [p.id] : undefined);
-  if (t.method === 'pressure') {
+  f.asked.push(`${person.id}:${line.id}`);
+  log('interrogation', `${p?.name ?? 'Сотрудник'}: ${METHOD_LABEL[line.method].toLowerCase()} — ${person.name}.`, ids);
+  setFlag(s, line.setsFlag);
+  applyDelta(s, { standing: line.standing }, () => {}, '');
+  if (line.violation) s.politics.violations.push(s.shift);
+  if (line.method === 'pressure') {
     // Усиленный метод: показания низкой надёжности, всё сказанное этим человеком — под сомнением.
-    reveal(s, f, d, line.reveals ? [line.reveals] : undefined, log, true);
-    for (const ev of f.evidence) if (evidenceDef(d, ev.id)?.origin === `person:${person.id}`) ev.questionable = true;
-    applyDelta(s, { coalition: CASE_RULES.effects.pressure.coalition }, () => {}, '');
-    log('interrogation_pressure', `Дело №${d.number}: ${CASE_RULES.effects.pressure.text} Показания ${person.name} — сомнительной допустимости.`);
-  } else reveal(s, f, d, line.reveals ? [line.reveals] : undefined, log);
+    reveal(s, f, d, [line.reveals], log, { questionable: true, note: 'Получено усиленным допросом: суд может исключить.' });
+    for (const ev of f.evidence) {
+      if (evidenceDef(d, ev.id)?.origin === `person:${person.id}`) {
+        ev.questionable = true;
+        ev.custodyNote ??= 'Человек допрошен с давлением: его показания оспариваются.';
+      }
+    }
+    applyDelta(s, { coalition: CASE_RULES.pressure.coalition }, () => {}, '');
+    log('interrogation_pressure', `Дело №${d.number}: ${CASE_RULES.pressure.text}`);
+  } else reveal(s, f, d, [line.reveals], log);
 }
 
 /** Завершает задачи, срок которых наступил (all — между сменами доделывается всё). */
@@ -212,7 +382,6 @@ export function advanceInvestigations(s: GameState, log: Log, all = false) {
 
 // ---------- Доска ----------
 
-/** Статус связи выводится из анализа: «предложена», пока улика не проверена или результат неубедителен. */
 export function linkStatus(f: CaseFile, d: CaseDef, evidenceId: string, hypothesisId: string): { status: LinkStatus; note: string } {
   const ev = found(f, evidenceId);
   const def = evidenceDef(d, evidenceId);
@@ -224,6 +393,19 @@ export function linkStatus(f: CaseFile, d: CaseDef, evidenceId: string, hypothes
   if (!b) return { status: 'proposed', note: 'проверка не связывает улику с версией' };
   return { status: b === 'supports' ? 'supported' : 'contradicted', note: '' };
 }
+
+const sameEdge = (caseId: string, e: EdgeDef, a: string, b: string) => {
+  const norm = (r: string) => (r.startsWith(`${caseId}:`) ? r.slice(caseId.length + 1) : r);
+  return (norm(e.a) === norm(a) && norm(e.b) === norm(b)) || (norm(e.a) === norm(b) && norm(e.b) === norm(a));
+};
+/** Сопоставление двух улик: подтверждается, только если обе проверены и между ними есть реальная связь. */
+export function pairStatus(s: GameState, f: CaseFile, a: string, b: string): { status: LinkStatus; edge: EdgeDef | null } {
+  const d = caseDef(f.id)!;
+  const edge = d.edges.find((e) => sameEdge(f.id, e, a, b)) ?? null;
+  if (!checked(resolveRef(s, f.id, a).ev) || !checked(resolveRef(s, f.id, b).ev)) return { status: 'proposed', edge: null };
+  return edge ? { status: 'supported', edge } : { status: 'contradicted', edge: null };
+}
+export const supportedEdges = (s: GameState, f: CaseFile) => f.pairs.filter((p) => pairStatus(s, f, p.a, p.b).status === 'supported').length;
 
 /** Что видит игрок о проверке улики: подлог без выявления неотличим от подлинной. */
 export function analysisView(ev: CaseEvidence, def: EvidenceDef): { word: string; tone: string; text: string | null } {
@@ -237,7 +419,7 @@ export function analysisView(ev: CaseEvidence, def: EvidenceDef): { word: string
 }
 
 export function admissibility(s: GameState, f: CaseFile, ev: CaseEvidence, def: EvidenceDef): { ok: boolean; why: string | null } {
-  if (ev.questionable) return { ok: false, why: ev.custodyNote ?? 'Получено усиленным допросом: суд может исключить.' };
+  if (ev.questionable) return { ok: false, why: ev.custodyNote ?? 'Допустимость под сомнением.' };
   if (def.origin === 'scene' && s.politics.permits.some((p) => p.incidentId === f.incidentId && p.kind === 'emergency' && p.status === 'violation'))
     return { ok: false, why: 'Изъято при действии, которое проверка признала нарушением.' };
   return { ok: true, why: null };
@@ -252,6 +434,16 @@ export function linkBlocker(s: GameState, caseId: string, evidenceId: string, hy
   if (!d.hypotheses.some((h) => h.id === hypothesisId)) return 'Версия не найдена.';
   return null;
 }
+export function pairBlocker(s: GameState, caseId: string, a: string, b: string): string | null {
+  const f = caseFile(s, caseId);
+  if (!f) return 'Дело не найдено.';
+  if (f.status !== 'open') return 'Дело уже решено.';
+  if (a.includes(':') || !found(f, a)) return 'Первая улика должна быть из этого дела.';
+  if (a === b || b === `${caseId}:${a}`) return 'Нельзя сопоставить улику саму с собой.';
+  if (!refFound(s, caseId, b)) return 'Улика не найдена.';
+  return null;
+}
+export const hasPair = (f: CaseFile, a: string, b: string) => f.pairs.some((p) => (p.a === a && p.b === b) || (p.a === b && p.b === a));
 
 // ---------- Реконструкция ----------
 
@@ -260,7 +452,7 @@ export interface TimelineView {
   conflicts: [string, string][];
 }
 
-/** Улика стоит «не на своём месте», если источник называет другое время. Противоречие — две улики на своих местах, которые не могут быть правдой вместе. */
+/** Улика «не на месте», если источник называет другое время. Противоречие — две улики на своих местах, которые не могут быть правдой вместе. */
 export function timelineView(f: CaseFile, d: CaseDef): TimelineView {
   const placed = Object.entries(f.timeline).map(([evidenceId, slot]) => ({ evidenceId, slot, fits: evidenceDef(d, evidenceId)?.slot === slot }));
   const ok = new Set(placed.filter((p) => p.fits).map((p) => p.evidenceId));
@@ -270,42 +462,12 @@ export function timelineView(f: CaseFile, d: CaseDef): TimelineView {
   }
   return { placed, conflicts };
 }
-
 export const timedEvidence = (f: CaseFile, d: CaseDef) => f.evidence.filter((e) => evidenceDef(d, e.id)?.slot !== undefined);
-
-// ---------- Допросы ----------
-
-export const personAvailable = (f: CaseFile, p: PersonDef) => !p.requires || !!found(f, p.requires);
-export const methodsOf = (p: PersonDef): InterrogationMethod[] => (['standard', 'present', 'skilled', 'pressure'] as const).filter((m) => !!p[m]);
-
-export function interrogationBlocker(s: GameState, caseId: string, personId: string, method: InterrogationMethod, staffId?: string): string | null {
-  const f = caseFile(s, caseId);
-  const d = caseDef(caseId);
-  if (!f || !d) return 'Дело не найдено.';
-  if (f.status !== 'open') return 'Дело уже решено.';
-  const p = personDef(d, personId);
-  if (!p) return 'Человек не найден.';
-  if (!personAvailable(f, p)) return 'Пока нет оснований вызвать на допрос.';
-  const line = p[method];
-  if (!line) return 'Этот метод здесь ничего не даст.';
-  if (taskOn(f, personId)) return 'Допрос уже идёт.';
-  if (f.interviews.some((i) => i.personId === personId && i.method === method)) return 'Уже проведено.';
-  if (method === 'present' && line.needs && !found(f, line.needs)) return `Нужна улика: «${evidenceDef(d, line.needs)?.title}».`;
-  if (method === 'present' && line.needs && found(f, line.needs)!.analysis === 'none') return 'Сначала проверьте улику, которую предъявляете.';
-  if (!staffId) return null;
-  const w = workerBlocker(s, staffId, CASE_RULES.interrogation.roles);
-  if (w) return w;
-  if (method === 'skilled' && (s.staff.find((x) => x.id === staffId)?.stats.analysis ?? 0) < CASE_RULES.interrogation.skilledMinAnalysis)
-    return `Нужен анализ не ниже ${CASE_RULES.interrogation.skilledMinAnalysis}.`;
-  return null;
-}
-
-export function startInterrogation(s: GameState, caseId: string, personId: string, method: InterrogationMethod, staffId: string): CaseTask {
-  const f = caseFile(s, caseId)!;
-  const t: CaseTask = { kind: 'interrogate', target: personId, method, staffId, doneAt: absMinute(s) + CASE_RULES.interrogation.minutes };
-  f.tasks.push(t);
-  return t;
-}
+/** Восстановлена ли последовательность: все улики со временем на своих местах. */
+export const timelineComplete = (f: CaseFile, d: CaseDef) => {
+  const timed = timedEvidence(f, d);
+  return timed.length >= 3 && timed.every((e) => f.timeline[e.id] === evidenceDef(d, e.id)!.slot);
+};
 
 // ---------- Заключение ----------
 
@@ -324,72 +486,80 @@ export function caseForecast(s: GameState, f: CaseFile, hypothesisId: string) {
     }
     if (st === 'contradicted') contradicted++;
   }
-  const conflicts = timelineView(f, d).conflicts.length;
-  return { supported, admissibleSupported, questionable, contradicted, conflicts };
+  return { supported, admissibleSupported, questionable, contradicted, conflicts: timelineView(f, d).conflicts.length, edges: supportedEdges(s, f) };
 }
 
 export function courtChance(s: GameState, f: CaseFile, hypothesisId: string): number {
   const fc = caseForecast(s, f, hypothesisId);
   const C = CASE_RULES.court;
-  return clamp(C.min, C.max, C.base + C.perExtra * (fc.admissibleSupported - CASE_RULES.chargeMin) - C.perQuestionable * fc.questionable);
+  return clamp(C.min, C.max, C.base + C.perExtra * (fc.admissibleSupported - CASE_RULES.chargeMin) - C.perQuestionable * fc.questionable + C.perEdge * fc.edges);
 }
 
-export function concludeBlocker(s: GameState, caseId: string, decision: CaseDecisionKind, hypothesisId?: string): string | null {
+export function concludeBlocker(s: GameState, caseId: string, conclusionId: string, hypothesisId?: string): string | null {
   const f = caseFile(s, caseId);
   const d = caseDef(caseId);
   if (!f || !d) return 'Дело не найдено.';
   if (f.status !== 'open') return 'Дело уже решено.';
-  if (f.tasks.length) return 'Дождитесь окончания анализов и допросов.';
-  if (decision !== 'charge') return null;
-  if (!hypothesisId || !d.hypotheses.some((h) => h.id === hypothesisId)) return 'Выберите версию для обвинения.';
+  if (f.tasks.length) return 'Дождитесь окончания текущей работы по делу.';
+  const c = conclusionDef(d, conclusionId);
+  if (!c) return 'Нет такого решения.';
+  if (c.needsFlag && !hasFlag(s, c.needsFlag)) return conclusionNeedText(c.needsFlag);
+  if (c.needsEdges && supportedEdges(s, f) < c.needsEdges) return `Нужно подтверждённых сопоставлений улик: ${c.needsEdges}.`;
+  if (c.money && c.money < 0 && s.economy.balance < toCents(-c.money)) return 'Недостаточно средств.';
+  if (c.kind !== 'charge') return null;
+  if (!hypothesisId || !(c.hypotheses ?? []).includes(hypothesisId)) return `Выберите версию: ${(c.hypotheses ?? []).map((h) => `«${d.hypotheses.find((x) => x.id === h)?.title}»`).join(' или ')}.`;
   const fc = caseForecast(s, f, hypothesisId);
   if (fc.admissibleSupported < CASE_RULES.chargeMin)
-    return `Мало оснований: подтверждённых допустимых связей ${fc.admissibleSupported} из ${CASE_RULES.chargeMin} нужных.`;
+    return `Мало оснований: подтверждённых допустимых связей ${fc.admissibleSupported} из ${CASE_RULES.chargeMin}.`;
   if (fc.contradicted >= fc.supported) return 'Опровергающих связей не меньше, чем подтверждающих.';
   return null;
 }
+const conclusionNeedText = (flag: string) =>
+  ({
+    c2_surgeon_cooperates: 'Нужно согласие Ашер на сотрудничество (защита свидетеля).',
+    c3_e07_found: 'Нужна межведомственная сверка реестров.',
+  })[flag] ?? 'Условие не выполнено.';
 
-function applyEffect(s: GameState, d: CaseDef, e: Effect, post: Post) {
+export function applyEffect(s: GameState, d: CaseDef, e: Effect | undefined, post: Post, note: string) {
+  if (!e) return;
   const districtId = INCIDENT_TEMPLATES.find((t) => t.id === d.templateId)?.districtId;
   const dist = s.districts.find((x) => x.id === districtId);
   if (dist) {
     dist.civilianTrust = clamp(0, 100, dist.civilianTrust + (e.trust ?? 0));
     dist.safety = clamp(0, 100, dist.safety + (e.safety ?? 0));
   }
-  applyDelta(s, { standing: e.house ? { [d.houseId]: e.house } : undefined, coalition: e.coalition }, post, '');
+  applyDelta(s, { standing: e.standing, coalition: e.coalition, money: e.money }, post, note);
   if (e.violation) s.politics.violations.push(s.shift);
 }
 
 /** Правовое решение — не флаг «раскрыто». Ошибка может вскрыться позже (ТЗ §11.5). */
-export function concludeCase(s: GameState, caseId: string, decision: CaseDecisionKind, hypothesisId: string | undefined, post: Post, log: Log) {
+export function concludeCase(s: GameState, caseId: string, conclusionId: string, hypothesisId: string | undefined, post: Post, log: Log) {
   const f = caseFile(s, caseId)!;
   const d = caseDef(caseId)!;
-  const E = CASE_RULES.effects;
-  const house = houseById(d.houseId)!.label;
-  if (decision === 'charge') {
+  const c = conclusionDef(d, conclusionId)!;
+  if (c.kind === 'charge') {
     const h = d.hypotheses.find((x) => x.id === hypothesisId)!;
     if (roll(s) >= courtChance(s, f, h.id)) {
-      f.decision = { kind: 'charge', hypothesisId: h.id, shift: s.shift, court: 'returned' };
-      log('case_returned', `Дело №${d.number}: Суд продолжения вернул обвинение по версии «${h.title}» — доказательств недостаточно или они сомнительны. Дело остаётся открытым.`);
+      f.decision = { conclusionId, hypothesisId: h.id, shift: s.shift, court: 'returned' };
+      log('case_returned', `Дело №${d.number}: Суд продолжения вернул обвинение («${c.label}», версия «${h.title}»): доказательств недостаточно или они сомнительны. Дело остаётся открытым.`);
       return;
     }
     f.status = 'charged';
-    f.decision = { kind: 'charge', hypothesisId: h.id, shift: s.shift, court: 'accepted' };
-    const right = h.id === d.truth;
-    applyEffect(s, d, right ? E.chargeTrue : E.chargeFalse, post);
-    if (!right) f.revealShift = s.shift + CASE_RULES.revealAfterShifts;
-    log('case_charged', `Дело №${d.number}: суд принял обвинение по версии «${h.title}». ${right ? E.chargeTrue.text : E.chargeFalse.text}`);
+    f.decision = { conclusionId, hypothesisId: h.id, shift: s.shift, court: 'accepted' };
+    applyEffect(s, d, c.effects, post, `Дело №${d.number}`);
+    if (h.grade !== 'false') applyEffect(s, d, CASE_RULES.rightCharge, post, '');
+    else f.revealShift = s.shift + CASE_RULES.revealAfterShifts;
+    for (const fl of c.flags ?? []) setFlag(s, fl);
+    log('case_charged', `Дело №${d.number}: суд принял решение «${c.label}» по версии «${h.title}».`);
     return;
   }
-  f.status = decision === 'transfer' ? 'transferred' : 'closed';
-  f.decision = { kind: decision, shift: s.shift };
-  if (decision === 'transfer') {
-    applyEffect(s, d, E.transfer, post);
-    log('case_transferred', `Дело №${d.number}: материалы переданы (${house}). ${E.transfer.text}`);
-  } else {
-    f.revealShift = s.shift + CASE_RULES.revealAfterShifts;
-    log('case_closed', `Дело №${d.number} закрыто без обвинения.`);
-  }
+  f.status = c.kind === 'final' ? 'concluded' : 'closed';
+  f.decision = { conclusionId, shift: s.shift };
+  if (c.money) post(toCents(c.money), `Дело №${d.number}: ${c.label.toLowerCase()}`);
+  applyEffect(s, d, c.effects, post, `Дело №${d.number}`);
+  for (const fl of c.flags ?? []) setFlag(s, fl);
+  if (c.reveal) f.revealShift = s.shift + CASE_RULES.revealAfterShifts;
+  log('case_concluded', `Дело №${d.number}: ${c.label}.`);
 }
 
 export function expertiseBlocker(s: GameState, caseId: string): string | null {
@@ -414,7 +584,6 @@ export function requestExpertise(s: GameState, caseId: string, post: Post, log: 
     const before = ev.analysis;
     ev.analysis = analyze(s, f, ev, evidenceDef(d, ev.id)!, 3);
     if (ev.analysis !== before) changed++;
-    if (ev.analysis === 'confirmed' || ev.analysis === 'forgery') reveal(s, f, d, evidenceDef(d, ev.id)!.reveals, log);
   }
   log('case_expertise', `Дело №${d.number}: внешняя экспертиза перепроверила улики, изменились выводы по ${changed}.`);
 }
@@ -422,19 +591,30 @@ export function requestExpertise(s: GameState, caseId: string, post: Post, log: 
 /** Между сменами: доделать задачи и вскрыть ошибочные решения, когда пришёл их срок. */
 export function advanceInvestigationsShift(s: GameState, post: Post, log: Log) {
   advanceInvestigations(s, log, true);
+  decideCasePermits(s, log, true);
   for (const f of s.investigations.cases) {
     if (f.revealed || f.revealShift === undefined || s.shift < f.revealShift) continue;
     f.revealed = true;
     const d = caseDef(f.id)!;
-    const e = f.status === 'charged' ? CASE_RULES.effects.revealFalse : CASE_RULES.effects.closeUnsolved;
-    applyEffect(s, d, e, post);
-    log('case_revealed', `Дело №${d.number} «${d.title}»: ${e.text}`);
+    const e = f.status === 'charged' ? CASE_RULES.revealFalse : conclusionDef(d, f.decision?.conclusionId ?? '')?.reveal;
+    applyEffect(s, d, e, post, `Дело №${d.number}`);
+    log('case_revealed', `Дело №${d.number} «${d.title}»: ${e?.text ?? 'решение пересмотрено.'}`);
   }
 }
 
+/** Сильное ли решение по делу (для финала): обвинение по верной/частично верной версии или решение, требующее доказательной базы. */
+export function caseStrong(f: CaseFile): boolean {
+  const d = caseDef(f.id)!;
+  if (!f.decision || f.revealed) return false;
+  const c = conclusionDef(d, f.decision.conclusionId);
+  if (f.status === 'charged') return d.hypotheses.find((h) => h.id === f.decision!.hypothesisId)?.grade !== 'false';
+  return !!c?.strong;
+}
+
 export function caseStatusWord(f: CaseFile): string {
+  const d = caseDef(f.id)!;
+  const c = f.decision ? conclusionDef(d, f.decision.conclusionId) : undefined;
   if (f.status === 'open') return f.decision?.court === 'returned' ? 'открыто · суд вернул обвинение' : 'открыто';
-  if (f.status === 'charged') return f.revealed ? 'обвинение оказалось ошибочным' : 'обвинение принято';
-  if (f.status === 'transferred') return 'материалы переданы Дому';
-  return f.revealed ? 'закрыто · всплыло снова' : 'закрыто';
+  if (f.revealed) return `${c?.label ?? 'решено'} · пересмотрено`;
+  return c?.label ?? 'решено';
 }

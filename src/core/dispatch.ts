@@ -1,4 +1,5 @@
 import { groupMods } from './career';
+import { forecastNarrow, researchOf } from './research';
 import dispatchFile from '../../content/dispatch_v1.json';
 import { DISPATCH_COST, INCIDENT_TEMPLATES, ROLE_LABEL } from './content';
 import { buildRoute, etaMinutes, type Route } from './map/graph';
@@ -76,6 +77,7 @@ export function memberBlocker(s: GameState, staffId: string, squadId: string): s
   const pt = s.medical.patients.find((x) => x.staffId === staffId);
   if (pt) return pt.kind === 'implant' ? 'реабилитация после установки органа' : 'на лечении';
   if (p.training) return 'на обучении';
+  if (researchOf(s, staffId)) return 'ведёт исследование';
   if (p.adaptation > 0) return 'адаптация после найма';
   const other = s.squads.find((q) => q.id !== squadId && q.memberIds.includes(staffId));
   if (other && other.status !== 'ready') return `занят: отряд «${other.name}»`;
@@ -176,7 +178,7 @@ export function computeForecast(s: GameState, d: DispatchDraft): ForecastSnapsho
   const R_ = DISPATCH_RULES.forecast;
   const t = forecastTerms(s, d);
   const p = clamp(R_.min, R_.max, R_.base + R_.perMargin * t.M);
-  const u = R_.uncertaintyByIntel[t.I] ?? R_.uncertaintyByIntel[0]!;
+  const u = Math.max(0.05, (R_.uncertaintyByIntel[t.I] ?? R_.uncertaintyByIntel[0]!) - forecastNarrow(s));
   return { p: Math.round(p * 1000) / 1000, low: clamp(0.05, 0.95, round5(p - u)), high: clamp(0.1, 0.95, round5(p + u)), margin: Math.round(t.M * 100) / 100 };
 }
 

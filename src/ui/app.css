@@ -471,3 +471,9 @@ td.bad { color: var(--bad); }
 .facility { gap: 6px; }
 .fac-now { margin: 0; }
 .facility .btn { justify-self: start; }
+.start-form { display: grid; gap: 8px; padding: 8px; border: 1px dashed var(--stroke2); border-radius: 8px; }
+.pstatus { font-size: 12px; color: var(--muted); }
+.pstatus.st-active, .pstatus.st-completed { color: var(--green); }
+.pstatus.st-blocked_inputs, .pstatus.st-blocked_staff, .pstatus.st-queued { color: var(--amber); }
+.pstatus.st-failed { color: var(--bad); }
+.node-list .btn { justify-self: start; }

@@ -2,7 +2,7 @@
  * Доменная модель W2 — подмножество ТЗ §5.2, необходимое для одной смены.
  * Деньги хранятся целым числом в сотых долях РЕ (cents), чтобы избежать ошибок округления.
  */
-export const SCHEMA_VERSION = 7;
+export const SCHEMA_VERSION = 8;
 
 import type { Route } from './map/graph';
 
@@ -212,7 +212,23 @@ export interface Incident {
 
 export type TransactionKind =
   | 'funding' | 'salary' | 'dispatch' | 'treatment' | 'hiring' | 'check' | 'training' | 'promotion' | 'implant'
-  | 'upkeep' | 'construction' | 'subsidy';
+  | 'upkeep' | 'construction' | 'subsidy' | 'research' | 'fabrication';
+
+/** W7.2: протоколы и стадии проекта (ТЗ §9.2). locked/available выводятся из правил и не хранятся. */
+export type ResearchProtocol = 'conservative' | 'accelerated' | 'experimental';
+export type ProjectStatus = 'queued' | 'active' | 'blocked_inputs' | 'blocked_staff' | 'completed' | 'failed';
+export interface Project {
+  id: string;
+  protocol: ResearchProtocol;
+  researcherId: string;
+  status: ProjectStatus;
+  stagesDone: number;
+  stagesTotal: number;
+  /** Потрачено денег (сотые РЕ) и реагентов */
+  spent: number;
+  reagentsSpent: number;
+  startedShift: number;
+}
 
 /** W7: восемь объектов дирекции (ТЗ §9.1) */
 export type FacilityId = 'ops' | 'lab' | 'medical' | 'analytics' | 'detention' | 'tech' | 'training' | 'archive';
@@ -296,6 +312,8 @@ export interface GameState {
   relations: Relation[];
   facilities: Record<FacilityId, number>;
   construction: Build[];
+  research: Project[];
+  resources: { reagents: number };
   nextIds: { event: number; transaction: number; incident: number; report: number; staff: number; candidate: number };
 }
 
@@ -332,6 +350,9 @@ export type Command =
   | { type: 'QUEUE_UPGRADE'; facilityId: FacilityId }
   | { type: 'CANCEL_UPGRADE'; facilityId: FacilityId }
   | { type: 'PRIORITIZE_UPGRADE'; facilityId: FacilityId }
+  | { type: 'START_PROJECT'; projectId: string; protocol: ResearchProtocol; researcherId: string }
+  | { type: 'CANCEL_PROJECT'; projectId: string }
+  | { type: 'FABRICATE'; projectId: string }
   | { type: 'END_SHIFT' }
   | { type: 'ADVANCE_SHIFT' };
 

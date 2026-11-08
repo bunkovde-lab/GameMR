@@ -1,0 +1,28 @@
+{
+  "_status": "PROVISIONAL_RULE — W7 часть 2: исследования (ТЗ §9.2). Названия «Зеркало-М», «Узел», «Порог» — из ТЗ; остальные рабочие. Награды на артах (+40%, +30%) — демо, здесь качественные эффекты. Числа — гипотезы до W10.",
+  "reagents": { "start": 4, "supplyPerShift": 2, "cap": 12, "_note": "Реагенты не покупаются мгновенно за деньги (ТЗ §8.3): только поставка между сменами" },
+  "branches": { "biology": "Биология", "military": "Военные системы", "counterintel": "Контрразведка", "analytics": "Аналитика" },
+  "protocols": {
+    "conservative": { "label": "Консервативный", "costMult": 1, "stageDelta": 1, "hint": "дольше, без срывов" },
+    "accelerated": { "label": "Ускоренный", "costMult": 1.5, "stageDelta": -1, "complication": 0.15, "hint": "дороже и быстрее; осложнение повторяет этап" },
+    "experimental": { "label": "Экспериментальный", "costMult": 1.2, "stageDelta": -1, "failBase": 0.2, "failPerLabLevel": 0.06, "failPerAnalysis": 0.03, "failMin": 0.03, "failMax": 0.35, "hint": "быстро; риск провала зависит от лаборатории и квалификации исследователя" }
+  },
+  "projects": [
+    { "id": "bio_reagents", "label": "Стабилизация реагентов", "branch": "biology", "stages": 2, "costPerStage": 3, "reagentsPerStage": 1, "roles": ["biocriminalist"], "requires": [], "labLevel": 1,
+      "result": "Поставка реагентов +1 за смену.", "effect": { "reagentSupply": 1 } },
+    { "id": "porog", "label": "«Порог»: карантинные меры", "branch": "biology", "stages": 3, "costPerStage": 4, "reagentsPerStage": 2, "roles": ["biocriminalist"], "requires": ["bio_reagents"], "labLevel": 1,
+      "result": "Открывает изготовление карантинного комплекта (расходник, биологические вызовы).", "fabricate": { "typeId": "quarantine_kit", "cost": 2, "reagents": 1, "units": 2 } },
+    { "id": "bio_procedure", "label": "Программа совместимости", "branch": "biology", "stages": 3, "costPerStage": 5, "reagentsPerStage": 2, "roles": ["biocriminalist"], "requires": ["bio_reagents", "forecast_model"], "labLevel": 2,
+      "result": "Процедура для совместимых бойцов: становится доступен орган «Адаптивный миелиновый узел».", "effect": { "unlockOrgan": "org_adapt" } },
+    { "id": "sedative_synth", "label": "Синтез седативных зарядов", "branch": "military", "stages": 2, "costPerStage": 3, "reagentsPerStage": 1, "roles": ["biocriminalist", "analyst"], "requires": [], "labLevel": 1,
+      "result": "Открывает изготовление седативных зарядов взамен израсходованных.", "fabricate": { "typeId": "sedative", "cost": 1, "reagents": 1, "units": 2 } },
+    { "id": "assault_shield", "label": "Штурмовой щит", "branch": "military", "stages": 3, "costPerStage": 4, "reagentsPerStage": 0, "roles": ["analyst"], "requires": ["sedative_synth"], "labLevel": 2,
+      "result": "Открывает изготовление штурмового щита (многоразовое снаряжение).", "fabricate": { "typeId": "assault_shield", "cost": 6, "reagents": 0, "units": 1 } },
+    { "id": "forecast_model", "label": "Модель оперативного прогноза", "branch": "analytics", "stages": 2, "costPerStage": 3, "reagentsPerStage": 0, "roles": ["analyst", "investigator"], "requires": [], "labLevel": 1,
+      "result": "Диапазон прогноза выезда уже на 5 п.п. с каждой стороны.", "effect": { "forecastNarrow": 0.05 } },
+    { "id": "uzel", "label": "«Узел»", "branch": "analytics", "stages": 3, "costPerStage": 4, "reagentsPerStage": 0, "roles": ["analyst", "investigator"], "requires": ["forecast_model"], "labLevel": 1,
+      "result": "Сопоставление улик нескольких дел. Заработает в расследованиях (W9)." },
+    { "id": "mirror_m", "label": "«Зеркало-М»", "branch": "counterintel", "stages": 3, "costPerStage": 5, "reagentsPerStage": 1, "roles": ["investigator", "analyst"], "requires": ["forecast_model"], "labLevel": 1,
+      "result": "Открывает изготовление набора защиты «Зеркало-М».", "fabricate": { "typeId": "mirror_kit", "cost": 5, "reagents": 1, "units": 1 } }
+  ]
+}

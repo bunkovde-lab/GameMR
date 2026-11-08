@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 // W3: утверждённая карта, районы, маркеры, маршрут и движение (docs/map/W3_ACCEPTANCE_TESTS.md).
 

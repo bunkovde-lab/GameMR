@@ -182,10 +182,13 @@ export function forecastWord(f: ForecastSnapshot): string {
 
 const RISK_WORD = ['низкий', 'низкий', 'средний', 'высокий', 'очень высокий'];
 /** Словесный риск для группы: тактика, усталость и нехватка ролей (ТЗ §6.3: потери — отдельные проверки W5). */
-export function squadRisk(s: GameState, d: DispatchDraft): string {
+export function riskLevel(s: GameState, d: DispatchDraft): number {
   const t = forecastTerms(s, d);
-  const level = Math.min(4, tacticById(d.tactic).squadRisk + (t.F >= 2 ? 1 : 0) + (t.R > 0 ? 1 : 0));
-  return RISK_WORD[level]!;
+  return Math.min(4, tacticById(d.tactic).squadRisk + (t.F >= 2 ? 1 : 0) + (t.R > 0 ? 1 : 0));
+}
+export const riskWord = (level: number) => RISK_WORD[Math.max(0, Math.min(4, level))]!;
+export function squadRisk(s: GameState, d: DispatchDraft): string {
+  return riskWord(riskLevel(s, d));
 }
 export const civilianRiskWord = (tactic: TacticId) => RISK_WORD[tacticById(tactic).civilianRisk]!;
 

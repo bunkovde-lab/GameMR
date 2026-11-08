@@ -1,5 +1,6 @@
 import { ROLE_LABEL } from '../../core/content';
 import { formatRe } from '../../core/selectors';
+import { HEALTH_LOG } from '../../core/healthText';
 import type { GameState } from '../../core/types';
 import { Icon } from '../Icon';
 
@@ -18,17 +19,18 @@ export function StaffScreen({ game, onClose }: { game: GameState; onClose: () =>
       <div className="panel-body">
         <table className="staff-table">
           <thead>
-            <tr><th>Сотрудник</th><th>Должность</th><th>Ранг</th><th>Отряд</th><th>Усталость</th><th>Жалование</th></tr>
+            <tr><th>Сотрудник</th><th>Должность</th><th>Ранг</th><th>Отряд</th><th>Состояние</th><th>Усталость</th><th>Жалование</th></tr>
           </thead>
           <tbody>
             {game.staff.map((p) => {
               const sq = game.squads.find((q) => q.memberIds.includes(p.id));
               return (
-                <tr key={p.id} data-testid={`staff-${p.id}`}>
+                <tr key={p.id} data-testid={`staff-${p.id}`} className={p.health === 'dead' ? 'kia' : undefined}>
                   <td>{p.name}</td>
                   <td>{ROLE_LABEL[p.role]}</td>
                   <td>{RANKS[p.rank - 1]}</td>
-                  <td>{sq ? `«${sq.name}»` : 'резерв'}</td>
+                  <td>{p.health === 'dead' ? 'архив' : sq ? `«${sq.name}»` : 'резерв'}</td>
+                  <td className={`health h-${p.health}`}>{HEALTH_LOG[p.health]}</td>
                   <td>{p.fatigue}%</td>
                   <td>{formatRe(p.salary)} РЕ</td>
                 </tr>

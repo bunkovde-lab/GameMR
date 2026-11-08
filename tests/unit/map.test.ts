@@ -7,6 +7,7 @@ import { buildRoute, etaMinutes, positionOnRoute } from '../../src/core/map/grap
 import { MAP, nodePosition } from '../../src/core/map/mapConfig';
 import { parseSave, toSaveFile } from '../../src/persistence/saveFormat';
 import type { Command, GameState } from '../../src/core/types';
+import { tick } from './helpers';
 
 const ok = (s: GameState, c: Command) => {
   const r = reduce(s, c);
@@ -61,23 +62,23 @@ describe('dispatch and movement', () => {
   });
   it('MAP-019/020: pause freezes progress; arrival switches en_route → on_scene for squad and incident together', () => {
     let s = ok(started(), { type: 'DISPATCH_SQUAD', squadId: 'axon', incidentId: 'medriot' });
-    s = ok(s, { type: 'TICK', minutes: 5 });
+    s = tick(s, 5);
     s = ok(s, { type: 'PAUSE' });
     expect(reduce(s, { type: 'TICK', minutes: 5 }).ok).toBe(false);
     expect(squad(s, 'axon').movement!.elapsed).toBe(5);
-    s = ok(ok(s, { type: 'RESUME' }), { type: 'TICK', minutes: 5 });
+    s = tick(ok(s, { type: 'RESUME' }), 5);
     expect(squad(s, 'axon').status).toBe('en_route');
-    s = ok(s, { type: 'TICK', minutes: 1 });
+    s = tick(s, 1);
     expect([squad(s, 'axon').status, incident(s, 'medriot').state, squad(s, 'axon').currentNodeId]).toEqual(['on_scene', 'on_scene', 'MED_MAIN']);
   });
   it('an incident being driven to does not escalate', () => {
     let s = ok(started(), { type: 'DISPATCH_SQUAD', squadId: 'axon', incidentId: 'medriot' });
-    s = ok(s, { type: 'TICK', minutes: 12 });
+    s = tick(s, 12);
     expect(incident(s, 'medriot').state).toBe('on_scene');
   });
   it('MAP-021: closing an edge ahead re-routes with a new ETA', () => {
     let s = ok(started(), { type: 'DISPATCH_SQUAD', squadId: 'axon', incidentId: 'medriot' });
-    s = ok(s, { type: 'TICK', minutes: 1 });
+    s = tick(s, 1);
     s = ok(s, { type: 'SET_ROAD_ENABLED', edgeId: 'AW-MR', enabled: false });
     const m = squad(s, 'axon').movement!;
     expect(m.route.edgeIds).not.toContain('AW-MR');
@@ -93,28 +94,28 @@ describe('dispatch and movement', () => {
     if (!r.ok) expect(r.reason).toMatch(/Маршрут недоступен/);
 
     s = ok(started(), { type: 'DISPATCH_SQUAD', squadId: 'axon', incidentId: 'medriot' });
-    s = ok(s, { type: 'TICK', minutes: 1 });
+    s = tick(s, 1);
     s = ok(s, { type: 'SET_ROAD_ENABLED', edgeId: 'MR-MM', enabled: false });
     expect(squad(s, 'axon').movement!.aborted).toBe(true);
-    s = ok(s, { type: 'TICK', minutes: 10 });
+    s = tick(s, 10);
     expect([squad(s, 'axon').status, squad(s, 'axon').currentNodeId, incident(s, 'medriot').state]).toEqual(['ready', 'ADMIN_W', 'acknowledged']);
   });
   it('MAP-024: save in the middle of a route and load → same edge progress and ETA, no double timer', () => {
     let s = ok(started(), { type: 'DISPATCH_SQUAD', squadId: 'axon', incidentId: 'medriot' });
-    s = ok(s, { type: 'TICK', minutes: 4 });
+    s = tick(s, 4);
     const loaded = parseSave(JSON.parse(JSON.stringify(toSaveFile(s, 'x', new Date(0)))));
     expect(loaded.ok).toBe(true);
     if (!loaded.ok) return;
     expect(squad(loaded.state, 'axon').movement).toEqual(squad(s, 'axon').movement);
-    const a = ok(loaded.state, { type: 'TICK', minutes: 7 });
-    const b = ok(s, { type: 'TICK', minutes: 7 });
+    const a = tick(loaded.state, 7);
+    const b = tick(s, 7);
     expect(JSON.stringify(a)).toBe(JSON.stringify(b));
     expect(squad(a, 'axon').status).toBe('on_scene');
   });
   it('MAP-036: two squads arriving in the same minute are processed in a fixed order', () => {
     let s = ok(started(), { type: 'DISPATCH_SQUAD', squadId: 'axon', incidentId: 'missing' });
     s = ok(s, { type: 'DISPATCH_SQUAD', squadId: 'resonance', incidentId: 'illegal' });
-    const run = (x: GameState) => ok(x, { type: 'TICK', minutes: 30 }).log.filter((e) => e.type === 'squad_arrived').map((e) => e.text);
+    const run = (x: GameState) => tick(x, 30).log.filter((e) => e.type === 'squad_arrived').map((e) => e.text);
     expect(run(s)).toEqual(run(structuredClone(s)));
   });
 });

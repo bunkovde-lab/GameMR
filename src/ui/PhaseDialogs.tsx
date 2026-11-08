@@ -53,8 +53,11 @@ export function ShiftReportDialog({ game }: { game: GameState }) {
         {report.unpaid > 0 && (<><dt>Невыплаченные обязательства</dt><dd>{formatRe(report.unpaid)} РЕ</dd></>)}
         <dt>Открытых вызовов</dt><dd>{report.openIncidents}</dd>
         <dt>Из них с ухудшением</dt><dd>{report.escalatedIncidents}</dd>
+        <dt>Операции: успех / частично / провал</dt><dd data-testid="report-ops">{report.operations.success} / {report.operations.partial} / {report.operations.failure}</dd>
+        <dt>Ранены</dt><dd data-testid="report-injured">{report.injured}</dd>
+        <dt>Погибли</dt><dd data-testid="report-killed">{report.killed}</dd>
       </dl>
-      <p className="hint">Числа взяты из журнала транзакций смены.</p>
+      <p className="hint">Числа взяты из журнала транзакций и отчётов об операциях смены.</p>
       <div className="modal-actions">
         <button className="btn primary" onClick={() => dispatch({ type: 'ADVANCE_SHIFT' })} data-testid="next-shift">
           Следующая смена

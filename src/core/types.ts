@@ -2,7 +2,7 @@
  * Доменная модель W2 — подмножество ТЗ §5.2, необходимое для одной смены.
  * Деньги хранятся целым числом в сотых долях РЕ (cents), чтобы избежать ошибок округления.
  */
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 import type { Route } from './map/graph';
 
@@ -43,6 +43,9 @@ export interface EquipmentUnit {
 export interface ForecastSnapshot { p: number; low: number; high: number; margin: number }
 
 /** Параметры текущего выезда отряда (ТЗ §6.2). Исход считает W5. */
+export type OperationPhase = 'travel' | 'scene' | 'decision' | 'returning';
+export type Outcome = 'success' | 'partial' | 'failure';
+
 export interface SquadOperation {
   incidentId: string;
   tactic: TacticId;
@@ -51,6 +54,41 @@ export interface SquadOperation {
   /** C из формулы ТЗ §6.3: 1 — штатный состав, 0 — собран вручную */
   cohesion: 0 | 1;
   forecast: ForecastSnapshot;
+  /** Уровень риска для группы 0…4 на момент отправки */
+  riskLevel: number;
+  /** W5: ход операции на месте */
+  phase: OperationPhase;
+  /** Минут до следующего события операции (решение или развязка) */
+  timer: number;
+  /** Номер следующей развилки (content/operations_v1.json → stages) */
+  stageIndex: number;
+  /** Накопленные последствия решений */
+  pDelta: number;
+  riskDelta: number;
+  civil: number;
+  evidence: number;
+  decisions: { stage: string; label: string; result: string }[];
+}
+
+/** ТЗ §12: отчёт после операции — необратимый снимок, записи о людях идут через журнал. */
+export interface OperationReport {
+  id: number;
+  shift: number;
+  minute: number;
+  incidentId: string;
+  incidentTitle: string;
+  squadId: string;
+  squadName: string;
+  tactic: TacticId;
+  outcome: Outcome;
+  decisions: { stage: string; label: string; result: string }[];
+  tasks: { label: string; result: 'done' | 'partial' | 'failed' }[];
+  casualties: { staffId: string; name: string; before: HealthState; after: HealthState }[];
+  xp: number;
+  fatigue: number;
+  equipment: { id: string; label: string; state: EquipmentState }[];
+  district: { safety: number; trust: number };
+  seen: boolean;
 }
 
 export interface Stats {
@@ -154,6 +192,10 @@ export interface ShiftReport {
   unpaid: number;
   openIncidents: number;
   escalatedIncidents: number;
+  /** W5: итоги операций смены (из операционных отчётов) */
+  operations: { success: number; partial: number; failure: number };
+  injured: number;
+  killed: number;
 }
 
 export interface GameState {
@@ -176,7 +218,8 @@ export interface GameState {
   equipment: EquipmentUnit[];
   log: WorldEvent[];
   reports: ShiftReport[];
-  nextIds: { event: number; transaction: number; incident: number };
+  operationReports: OperationReport[];
+  nextIds: { event: number; transaction: number; incident: number; report: number };
 }
 
 export type Command =
@@ -198,6 +241,8 @@ export type Command =
       equipmentIds?: string[];
     }
   | { type: 'SET_ROAD_ENABLED'; edgeId: string; enabled: boolean }
+  | { type: 'CHOOSE_OPTION'; squadId: string; optionId: string }
+  | { type: 'ACK_OPERATION_REPORT'; reportId: number }
   | { type: 'END_SHIFT' }
   | { type: 'ADVANCE_SHIFT' };
 

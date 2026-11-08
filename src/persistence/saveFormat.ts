@@ -29,6 +29,24 @@ const MIGRATIONS: Record<number, (s: Record<string, unknown>) => Record<string, 
     equipment: initialEquipment(),
     squads: (s.squads as Record<string, unknown>[]).map((q) => ({ ...q, operation: null })),
   }),
+  /** v3 (W4) → v4 (W5): ход операции на месте, отчёты операций. Выезды в пути продолжаются по общим правилам. */
+  3: (s) => ({
+    ...s,
+    operationReports: [],
+    nextIds: { ...(s.nextIds as Record<string, number>), report: 1 },
+    squads: (s.squads as Record<string, unknown>[]).map((q) => {
+      const op = q.operation as Record<string, unknown> | null;
+      if (!op) return q;
+      return {
+        ...q,
+        operation: {
+          riskLevel: 2, timer: 3, stageIndex: 0, pDelta: 0, riskDelta: 0, civil: 0, evidence: 0, decisions: [],
+          ...op,
+          phase: q.status === 'on_scene' ? 'scene' : 'travel',
+        },
+      };
+    }),
+  }),
 };
 
 export function toSaveFile(state: GameState, label: string, now: Date): SaveFile {
@@ -64,7 +82,7 @@ export function parseSave(raw: unknown): LoadResult {
 }
 
 function validateState(s: Record<string, unknown>): string | null {
-  const arrays = ['districts', 'staff', 'squads', 'incidents', 'roadClosures', 'equipment', 'log', 'reports'] as const;
+  const arrays = ['districts', 'staff', 'squads', 'incidents', 'roadClosures', 'equipment', 'log', 'reports', 'operationReports'] as const;
   for (const k of arrays) if (!Array.isArray(s[k])) return `нет раздела ${k}`;
   if (!Number.isInteger(s.shift) || (s.shift as number) < 1) return 'неверный номер смены';
   if (!Number.isInteger(s.minute) || (s.minute as number) < 0) return 'неверное время';

@@ -362,3 +362,34 @@ svg.icon {
   .footer-forecast { display: block; flex: 1 1 auto; }
   .dispatch-blocker { order: -1; }
 }
+
+/* ---------- W5: решения и отчёты операций ---------- */
+.report-quote {
+  margin: 0 0 10px; padding: 12px 14px; border-left: 3px solid var(--red); border-radius: 8px;
+  background: linear-gradient(90deg, #3a1a1f88, transparent); font-size: 15px; line-height: 1.45;
+}
+.report-quote footer { margin-top: 6px; color: var(--muted); font-size: 12px; }
+.decisions-so-far { margin-bottom: 8px; color: var(--muted); font-size: 13px; }
+.pick-list.options { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.outcome { margin: 0 0 8px; font-family: Georgia, serif; font-size: 24px; letter-spacing: 0.5px; }
+.outcome.good { color: var(--green); }
+.outcome.mid { color: var(--amber); }
+.outcome.bad { color: var(--bad); }
+.report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.report-grid section { display: grid; gap: 6px; align-content: start; }
+.task-list { list-style: none; padding: 0; }
+.task { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--stroke2); }
+.task.done b { color: var(--green); }
+.task.partial b { color: var(--amber); }
+.task.failed b { color: var(--bad); }
+.kia, .kia td { color: var(--dim); }
+li.kia b { color: var(--bad); }
+.health.h-light_injury { color: var(--amber); }
+.health.h-serious_injury, .health.h-critical { color: var(--bad); }
+@media (max-width: 950px) {
+  .report-grid { grid-template-columns: 1fr; }
+}
+@media (max-height: 560px) {
+  .report-quote { font-size: 13px; padding: 8px 10px; }
+  .outcome { font-size: 19px; }
+}

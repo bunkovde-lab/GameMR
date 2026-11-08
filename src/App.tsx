@@ -6,6 +6,7 @@ import { IncidentPanel } from './ui/shell/IncidentPanel';
 import { ContextPanel } from './ui/shell/ContextPanel';
 import { MapView } from './ui/map/MapView';
 import { DispatchDialog } from './ui/dispatch/DispatchDialog';
+import { DecisionDialog, OperationReportDialog } from './ui/operations/OperationDialogs';
 import { SquadStrip } from './ui/shell/SquadStrip';
 import { BottomNav } from './ui/shell/BottomNav';
 import { StaffScreen } from './ui/screens/StaffScreen';
@@ -14,6 +15,7 @@ import { SettingsDialog } from './ui/SettingsDialog';
 import { Toast } from './ui/Toast';
 import { useGameLoop } from './ui/useGameLoop';
 import { dispatch, getGame, useGame } from './store';
+import { pendingDecision } from './core/operations';
 
 const LAYERS_KEY = 'gamemr-map-layers';
 const isNarrow = () => typeof window !== 'undefined' && window.innerWidth < NARROW_PX;
@@ -106,6 +108,8 @@ export function App() {
       {dispatchFor && game.phase === 'ACTIVE' && (
         <DispatchDialog game={game} incidentId={dispatchFor.incidentId} initialSquadId={dispatchFor.squadId} onClose={() => setDispatchFor(null)} onPreview={preview} />
       )}
+      {game.phase !== 'BRIEFING' && !settingsOpen && !dispatchFor && <DecisionDialog game={game} />}
+      {game.phase !== 'BRIEFING' && !settingsOpen && !dispatchFor && !pendingDecision(game) && <OperationReportDialog game={game} />}
       {settingsOpen && <SettingsDialog onClose={() => setSettingsOpen(false)} />}
       <Toast notice={notice} />
     </>

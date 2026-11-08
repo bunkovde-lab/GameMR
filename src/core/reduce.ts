@@ -1,5 +1,7 @@
 import { BALANCE, DISPATCH_COST, INCIDENT_TEMPLATES, toCents } from './content';
-import { bestCommander, defaultDraft, forecastTerms, planDispatch, recommendedTactic, tacticById, type DispatchDraft } from './dispatch';
+import { bestCommander, defaultDraft, forecastTerms, planDispatch, recommendedTactic, riskLevel, tacticById, type DispatchDraft } from './dispatch';
+import { applyOption, beginScene, finishReturn, pendingDecision, tickScene } from './operations';
+import { HEALTH_LOG } from './healthText';
 import { buildRoute, shortestPath } from './map/graph';
 import { districtById, edgeById, spawnPosition } from './map/mapConfig';
 import { nextInt } from './rng';
@@ -11,6 +13,8 @@ import type { Command, CommandResult, GameState, Incident, Squad, Transaction, T
  * Чистая функция: не читает время, DOM и Math.random; случайность только через state.rng.
  * Неверная команда не меняет состояние и возвращает причину (ТЗ §5.3).
  */
+const BALANCE_REST = 30;
+
 export function reduce(state: GameState, command: Command): CommandResult {
   const s: GameState = structuredClone(state);
   const reject = (reason: string): CommandResult => ({ ok: false, state, reason });
@@ -40,7 +44,23 @@ export function reduce(state: GameState, command: Command): CommandResult {
     case 'TICK': {
       if (s.phase !== 'ACTIVE' || s.paused) return reject('Время остановлено.');
       if (!Number.isInteger(command.minutes) || command.minutes < 1) return reject('Некорректный шаг времени.');
-      for (let i = 0; i < command.minutes && s.phase === 'ACTIVE'; i++) advanceMinute(s);
+      if (pendingDecision(s)) return reject('Ожидается решение по операции.');
+      for (let i = 0; i < command.minutes && s.phase === 'ACTIVE' && !pendingDecision(s); i++) advanceMinute(s);
+      return { ok: true, state: s };
+    }
+    case 'CHOOSE_OPTION': {
+      const pending = pendingDecision(s);
+      if (!pending || pending.squad.id !== command.squadId) return reject('Сейчас нет решения для этого отряда.');
+      const option = pending.stage.options.find((o) => o.id === command.optionId);
+      if (!option) return reject('Такого варианта нет.');
+      applyOption(s, pending.squad, option, pending.stage);
+      log(s, 'operation_decision', `«${pending.squad.name}», ${pending.incident.title}: ${option.label.toLowerCase()}.`);
+      return { ok: true, state: s };
+    }
+    case 'ACK_OPERATION_REPORT': {
+      const r = s.operationReports.find((x) => x.id === command.reportId);
+      if (!r) return reject('Отчёт не найден.');
+      r.seen = true;
       return { ok: true, state: s };
     }
 
@@ -107,7 +127,10 @@ export function reduce(state: GameState, command: Command): CommandResult {
       sq.status = 'en_route';
       sq.assignedIncidentId = inc.id;
       sq.movement = { route, elapsed: 0, destinationIncidentId: inc.id, aborted: false };
-      sq.operation = { incidentId: inc.id, tactic: draft.tactic, commanderId: draft.commanderId, equipmentIds: [...equipmentIds], cohesion, forecast: plan.forecast };
+      sq.operation = {
+        incidentId: inc.id, tactic: draft.tactic, commanderId: draft.commanderId, equipmentIds: [...equipmentIds], cohesion, forecast: plan.forecast,
+        riskLevel: riskLevel(s, draft), phase: 'travel', timer: 0, stageIndex: 0, pDelta: 0, riskDelta: 0, civil: 0, evidence: 0, decisions: [],
+      };
       inc.state = 'en_route';
       post(s, 'dispatch', -DISPATCH_COST, `Выезд «${sq.name}»: ${inc.title}`);
       log(s, 'squad_dispatched', `Отряд «${sq.name}» направлен: ${inc.title}. Тактика: ${tacticById(draft.tactic).label.toLowerCase()}. Прибытие ≈${Math.ceil(route.totalMinutes)} мин.`);
@@ -125,6 +148,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
 
     case 'END_SHIFT': {
       if (s.phase !== 'ACTIVE' && s.phase !== 'REVIEW_PENDING') return reject('Сейчас нельзя завершить смену.');
+      if (pendingDecision(s)) return reject('Сначала примите решение по операции.');
       const opening = s.economy.balance;
       post(s, 'funding', toCents(BALANCE.fundingPerShift), 'Финансирование смены');
       const wages = aliveStaff(s).reduce((sum, p) => sum + p.salary, 0);
@@ -136,6 +160,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
       }
       const ledger = s.economy.ledger.filter((t) => t.shift === s.shift);
       const open = s.incidents.filter(isOpen);
+      const ops = s.operationReports.filter((r) => r.shift === s.shift);
       s.reports.push({
         shift: s.shift,
         openingBalance: opening,
@@ -145,6 +170,13 @@ export function reduce(state: GameState, command: Command): CommandResult {
         unpaid: s.economy.unpaidObligations,
         openIncidents: open.length,
         escalatedIncidents: open.filter((i) => i.state === 'escalated').length,
+        operations: {
+          success: ops.filter((r) => r.outcome === 'success').length,
+          partial: ops.filter((r) => r.outcome === 'partial').length,
+          failure: ops.filter((r) => r.outcome === 'failure').length,
+        },
+        injured: ops.flatMap((r) => r.casualties).filter((c) => c.after !== 'dead').length,
+        killed: ops.flatMap((r) => r.casualties).filter((c) => c.after === 'dead').length,
       });
       s.phase = 'SHIFT_REPORT';
       s.paused = true;
@@ -159,6 +191,15 @@ export function reduce(state: GameState, command: Command): CommandResult {
       s.phase = 'BRIEFING';
       s.paused = true;
       for (const q of s.squads) if (q.status === 'resting' || q.status === 'recovery') q.status = 'ready';
+      // Между сменами: лёгкие ранения заживают сами (ТЗ §7.4), усталость снижается. Тяжёлые требуют клиники (W6).
+      for (const p of s.staff) {
+        if (p.health === 'dead') continue;
+        if (p.health === 'light_injury' || p.health === 'fatigued') {
+          p.health = 'healthy';
+          log(s, 'staff_recovered', `${p.name}: лёгкое ранение зажило.`);
+        }
+        p.fatigue = Math.max(0, p.fatigue - BALANCE_REST);
+      }
       // Незакрытые вызовы переносятся (ТЗ §2.2, SHIFT-01): их срок отсчитывается заново от начала новой смены.
       for (const inc of s.incidents) if (isOpen(inc)) inc.deadlineMinute = Math.max(0, inc.deadlineMinute - BALANCE.shift.lengthMinutes);
       spawnIncidents(s, BALANCE.incidentsPerNewShift);
@@ -209,16 +250,25 @@ function reroute(s: GameState, sq: Squad) {
   }
 }
 
-function moveSquads(s: GameState) {
+/** Двигает отряды на минуту; возвращает ID прибывших на место (их работа начнётся со следующей минуты). */
+function moveSquads(s: GameState): Set<string> {
+  const arrived = new Set<string>();
   for (const sq of s.squads) {
     const m = sq.movement;
-    if (!m || sq.status !== 'en_route') continue;
+    if (!m || (sq.status !== 'en_route' && sq.status !== 'returning')) continue;
     m.elapsed += 1;
     if (m.elapsed < m.route.totalMinutes) continue;
+    if (sq.status === 'returning') {
+      sq.currentNodeId = m.route.nodeIds[m.route.nodeIds.length - 1]!;
+      finishReturn(s, sq);
+      log(s, 'squad_returned', `Отряд «${sq.name}» вернулся на базу.`);
+      continue;
+    }
     const inc = s.incidents.find((x) => x.id === m.destinationIncidentId);
     sq.currentNodeId = m.route.nodeIds[m.route.nodeIds.length - 1]!;
     sq.movement = null;
     if (m.aborted) {
+      finishReturn(s, sq);
       sq.status = 'ready';
       sq.assignedIncidentId = null;
       if (inc && inc.state === 'en_route') inc.state = 'acknowledged';
@@ -226,14 +276,25 @@ function moveSquads(s: GameState) {
     } else {
       sq.status = 'on_scene';
       if (inc) inc.state = 'on_scene';
+      if (inc) beginScene(sq, inc);
+      arrived.add(sq.id);
       log(s, 'squad_arrived', `Отряд «${sq.name}» прибыл: ${inc?.title ?? ''}.`);
     }
   }
+  return arrived;
 }
 
 function advanceMinute(s: GameState) {
   s.minute += 1;
-  moveSquads(s);
+  const arrived = moveSquads(s);
+  for (const sq of s.squads) {
+    if (sq.status !== 'on_scene' || !sq.operation || arrived.has(sq.id)) continue;
+    const report = tickScene(s, sq);
+    if (!report) continue;
+    const word = report.outcome === 'success' ? 'успешно' : report.outcome === 'partial' ? 'частично' : 'провалена';
+    log(s, 'operation_completed', `Операция «${report.squadName}» (${report.incidentTitle}) завершена: ${word}.`);
+    for (const c of report.casualties) log(s, c.after === 'dead' ? 'staff_killed' : 'staff_injured', `${c.name}: ${HEALTH_LOG[c.after]}.`);
+  }
   for (const inc of s.incidents) {
     if (inc.deadlineType === 'escalate' && (inc.state === 'new' || inc.state === 'acknowledged') && s.minute >= inc.deadlineMinute) {
       inc.state = 'escalated';

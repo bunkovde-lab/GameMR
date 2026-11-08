@@ -236,7 +236,10 @@ function CandidateCard({ game, c }: { game: GameState; c: Candidate }) {
   const checkCost = STAFF_RULES.deepCheck.cost;
   return (
     <article className="sq-card candidate" data-testid={`candidate-${c.id}`}>
-      <header><b>{c.name}</b><small>{ROLE_LABEL[c.role]} · ранг {RANKS[c.rank - 1]}</small></header>
+      <header className="candidate-head">
+        <Portrait id={c.id} name={c.name} size="lg" />
+        <span><b>{c.name}</b><br /><small>{ROLE_LABEL[c.role]} · ранг {RANKS[c.rank - 1]}</small></span>
+      </header>
       <p className="fit">Пригодность: <b data-testid={`fit-${c.id}`}>{fit.word}</b>{fit.uncertain ? <small> · оценка неточная</small> : null}</p>
       <dl className="kv dossier">
         {keys.map((k) => (

@@ -431,6 +431,222 @@
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
       "approvedBy": "Дмитрий",
       "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude. Подключён в src/ui/kit-png.css (9-slice через border-image псевдоэлементом; размеры и зона касания кнопок не меняются)."
+    },
+    {
+      "id": "ART009_CANDIDATE_C01",
+      "file": "assets/characters/candidate_c01_ada_morn.png",
+      "category": "characters",
+      "role": "Портрет кандидата на найм c01 — Ада Морн",
+      "status": "approved",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "739794d49eabb4b0599390ad64e7626d6e97bf034f710c6841faeeac8cb99a96",
+      "source": "GameMR ART-009 candidate portrait board; generated 2026-11-09; source ART-009_CANDIDATE_PORTRAITS_FOR_CHATGPT.md",
+      "approvedBy": "Dmitry (2026-11-08)",
+      "notes": "Отображается для всех случайных профессий; не содержит ранговых знаков и штатной экипировки. Отдельный арт на каждый ID; при изменении рабочих имён переименовать ресурс через реестр.",
+      "webCopies": [
+        "assets/characters/web/portrait_c01.webp",
+        "assets/characters/web/face_c01.webp"
+      ]
+    },
+    {
+      "id": "ART009_CANDIDATE_C02",
+      "file": "assets/characters/candidate_c02_vel_tissen.png",
+      "category": "characters",
+      "role": "Портрет кандидата на найм c02 — Вел Тиссен",
+      "status": "approved",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "decae0807a4b9cf177a2396990aafe0db5ecd38577236541ac334773bfce32ad",
+      "source": "GameMR ART-009 candidate portrait board; generated 2026-11-09; source ART-009_CANDIDATE_PORTRAITS_FOR_CHATGPT.md",
+      "approvedBy": "Dmitry (2026-11-08)",
+      "notes": "Отображается для всех случайных профессий; не содержит ранговых знаков и штатной экипировки. Отдельный арт на каждый ID; при изменении рабочих имён переименовать ресурс через реестр.",
+      "webCopies": [
+        "assets/characters/web/portrait_c02.webp",
+        "assets/characters/web/face_c02.webp"
+      ]
+    },
+    {
+      "id": "ART009_CANDIDATE_C03",
+      "file": "assets/characters/candidate_c03_iren_kalt.png",
+      "category": "characters",
+      "role": "Портрет кандидата на найм c03 — Ирен Кальт",
+      "status": "approved",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "87a3aa2325a3b1b2b79599044023cdff708e6c0177b9b9e64a2ec705e79b7478",
+      "source": "GameMR ART-009 candidate portrait board; generated 2026-11-09; source ART-009_CANDIDATE_PORTRAITS_FOR_CHATGPT.md",
+      "approvedBy": "Dmitry (2026-11-08)",
+      "notes": "Отображается для всех случайных профессий; не содержит ранговых знаков и штатной экипировки. Отдельный арт на каждый ID; при изменении рабочих имён переименовать ресурс через реестр.",
+      "webCopies": [
+        "assets/characters/web/portrait_c03.webp",
+        "assets/characters/web/face_c03.webp"
+      ]
+    },
+    {
+      "id": "ART009_CANDIDATE_C04",
+      "file": "assets/characters/candidate_c04_soren_ladd.png",
+      "category": "characters",
+      "role": "Портрет кандидата на найм c04 — Сорен Ладд",
+      "status": "approved",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "9648776e089be0e4c84d649798000c2f7ba63df623e3210fd0db089a4dffd7e9",
+      "source": "GameMR ART-009 candidate portrait board; generated 2026-11-09; source ART-009_CANDIDATE_PORTRAITS_FOR_CHATGPT.md",
+      "approvedBy": "Dmitry (2026-11-08)",
+      "notes": "Отображается для всех случайных профессий; не содержит ранговых знаков и штатной экипировки. Отдельный арт на каждый ID; при изменении рабочих имён переименовать ресурс через реестр.",
+      "webCopies": [
+        "assets/characters/web/portrait_c04.webp",
+        "assets/characters/web/face_c04.webp"
+      ]
+    },
+    {
+      "id": "ART009_CANDIDATE_C05",
+      "file": "assets/characters/candidate_c05_nera_vost.png",
+      "category": "characters",
+      "role": "Портрет кандидата на найм c05 — Нера Вост",
+      "status": "approved",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "b785bba25dc6b8424294f8d71e27d0a3134b984e54bc9151762eeb6c3f4b87fb",
+      "source": "GameMR ART-009 candidate portrait board; generated 2026-11-09; source ART-009_CANDIDATE_PORTRAITS_FOR_CHATGPT.md",
+      "approvedBy": "Dmitry (2026-11-08)",
+      "notes": "Отображается для всех случайных профессий; не содержит ранговых знаков и штатной экипировки. Отдельный арт на каждый ID; при изменении рабочих имён переименовать ресурс через реестр.",
+      "webCopies": [
+        "assets/characters/web/portrait_c05.webp",
+        "assets/characters/web/face_c05.webp"
+      ]
+    },
+    {
+      "id": "ART009_CANDIDATE_C06",
+      "file": "assets/characters/candidate_c06_teo_grain.png",
+      "category": "characters",
+      "role": "Портрет кандидата на найм c06 — Тео Грейн",
+      "status": "approved",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "4bad9262c84a0b1338780c08a8597d3cfa511e4fac8be9e88170860dbf0bd5c7",
+      "source": "GameMR ART-009 candidate portrait board; generated 2026-11-09; source ART-009_CANDIDATE_PORTRAITS_FOR_CHATGPT.md",
+      "approvedBy": "Dmitry (2026-11-08)",
+      "notes": "Отображается для всех случайных профессий; не содержит ранговых знаков и штатной экипировки. Отдельный арт на каждый ID; при изменении рабочих имён переименовать ресурс через реестр.",
+      "webCopies": [
+        "assets/characters/web/portrait_c06.webp",
+        "assets/characters/web/face_c06.webp"
+      ]
+    },
+    {
+      "id": "ART009_CANDIDATE_C07",
+      "file": "assets/characters/candidate_c07_mira_satt.png",
+      "category": "characters",
+      "role": "Портрет кандидата на найм c07 — Мира Сатт",
+      "status": "approved",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "e59c06f2df5f10facb2cc7ed26be1f28e9cfc11225f4d8917667d190f53c7ae2",
+      "source": "GameMR ART-009 candidate portrait board; generated 2026-11-09; source ART-009_CANDIDATE_PORTRAITS_FOR_CHATGPT.md",
+      "approvedBy": "Dmitry (2026-11-08)",
+      "notes": "Отображается для всех случайных профессий; не содержит ранговых знаков и штатной экипировки. Отдельный арт на каждый ID; при изменении рабочих имён переименовать ресурс через реестр.",
+      "webCopies": [
+        "assets/characters/web/portrait_c07.webp",
+        "assets/characters/web/face_c07.webp"
+      ]
+    },
+    {
+      "id": "ART009_CANDIDATE_C08",
+      "file": "assets/characters/candidate_c08_old_keir.png",
+      "category": "characters",
+      "role": "Портрет кандидата на найм c08 — Ольд Кейр",
+      "status": "approved",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "2f4d4677096b9120380e440458754ebc13819ebc8a586c1819cee26e0d31e88e",
+      "source": "GameMR ART-009 candidate portrait board; generated 2026-11-09; source ART-009_CANDIDATE_PORTRAITS_FOR_CHATGPT.md",
+      "approvedBy": "Dmitry (2026-11-08)",
+      "notes": "Отображается для всех случайных профессий; не содержит ранговых знаков и штатной экипировки. Отдельный арт на каждый ID; при изменении рабочих имён переименовать ресурс через реестр.",
+      "webCopies": [
+        "assets/characters/web/portrait_c08.webp",
+        "assets/characters/web/face_c08.webp"
+      ]
+    },
+    {
+      "id": "ART009_CANDIDATE_C09",
+      "file": "assets/characters/candidate_c09_lina_farr.png",
+      "category": "characters",
+      "role": "Портрет кандидата на найм c09 — Лина Фарр",
+      "status": "approved",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "f84dc5f20d77955b2690e169a51a9212c8484c3a1eac7a37bb7064f197c4ee59",
+      "source": "GameMR ART-009 candidate portrait board; generated 2026-11-09; source ART-009_CANDIDATE_PORTRAITS_FOR_CHATGPT.md",
+      "approvedBy": "Dmitry (2026-11-08)",
+      "notes": "Отображается для всех случайных профессий; не содержит ранговых знаков и штатной экипировки. Отдельный арт на каждый ID; при изменении рабочих имён переименовать ресурс через реестр.",
+      "webCopies": [
+        "assets/characters/web/portrait_c09.webp",
+        "assets/characters/web/face_c09.webp"
+      ]
+    },
+    {
+      "id": "ART009_CANDIDATE_C10",
+      "file": "assets/characters/candidate_c10_rein_ottar.png",
+      "category": "characters",
+      "role": "Портрет кандидата на найм c10 — Рейн Оттар",
+      "status": "approved",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "8363c71de88d4340b8a5eb389ed0b5bc93b974903380285eb20175c0a2cfc0b1",
+      "source": "GameMR ART-009 candidate portrait board; generated 2026-11-09; source ART-009_CANDIDATE_PORTRAITS_FOR_CHATGPT.md",
+      "approvedBy": "Dmitry (2026-11-08)",
+      "notes": "Отображается для всех случайных профессий; не содержит ранговых знаков и штатной экипировки. Отдельный арт на каждый ID; при изменении рабочих имён переименовать ресурс через реестр.",
+      "webCopies": [
+        "assets/characters/web/portrait_c10.webp",
+        "assets/characters/web/face_c10.webp"
+      ]
+    },
+    {
+      "id": "ART009_CANDIDATE_C11",
+      "file": "assets/characters/candidate_c11_esa_brin.png",
+      "category": "characters",
+      "role": "Портрет кандидата на найм c11 — Эса Брин",
+      "status": "approved",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "9fc167948b531b92775305119da2f7eeb8277af198f62cc560efa03addd70631",
+      "source": "GameMR ART-009 candidate portrait board; generated 2026-11-09; source ART-009_CANDIDATE_PORTRAITS_FOR_CHATGPT.md",
+      "approvedBy": "Dmitry (2026-11-08)",
+      "notes": "Отображается для всех случайных профессий; не содержит ранговых знаков и штатной экипировки. Отдельный арт на каждый ID; при изменении рабочих имён переименовать ресурс через реестр.",
+      "webCopies": [
+        "assets/characters/web/portrait_c11.webp",
+        "assets/characters/web/face_c11.webp"
+      ]
+    },
+    {
+      "id": "ART009_CANDIDATE_C12",
+      "file": "assets/characters/candidate_c12_kael_nort.png",
+      "category": "characters",
+      "role": "Портрет кандидата на найм c12 — Каэль Норт",
+      "status": "approved",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "c1e9b01ea08bb1ccb8f734a5487e341d079f64fa6dd51c14fc9f6e32b4737d1f",
+      "source": "GameMR ART-009 candidate portrait board; generated 2026-11-09; source ART-009_CANDIDATE_PORTRAITS_FOR_CHATGPT.md",
+      "approvedBy": "Dmitry (2026-11-08)",
+      "notes": "Отображается для всех случайных профессий; не содержит ранговых знаков и штатной экипировки. Отдельный арт на каждый ID; при изменении рабочих имён переименовать ресурс через реестр.",
+      "webCopies": [
+        "assets/characters/web/portrait_c12.webp",
+        "assets/characters/web/face_c12.webp"
+      ]
     }
   ]
 }

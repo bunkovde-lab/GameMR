@@ -1,0 +1,154 @@
+{
+  "_status": "PROVISIONAL_RULE — медицина ТЗ §7.4, найм §7.6, цены §8.1 (лечение 0,8/2 РЕ, найм 8/12/18/15/14 РЕ). Места клиники, штатное расписание и параметры кандидатов — рабочие гипотезы до W7 (инфраструктура) и W10 (баланс).",
+  "staffingTable": {
+    "_note": "Штатное расписание: 12 по ТЗ §7.1 + 1 открытая вакансия биокриминалиста (рост штата, решение C-5 ждёт подтверждения)",
+    "guard": 4,
+    "investigator": 3,
+    "lovchiy": 2,
+    "biocriminalist": 3,
+    "analyst": 1
+  },
+  "hireCost": {
+    "guard": 8,
+    "investigator": 12,
+    "lovchiy": 18,
+    "biocriminalist": 15,
+    "analyst": 14
+  },
+  "salaryByRole": {
+    "guard": 3,
+    "investigator": 3,
+    "lovchiy": 4,
+    "biocriminalist": 3,
+    "analyst": 3
+  },
+  "roleWeights": {
+    "guard": {
+      "reaction": 1,
+      "control": 1,
+      "resilience": 1,
+      "analysis": 0.2,
+      "authority": 0.4
+    },
+    "investigator": {
+      "analysis": 1,
+      "authority": 0.8,
+      "control": 0.6,
+      "reaction": 0.3,
+      "resilience": 0.3
+    },
+    "lovchiy": {
+      "reaction": 1,
+      "resilience": 1,
+      "control": 0.5,
+      "analysis": 0.3,
+      "authority": 0.3
+    },
+    "biocriminalist": {
+      "analysis": 1,
+      "control": 0.6,
+      "resilience": 0.5,
+      "reaction": 0.2,
+      "authority": 0.3
+    },
+    "analyst": {
+      "analysis": 1,
+      "control": 0.8,
+      "authority": 0.3,
+      "reaction": 0.2,
+      "resilience": 0.2
+    }
+  },
+  "candidatesPerVacancy": 3,
+  "deepCheck": {
+    "cost": 1,
+    "shifts": 1
+  },
+  "reportedNoise": 1,
+  "adaptationShifts": [
+    0,
+    1,
+    2
+  ],
+  "politicalFlagChance": 0.3,
+  "houses": [
+    "Палата Зеркал",
+    "Дом Вейр",
+    "Дом Остен"
+  ],
+  "names": [
+    "Ада Морн",
+    "Вел Тиссен",
+    "Ирен Кальт",
+    "Сорен Ладд",
+    "Нера Вост",
+    "Тео Грейн",
+    "Мира Сатт",
+    "Ольд Кейр",
+    "Лина Фарр",
+    "Рейн Оттар",
+    "Эса Брин",
+    "Каэль Норт"
+  ],
+  "medical": {
+    "beds": 2,
+    "capsules": 1,
+    "baseCost": {
+      "light_injury": 0.8,
+      "serious_injury": 2,
+      "critical": 2
+    },
+    "plans": {
+      "standard": {
+        "label": "Стандартное",
+        "costMult": 1,
+        "shifts": {
+          "light_injury": 1,
+          "serious_injury": 3,
+          "critical": 4
+        },
+        "complication": 0.12,
+        "needsCapsule": false,
+        "for": [
+          "light_injury",
+          "serious_injury",
+          "critical"
+        ],
+        "hint": "Дешевле, дольше"
+      },
+      "accelerated": {
+        "label": "Ускоренное",
+        "costMult": 2,
+        "shifts": {
+          "light_injury": 1,
+          "serious_injury": 2,
+          "critical": 3
+        },
+        "complication": 0.22,
+        "needsCapsule": false,
+        "for": [
+          "serious_injury",
+          "critical"
+        ],
+        "hint": "Дороже и быстрее, выше риск осложнения"
+      },
+      "regenerative": {
+        "label": "Регенеративное",
+        "costMult": 3,
+        "shifts": {
+          "light_injury": 1,
+          "serious_injury": 1,
+          "critical": 2
+        },
+        "complication": 0.08,
+        "needsCapsule": true,
+        "for": [
+          "serious_injury",
+          "critical"
+        ],
+        "hint": "Нужна свободная регенерационная капсула; для сложных повреждений"
+      }
+    },
+    "returnFatigue": 30
+  }
+}

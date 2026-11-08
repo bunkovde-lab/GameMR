@@ -72,6 +72,8 @@ export function memberBlocker(s: GameState, staffId: string, squadId: string): s
   const h = UNFIT[p.health];
   if (h) return h;
   if (p.fatigue >= DISPATCH_RULES.squad.exhaustedFatigue) return 'переутомление';
+  if (s.medical.patients.some((x) => x.staffId === staffId)) return 'на лечении';
+  if (p.adaptation > 0) return 'адаптация после найма';
   const other = s.squads.find((q) => q.id !== squadId && q.memberIds.includes(staffId));
   if (other && other.status !== 'ready') return `занят: отряд «${other.name}»`;
   const own = s.squads.find((q) => q.id === squadId);
@@ -114,7 +116,8 @@ export function defaultDraft(s: GameState, squadId: string, incidentId: string):
   const inc = s.incidents.find((i) => i.id === incidentId);
   const memberIds = (sq?.memberIds ?? []).filter((id) => !memberBlocker(s, id, squadId));
   const equipmentIds = inc ? suggestEquipment(s, inc) : [];
-  const draft: DispatchDraft = { squadId, incidentId, tactic: 'arrest', memberIds, commanderId: bestCommander(s, memberIds), equipmentIds };
+  const fixed = sq?.commanderId && memberIds.includes(sq.commanderId) ? sq.commanderId : null;
+  const draft: DispatchDraft = { squadId, incidentId, tactic: 'arrest', memberIds, commanderId: fixed ?? bestCommander(s, memberIds), equipmentIds };
   if (inc) draft.tactic = recommendedTactic(s, draft);
   return draft;
 }

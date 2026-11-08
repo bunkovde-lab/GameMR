@@ -1,6 +1,7 @@
 import { BALANCE, DISTRICTS, INCIDENT_TEMPLATES, SQUAD_MEMBERS, SQUADS_DEMO, STAFF_START, toCents } from './content';
 import { bestCommander, computeForecast, initialEquipment, riskLevel } from './dispatch';
 import { seedRng } from './rng';
+import { refreshCandidates } from './staff';
 import { SCHEMA_VERSION, type GameState, type Incident, type IncidentState } from './types';
 
 export const DEFAULT_SEED = 2864;
@@ -51,6 +52,8 @@ export function createInitialState(seed: number = DEFAULT_SEED): GameState {
       health: 'healthy',
       fatigue: s.fatigue,
       salary: toCents(s.salary),
+      adaptation: 0,
+      patron: null,
     })),
     squads: SQUADS_DEMO.map((s) => ({
       id: s.id,
@@ -61,6 +64,7 @@ export function createInitialState(seed: number = DEFAULT_SEED): GameState {
       assignedIncidentId: s.assignedIncidentId,
       movement: null,
       operation: null,
+      commanderId: null,
     })),
     incidents,
     roadClosures: [],
@@ -68,9 +72,12 @@ export function createInitialState(seed: number = DEFAULT_SEED): GameState {
     log: [{ id: 1, shift: 1, minute: 0, type: 'campaign_started', text: 'Вы приняли руководство Городской дирекцией безопасности.' }],
     reports: [],
     operationReports: [],
-    nextIds: { event: 2, transaction: 1, incident: 1, report: 1 },
+    medical: { patients: [] },
+    candidates: [],
+    nextIds: { event: 2, transaction: 1, incident: 1, report: 1, staff: 13, candidate: 1 },
   };
   seedOperationsInProgress(state);
+  refreshCandidates(state);
   return state;
 }
 

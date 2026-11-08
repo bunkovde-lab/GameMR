@@ -47,6 +47,15 @@ const MIGRATIONS: Record<number, (s: Record<string, unknown>) => Record<string, 
       };
     }),
   }),
+  /** v4 (W5) → v5 (W6): клиника, кандидаты, командиры отрядов, адаптация. Кандидаты появятся со следующей сменой. */
+  4: (s) => ({
+    ...s,
+    medical: { patients: [] },
+    candidates: [],
+    nextIds: { ...(s.nextIds as Record<string, number>), staff: (s.staff as unknown[]).length + 1, candidate: 1 },
+    staff: (s.staff as Record<string, unknown>[]).map((p) => ({ ...p, adaptation: 0, patron: null })),
+    squads: (s.squads as Record<string, unknown>[]).map((q) => ({ ...q, commanderId: null })),
+  }),
 };
 
 export function toSaveFile(state: GameState, label: string, now: Date): SaveFile {
@@ -82,7 +91,7 @@ export function parseSave(raw: unknown): LoadResult {
 }
 
 function validateState(s: Record<string, unknown>): string | null {
-  const arrays = ['districts', 'staff', 'squads', 'incidents', 'roadClosures', 'equipment', 'log', 'reports', 'operationReports'] as const;
+  const arrays = ['districts', 'staff', 'squads', 'incidents', 'roadClosures', 'equipment', 'log', 'reports', 'operationReports', 'candidates'] as const;
   for (const k of arrays) if (!Array.isArray(s[k])) return `нет раздела ${k}`;
   if (!Number.isInteger(s.shift) || (s.shift as number) < 1) return 'неверный номер смены';
   if (!Number.isInteger(s.minute) || (s.minute as number) < 0) return 'неверное время';

@@ -13,6 +13,7 @@ import '@fontsource/forum/latin-400.css';
 import './ui/tokens.css';
 import './ui/app.css';
 import './ui/theme.css';
+import './ui/kit-png.css';
 import { App } from './App';
 import { bootstrap } from './store';
 

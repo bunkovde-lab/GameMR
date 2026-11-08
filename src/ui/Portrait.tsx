@@ -34,7 +34,7 @@ export function Portrait({ id, name, health = 'healthy', size = 'sm' }: { id: st
     <span className={cls} data-testid={`portrait-${id}`} aria-hidden={size !== 'lg' || undefined}>
       {src
         ? <img src={src} alt={size === 'lg' ? `Портрет: ${name}` : ''} loading="lazy" decoding="async" draggable={false} />
-        : <span className="monogram">{name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2)}</span>}
+        : <span className="portrait-initials">{name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2)}</span>}
       {mark && <span className="portrait-mark">{mark}</span>}
     </span>
   );

@@ -1,0 +1,97 @@
+/*
+ * ART-008: утверждённые PNG UI-kit v2 поверх CSS-версии (theme.css).
+ * Подключены только одобренные владельцем файлы (docs/art/ART008_UIKIT_V2_HANDOFF.md):
+ * 5 состояний кнопки, рамка панели, рамка карточки отряда, рамка портрета.
+ * Шапка, навершие, стяги и герб ждут отдельной приёмки и здесь не используются.
+ * Файлы нарисованы в 2×: slice в пикселях файла, ширина рамки на экране — половина или меньше.
+ * Рисунок кладётся псевдоэлементом под текст, поэтому размеры и зона касания кнопок не меняются.
+ */
+:root {
+  --kit-btn: url('../../assets/ui/kit_v2/btn_default_9s.png');
+  --kit-btn-hover: url('../../assets/ui/kit_v2/btn_hover_9s.png');
+  --kit-btn-pressed: url('../../assets/ui/kit_v2/btn_pressed_9s.png');
+  --kit-btn-selected: url('../../assets/ui/kit_v2/btn_selected_9s.png');
+  --kit-btn-disabled: url('../../assets/ui/kit_v2/btn_disabled_9s.png');
+  --kit-panel: url('../../assets/ui/kit_v2/panel_frame_9s.png');
+  --kit-squad: url('../../assets/ui/kit_v2/squad_card_9s.png');
+  --kit-portrait: url('../../assets/ui/kit_v2/portrait_frame.png');
+}
+
+/* ---------- Кнопки ---------- */
+.btn {
+  isolation: isolate;
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+}
+.btn::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  border-style: solid; border-width: 12px;
+  border-image: var(--kit-btn) 24 fill / 12px / 0 stretch;
+}
+.btn:hover:not(:disabled) { background: none; border-color: transparent; box-shadow: none; }
+.btn:hover:not(:disabled)::before { border-image-source: var(--kit-btn-hover); }
+.btn:active:not(:disabled) { background: none; border-color: transparent; box-shadow: none; }
+.btn:active:not(:disabled)::before { border-image-source: var(--kit-btn-pressed); }
+.btn[aria-pressed='true'], .btn[aria-current='page'], .btn[aria-selected='true'], .btn.primary,
+.layer-tools .btn[aria-pressed='true'],
+.btn[aria-pressed='true']:hover:not(:disabled), .btn[aria-current='page']:hover:not(:disabled), .btn[aria-selected='true']:hover:not(:disabled),
+.btn.primary:hover:not(:disabled) { background: none; border-color: transparent; box-shadow: none; }
+.btn[aria-pressed='true']::before, .btn[aria-current='page']::before, .btn[aria-selected='true']::before, .btn.primary::before {
+  border-image-source: var(--kit-btn-selected);
+}
+.btn[aria-pressed='true']:hover:not(:disabled)::before, .btn[aria-current='page']:hover:not(:disabled)::before,
+.btn[aria-selected='true']:hover:not(:disabled)::before, .btn.primary:hover:not(:disabled)::before {
+  border-image-source: var(--kit-btn-selected); filter: brightness(1.12);
+}
+.btn:disabled { background: none; border-color: transparent; box-shadow: none; }
+.btn:disabled::before { border-image-source: var(--kit-btn-disabled); }
+.btn.danger { border-color: transparent; }
+.layer-tools .btn, .zoom-tools .btn, .map-tools .btn { background: none; }
+.nav .btn.end-shift { background: none; border-color: transparent; }
+.nav .btn.end-shift::before { border-image-source: var(--kit-btn-hover); }
+.nav .btn.end-shift:hover:not(:disabled)::before { filter: brightness(1.15); }
+
+/* ---------- Карточки отрядов (лента внизу; маркеры на карте не трогаем) ---------- */
+.squad-list .squad, .squad-list .squad:hover:not(:disabled), .squad-list .squad.selected,
+.squad-list .squad[aria-pressed='true'], .squad-list .squad.tone-red {
+  border-color: transparent; box-shadow: none; background: none; isolation: isolate;
+}
+.squad-list .squad::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  border-style: solid; border-width: 16px;
+  border-image: var(--kit-squad) 32 fill / 16px / 0 stretch;
+}
+.squad-list .squad:hover:not(:disabled)::before { filter: brightness(1.12); }
+.squad-list .squad.selected::before, .squad-list .squad[aria-pressed='true']::before { filter: drop-shadow(0 0 6px #e84c5099) brightness(1.18); }
+.squad-list .squad .monogram { margin: 3px 0 3px 3px; }
+@media (max-height: 560px) {
+  .squad-list .squad { padding-left: 12px; }
+  .squad-list .squad::before { border-width: 8px; border-image-width: 8px; }
+}
+
+/* ---------- Рамка панелей и окон (рисунок поверх края, середина прозрачная) ---------- */
+.panel::after, .modal::after {
+  content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none; transform: none;
+  width: auto; height: auto; background: none;
+  border-style: solid; border-width: 24px;
+  border-image: var(--kit-panel) 96 / 24px / 0 stretch;
+}
+.panel::before { display: none; }
+.modal { position: relative; }
+
+/* ---------- Рамка портрета в досье ---------- */
+.portrait.lg { box-sizing: border-box; padding: 7px; border: 0; box-shadow: none; background: #0b0d11; }
+.portrait.lg img { border-radius: 2px; }
+.portrait.lg::before {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: var(--kit-portrait) center / 100% 100% no-repeat;
+}
+.portrait.lg.dead::after { z-index: 2; }
+.portrait.lg .portrait-mark { z-index: 2; left: 7px; right: 7px; bottom: 7px; }
+
+/* Двухстрочные кнопки выбора: текст не ложится на внутренний кант рисунка. */
+.btn.pick { padding-top: 9px; padding-bottom: 9px; }
+/* Узкая лента отрядов: тоньше рамка, чтобы не лечь на заголовок «Оперативные группы». */
+.squads.panel::after { border-width: 12px; border-image-width: 12px; }
+.squads .panel-header { padding-left: 14px; padding-right: 14px; }

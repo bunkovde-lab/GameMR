@@ -203,65 +203,65 @@
       "file": "assets/ui/kit_v2/btn_default_9s.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "approved",
+      "status": "integrated",
       "width": 256,
       "height": 96,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
       "approvedBy": "Дмитрий",
-      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude."
+      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude. Подключён в src/ui/kit-png.css (9-slice через border-image псевдоэлементом; размеры и зона касания кнопок не меняются)."
     },
     {
       "id": "ART008_BTN_DISABLED_9S",
       "file": "assets/ui/kit_v2/btn_disabled_9s.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "approved",
+      "status": "integrated",
       "width": 256,
       "height": 96,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
       "approvedBy": "Дмитрий",
-      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude."
+      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude. Подключён в src/ui/kit-png.css (9-slice через border-image псевдоэлементом; размеры и зона касания кнопок не меняются)."
     },
     {
       "id": "ART008_BTN_HOVER_9S",
       "file": "assets/ui/kit_v2/btn_hover_9s.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "approved",
+      "status": "integrated",
       "width": 256,
       "height": 96,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
       "approvedBy": "Дмитрий",
-      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude."
+      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude. Подключён в src/ui/kit-png.css (9-slice через border-image псевдоэлементом; размеры и зона касания кнопок не меняются)."
     },
     {
       "id": "ART008_BTN_PRESSED_9S",
       "file": "assets/ui/kit_v2/btn_pressed_9s.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "approved",
+      "status": "integrated",
       "width": 256,
       "height": 96,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
       "approvedBy": "Дмитрий",
-      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude."
+      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude. Подключён в src/ui/kit-png.css (9-slice через border-image псевдоэлементом; размеры и зона касания кнопок не меняются)."
     },
     {
       "id": "ART008_BTN_SELECTED_9S",
       "file": "assets/ui/kit_v2/btn_selected_9s.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "approved",
+      "status": "integrated",
       "width": 256,
       "height": 96,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
       "approvedBy": "Дмитрий",
-      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude."
+      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude. Подключён в src/ui/kit-png.css (9-slice через border-image псевдоэлементом; размеры и зона касания кнопок не меняются)."
     },
     {
       "id": "ART008_CREST_DIRECTORATE",
@@ -320,26 +320,26 @@
       "file": "assets/ui/kit_v2/panel_frame_9s.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "approved",
+      "status": "integrated",
       "width": 512,
       "height": 512,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
       "approvedBy": "Дмитрий",
-      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude."
+      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude. Подключён в src/ui/kit-png.css (9-slice через border-image псевдоэлементом; размеры и зона касания кнопок не меняются)."
     },
     {
       "id": "ART008_PORTRAIT_FRAME",
       "file": "assets/ui/kit_v2/portrait_frame.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "approved",
+      "status": "integrated",
       "width": 512,
       "height": 640,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
       "approvedBy": "Дмитрий",
-      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude."
+      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude. Подключён в src/ui/kit-png.css (9-slice через border-image псевдоэлементом; размеры и зона касания кнопок не меняются)."
     },
     {
       "id": "ART008_SQUAD_BANNER_AXON",
@@ -424,13 +424,13 @@
       "file": "assets/ui/kit_v2/squad_card_9s.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "approved",
+      "status": "integrated",
       "width": 512,
       "height": 192,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
       "approvedBy": "Дмитрий",
-      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude."
+      "notes": "Рамки/кнопки согласованы владельцем, ожидание интеграции Claude. Подключён в src/ui/kit-png.css (9-slice через border-image псевдоэлементом; размеры и зона касания кнопок не меняются)."
     }
   ]
 }

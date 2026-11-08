@@ -28,3 +28,21 @@ describe('ART-005 портреты', () => {
     }
   });
 });
+
+/** ART-008: в CSS подключены только одобренные файлы; неутверждённые (шапка, стяги, герб) не используются. */
+describe('ART-008 UI-kit PNG', () => {
+  const css = readFileSync('src/ui/kit-png.css', 'utf8');
+  const kit = manifest.assets.filter((a) => a.file.includes('/kit_v2/'));
+  it('каждый файл из CSS существует и одобрен', () => {
+    const used = [...css.matchAll(/kit_v2\/([\w]+\.png)/g)].map((m) => m[1]!);
+    expect(used.length).toBeGreaterThanOrEqual(8);
+    for (const f of used) {
+      const a = kit.find((x) => x.file.endsWith(f))!;
+      expect(existsSync(a.file)).toBe(true);
+      expect(a.status).toBe('integrated');
+    }
+  });
+  it('файлы на приёмке в CSS не попали', () => {
+    for (const a of kit.filter((x) => x.status === 'review')) expect(css).not.toContain(a.file.split('/').pop()!);
+  });
+});

@@ -29,6 +29,7 @@ test('staff: every starting employee shows a loaded portrait; dossier has a larg
   const big = page.locator('.person-head').getByTestId('portrait-p9');
   await expect(big.locator('img')).toHaveAttribute('alt', 'Портрет: Сели Ренн');
   await expect.poll(() => loaded(big.locator('img'))).toBe(true);
+  await page.locator('.person-head').screenshot({ path: `test-results/screens/art005-head-${info.project.name}.png` });
   expect((await page.getByTestId('person-p9').boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await page.screenshot({ path: `test-results/screens/art005-dossier-${info.project.name}.png` });
 });

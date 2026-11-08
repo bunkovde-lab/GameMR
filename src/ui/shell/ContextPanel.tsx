@@ -1,4 +1,5 @@
 import { dispatchBlocker } from '../../core/reduce';
+import { DISPATCH_RULES, forecastWord, incidentProfile, tacticById } from '../../core/dispatch';
 import { buildRoute, etaMinutes } from '../../core/map/graph';
 import { districtById } from '../../core/map/mapConfig';
 import { isOpen } from '../../core/selectors';
@@ -14,10 +15,11 @@ interface Props {
   onClose: () => void;
   onSelect: (s: Selection) => void;
   onPreview: (squadId: string | null) => void;
+  onOpenDispatch: (incidentId: string, squadId: string | null) => void;
 }
 
 /** Правая контекстная карточка: открывается только при выборе объекта (ТЗ §3.1). */
-export function ContextPanel({ game, selection, onClose, onSelect, onPreview }: Props) {
+export function ContextPanel({ game, selection, onClose, onSelect, onPreview, onOpenDispatch }: Props) {
   return (
     <aside className="panel right-panel" aria-label="Карточка" data-testid="right-panel">
       <div className="panel-header">
@@ -25,7 +27,7 @@ export function ContextPanel({ game, selection, onClose, onSelect, onPreview }: 
         <button className="btn icon-only" onClick={onClose} aria-label="Закрыть карточку"><Icon name="close" /></button>
       </div>
       <div className="panel-body card-body">
-        {selection.kind === 'incident' && <IncidentCard game={game} id={selection.id} onPreview={onPreview} onSelect={onSelect} />}
+        {selection.kind === 'incident' && <IncidentCard game={game} id={selection.id} onPreview={onPreview} onSelect={onSelect} onOpenDispatch={onOpenDispatch} />}
         {selection.kind === 'district' && <DistrictCard game={game} id={selection.id} onSelect={onSelect} />}
         {selection.kind === 'squad' && <SquadCard game={game} id={selection.id} onSelect={onSelect} />}
       </div>
@@ -33,21 +35,27 @@ export function ContextPanel({ game, selection, onClose, onSelect, onPreview }: 
   );
 }
 
-function IncidentCard({ game, id, onPreview, onSelect }: { game: GameState; id: string; onPreview: Props['onPreview']; onSelect: Props['onSelect'] }) {
+function IncidentCard({ game, id, onPreview, onSelect, onOpenDispatch }: { game: GameState; id: string; onPreview: Props['onPreview']; onSelect: Props['onSelect']; onOpenDispatch: Props['onOpenDispatch'] }) {
   const inc = game.incidents.find((i) => i.id === id);
   if (!inc) return <p className="empty">Вызов закрыт или не найден.</p>;
   const district = districtById(inc.districtId)!;
   const left = inc.deadlineMinute - game.minute;
   const assigned = game.squads.find((q) => q.assignedIncidentId === inc.id);
   const canSend = ['new', 'acknowledged', 'escalated'].includes(inc.state);
+  const prof = incidentProfile(inc);
+  const op = assigned?.operation;
   return (
     <div data-testid="incident-card">
       <h3 className="card-title">{inc.title}</h3>
-      <p className="muted">{district.name} · <span className={`sev-text sev-${inc.severity}`}>{SEVERITY_LABEL[inc.severity]}</span></p>
+      <p className="muted">
+        {district.name} · <span className={`sev-text sev-${inc.severity}`}>{SEVERITY_LABEL[inc.severity]}</span> · <span data-testid="card-class">{DISPATCH_RULES.classes[prof.incidentClass].label}</span>
+      </p>
+      {prof.known && <p className="known">{prof.known}</p>}
       <dl className="kv">
         <dt>Состояние</dt><dd data-testid="card-state">{INCIDENT_STATE_LABEL[inc.state]}</dd>
         {['new', 'acknowledged'].includes(inc.state) && (<><dt>До ухудшения</dt><dd>{Math.max(0, left)} мин</dd></>)}
         {assigned && (<><dt>Отряд</dt><dd><button className="link" onClick={() => onSelect({ kind: 'squad', id: assigned.id })}>«{assigned.name}»</button></dd></>)}
+        {op && (<><dt>Тактика</dt><dd data-testid="card-tactic">{tacticById(op.tactic).label}</dd><dt>Прогноз</dt><dd data-testid="card-forecast">{forecastWord(op.forecast)}, {Math.round(op.forecast.low * 100)}–{Math.round(op.forecast.high * 100)}%</dd></>)}
         {assigned?.movement && (<><dt>Прибытие</dt><dd data-testid="card-eta">≈{etaMinutes(assigned.movement.route, assigned.movement.elapsed)} мин</dd></>)}
       </dl>
       {inc.state === 'new' && (
@@ -57,7 +65,10 @@ function IncidentCard({ game, id, onPreview, onSelect }: { game: GameState; id: 
       )}
       {canSend && (
         <>
-          <h4 className="section-title">Отправить отряд</h4>
+          <button className="btn primary wide" disabled={game.phase !== 'ACTIVE'} onClick={() => onOpenDispatch(inc.id, null)} data-testid="open-dispatch">
+            <Icon name="users" /> Подобрать отряд
+          </button>
+          <h4 className="section-title">Готовые отряды</h4>
           <ul className="dispatch-list" onPointerLeave={() => onPreview(null)}>
             {game.squads.map((q) => {
               const reason = dispatchBlocker(game, q, inc);
@@ -69,7 +80,7 @@ function IncidentCard({ game, id, onPreview, onSelect }: { game: GameState; id: 
                     disabled={!!reason || game.phase !== 'ACTIVE'}
                     onPointerEnter={() => onPreview(r ? q.id : null)}
                     onFocus={() => onPreview(r ? q.id : null)}
-                    onClick={() => dispatch({ type: 'DISPATCH_SQUAD', squadId: q.id, incidentId: inc.id })}
+                    onClick={() => onOpenDispatch(inc.id, q.id)}
                     data-testid={`dispatch-${q.id}`}
                   >
                     <b>«{q.name}»</b>
@@ -80,7 +91,6 @@ function IncidentCard({ game, id, onPreview, onSelect }: { game: GameState; id: 
             })}
           </ul>
           {game.phase !== 'ACTIVE' && <p className="hint">Отправка доступна после начала смены.</p>}
-          <p className="hint">Тактика, состав и прогноз — этап W4.</p>
         </>
       )}
     </div>

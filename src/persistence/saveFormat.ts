@@ -1,4 +1,5 @@
 import { SCHEMA_VERSION, type GameState } from '../core/types';
+import { initialEquipment } from '../core/dispatch';
 
 /** Формат файла сохранения и экспорта. */
 export interface SaveFile {
@@ -21,6 +22,12 @@ const MIGRATIONS: Record<number, (s: Record<string, unknown>) => Record<string, 
     ...s,
     roadClosures: [],
     squads: (s.squads as Record<string, unknown>[]).map((q) => ({ ...q, movement: null })),
+  }),
+  /** v2 (W3) → v3 (W4): склад снаряжения по единицам, у отряда — параметры текущего выезда. */
+  2: (s) => ({
+    ...s,
+    equipment: initialEquipment(),
+    squads: (s.squads as Record<string, unknown>[]).map((q) => ({ ...q, operation: null })),
   }),
 };
 
@@ -57,7 +64,7 @@ export function parseSave(raw: unknown): LoadResult {
 }
 
 function validateState(s: Record<string, unknown>): string | null {
-  const arrays = ['districts', 'staff', 'squads', 'incidents', 'roadClosures', 'log', 'reports'] as const;
+  const arrays = ['districts', 'staff', 'squads', 'incidents', 'roadClosures', 'equipment', 'log', 'reports'] as const;
   for (const k of arrays) if (!Array.isArray(s[k])) return `нет раздела ${k}`;
   if (!Number.isInteger(s.shift) || (s.shift as number) < 1) return 'неверный номер смены';
   if (!Number.isInteger(s.minute) || (s.minute as number) < 0) return 'неверное время';

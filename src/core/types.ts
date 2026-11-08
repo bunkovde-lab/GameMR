@@ -2,7 +2,7 @@
  * Доменная модель W2 — подмножество ТЗ §5.2, необходимое для одной смены.
  * Деньги хранятся целым числом в сотых долях РЕ (cents), чтобы избежать ошибок округления.
  */
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 import type { Route } from './map/graph';
 
@@ -23,6 +23,35 @@ export type IncidentState =
   | 'resolved_success' | 'resolved_partial' | 'failed' | 'escalated' | 'expired';
 export type Severity = 'critical' | 'high' | 'medium';
 export type DeadlineType = 'escalate' | 'expire' | 'branch';
+/** ТЗ §6.1: класс определяет формат разрешения, а не тяжесть */
+export type IncidentClass = 'routine' | 'complex' | 'special';
+/** ТЗ §6.4: минимальный набор тактик */
+export type TacticId = 'recon' | 'arrest' | 'suppression' | 'quarantine';
+/** ТЗ §6.2: состояния снаряжения */
+export type EquipmentState = 'available' | 'reserved' | 'deployed' | 'damaged' | 'lost' | 'consumed';
+
+/** Единица снаряжения со своим ID: учёт по штукам, а не счётчиком. */
+export interface EquipmentUnit {
+  id: string;
+  typeId: string;
+  state: EquipmentState;
+  /** Отряд, за которым числится единица (reserved/deployed) */
+  squadId: string | null;
+}
+
+/** Снимок прогноза на момент отправки. p — истинная вероятность ядра; игрок видит только low–high. */
+export interface ForecastSnapshot { p: number; low: number; high: number; margin: number }
+
+/** Параметры текущего выезда отряда (ТЗ §6.2). Исход считает W5. */
+export interface SquadOperation {
+  incidentId: string;
+  tactic: TacticId;
+  commanderId: string;
+  equipmentIds: string[];
+  /** C из формулы ТЗ §6.3: 1 — штатный состав, 0 — собран вручную */
+  cohesion: 0 | 1;
+  forecast: ForecastSnapshot;
+}
 
 export interface Stats {
   reaction: number;
@@ -72,6 +101,7 @@ export interface Squad {
   currentNodeId: string;
   assignedIncidentId: string | null;
   movement: SquadMovement | null;
+  operation: SquadOperation | null;
 }
 
 export interface Incident {
@@ -143,6 +173,7 @@ export interface GameState {
   incidents: Incident[];
   /** Закрытые рёбра дорожного графа (дорожные ограничения) */
   roadClosures: string[];
+  equipment: EquipmentUnit[];
   log: WorldEvent[];
   reports: ShiftReport[];
   nextIds: { event: number; transaction: number; incident: number };
@@ -156,7 +187,16 @@ export type Command =
   | { type: 'TICK'; minutes: number }
   | { type: 'ACKNOWLEDGE_INCIDENT'; incidentId: string }
   | { type: 'ASSIGN_STAFF'; staffId: string; squadId: string }
-  | { type: 'DISPATCH_SQUAD'; squadId: string; incidentId: string }
+  | {
+      type: 'DISPATCH_SQUAD';
+      squadId: string;
+      incidentId: string;
+      /** Не указанное берётся из быстрой отправки (defaultDraft) */
+      tactic?: TacticId;
+      memberIds?: string[];
+      commanderId?: string;
+      equipmentIds?: string[];
+    }
   | { type: 'SET_ROAD_ENABLED'; edgeId: string; enabled: boolean }
   | { type: 'END_SHIFT' }
   | { type: 'ADVANCE_SHIFT' };

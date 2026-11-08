@@ -1,10 +1,11 @@
-import { useEffect, useReducer, useState } from 'react';
+import { useCallback, useEffect, useReducer, useState } from 'react';
 import { IconSprite } from './ui/Icon';
 import { DEFAULT_LAYERS, NARROW_PX, initialUiState, uiReducer, type LayerId, type Selection, type UiState } from './ui/uiState';
 import { TopHud } from './ui/shell/TopHud';
 import { IncidentPanel } from './ui/shell/IncidentPanel';
 import { ContextPanel } from './ui/shell/ContextPanel';
 import { MapView } from './ui/map/MapView';
+import { DispatchDialog } from './ui/dispatch/DispatchDialog';
 import { SquadStrip } from './ui/shell/SquadStrip';
 import { BottomNav } from './ui/shell/BottomNav';
 import { StaffScreen } from './ui/screens/StaffScreen';
@@ -31,6 +32,8 @@ export function App() {
   const { game, notice } = useGame();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
+  const [dispatchFor, setDispatchFor] = useState<{ incidentId: string; squadId: string | null } | null>(null);
+  const preview = useCallback((squadId: string | null) => uiDispatch({ type: 'PREVIEW_SQUAD', squadId }), []);
   useGameLoop();
 
   useEffect(() => {
@@ -88,7 +91,8 @@ export function App() {
               selection={ui.selection}
               onClose={() => uiDispatch({ type: 'CLOSE_RIGHT_PANEL' })}
               onSelect={select}
-              onPreview={(squadId) => uiDispatch({ type: 'PREVIEW_SQUAD', squadId })}
+              onPreview={preview}
+              onOpenDispatch={(incidentId, squadId) => setDispatchFor({ incidentId, squadId })}
             />
           )}
           {ui.view === 'staff' && <StaffScreen game={game} onClose={() => uiDispatch({ type: 'OPEN_VIEW', view: 'map' })} />}
@@ -99,6 +103,9 @@ export function App() {
       {game.phase === 'BRIEFING' && !settingsOpen && <BriefingDialog game={game} onOpenSettings={() => setSettingsOpen(true)} />}
       {game.phase === 'SHIFT_REPORT' && !settingsOpen && <ShiftReportDialog game={game} />}
       {confirmEnd && canEndShift && <EndShiftConfirm game={game} onCancel={() => setConfirmEnd(false)} />}
+      {dispatchFor && game.phase === 'ACTIVE' && (
+        <DispatchDialog game={game} incidentId={dispatchFor.incidentId} initialSquadId={dispatchFor.squadId} onClose={() => setDispatchFor(null)} onPreview={preview} />
+      )}
       {settingsOpen && <SettingsDialog onClose={() => setSettingsOpen(false)} />}
       <Toast notice={notice} />
     </>

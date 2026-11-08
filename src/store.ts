@@ -20,7 +20,7 @@ interface Snapshot {
 }
 
 /** Команды, после которых делается автосохранение (ТЗ §5.4). */
-const AUTOSAVE_AFTER: Command['type'][] = ['START_SHIFT', 'ACKNOWLEDGE_INCIDENT', 'ASSIGN_STAFF', 'END_SHIFT', 'ADVANCE_SHIFT'];
+const AUTOSAVE_AFTER: Command['type'][] = ['START_SHIFT', 'ACKNOWLEDGE_INCIDENT', 'ASSIGN_STAFF', 'DISPATCH_SQUAD', 'END_SHIFT', 'ADVANCE_SHIFT'];
 
 let snapshot: Snapshot = { game: createInitialState(), notice: null };
 let noticeId = 0;

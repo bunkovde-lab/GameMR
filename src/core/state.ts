@@ -1,4 +1,5 @@
 import { BALANCE, DISTRICTS, INCIDENT_TEMPLATES, SQUAD_MEMBERS, SQUADS_DEMO, STAFF_START, toCents } from './content';
+import { initialEquipment } from './dispatch';
 import { seedRng } from './rng';
 import { SCHEMA_VERSION, type GameState, type Incident, type IncidentState } from './types';
 
@@ -59,9 +60,11 @@ export function createInitialState(seed: number = DEFAULT_SEED): GameState {
       currentNodeId: s.currentNodeId,
       assignedIncidentId: s.assignedIncidentId,
       movement: null,
+      operation: null,
     })),
     incidents,
     roadClosures: [],
+    equipment: initialEquipment(),
     log: [{ id: 1, shift: 1, minute: 0, type: 'campaign_started', text: 'Вы приняли руководство Городской дирекцией безопасности.' }],
     reports: [],
     nextIds: { event: 2, transaction: 1, incident: 1 },

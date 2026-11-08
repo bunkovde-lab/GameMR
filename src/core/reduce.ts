@@ -1,4 +1,5 @@
 import { BALANCE, DISPATCH_COST, INCIDENT_TEMPLATES, toCents } from './content';
+import { bestCommander, defaultDraft, forecastTerms, planDispatch, recommendedTactic, tacticById, type DispatchDraft } from './dispatch';
 import { buildRoute, shortestPath } from './map/graph';
 import { districtById, edgeById, spawnPosition } from './map/mapConfig';
 import { nextInt } from './rng';
@@ -80,17 +81,38 @@ export function reduce(state: GameState, command: Command): CommandResult {
       if (s.phase !== 'ACTIVE' && s.phase !== 'BRIEFING') return reject('Отправка возможна только во время смены.');
       const check = dispatchBlocker(s, sq, inc);
       if (check) return reject(check);
-      const target = districtById(inc.districtId)!;
-      const route = buildRoute(sq.currentNodeId, target.serviceNode, s.roadClosures)!;
+      const base = defaultDraft(s, sq.id, inc.id);
+      const memberIds = command.memberIds ?? base.memberIds;
+      const equipmentIds = command.equipmentIds ?? base.equipmentIds;
+      const draft: DispatchDraft = {
+        squadId: sq.id,
+        incidentId: inc.id,
+        memberIds,
+        equipmentIds,
+        commanderId: command.commanderId ?? (command.memberIds ? bestCommander(s, memberIds) : base.commanderId),
+        tactic: command.tactic ?? (command.memberIds || command.equipmentIds ? recommendedTactic(s, { ...base, memberIds, equipmentIds }) : base.tactic),
+      };
+      const plan = planDispatch(s, draft);
+      if (plan.blockers.length) return reject(plan.blockers[0]!);
+      const route = plan.route!;
+      const cohesion = forecastTerms(s, draft).C;
+      // Ручной состав: выбранные переходят в этот отряд, не поехавшие остаются в резерве без отряда.
+      for (const q of s.squads) if (q.id !== sq.id) q.memberIds = q.memberIds.filter((id) => !memberIds.includes(id));
+      sq.memberIds = [...memberIds];
+      for (const id of equipmentIds) {
+        const u = s.equipment.find((e) => e.id === id)!;
+        u.state = 'deployed';
+        u.squadId = sq.id;
+      }
       sq.status = 'en_route';
       sq.assignedIncidentId = inc.id;
       sq.movement = { route, elapsed: 0, destinationIncidentId: inc.id, aborted: false };
+      sq.operation = { incidentId: inc.id, tactic: draft.tactic, commanderId: draft.commanderId, equipmentIds: [...equipmentIds], cohesion, forecast: plan.forecast };
       inc.state = 'en_route';
       post(s, 'dispatch', -DISPATCH_COST, `Выезд «${sq.name}»: ${inc.title}`);
-      log(s, 'squad_dispatched', `Отряд «${sq.name}» направлен: ${inc.title}. Прибытие ≈${Math.ceil(route.totalMinutes)} мин.`);
+      log(s, 'squad_dispatched', `Отряд «${sq.name}» направлен: ${inc.title}. Тактика: ${tacticById(draft.tactic).label.toLowerCase()}. Прибытие ≈${Math.ceil(route.totalMinutes)} мин.`);
       return { ok: true, state: s };
     }
-
     case 'SET_ROAD_ENABLED': {
       if (!edgeById(command.edgeId)) return reject('Дорога не найдена.');
       const closed = s.roadClosures.includes(command.edgeId);
@@ -149,11 +171,6 @@ export function reduce(state: GameState, command: Command): CommandResult {
 /** Причина, по которой отряд нельзя отправить; null — можно. Используется ядром и интерфейсом (одна логика). */
 export function dispatchBlocker(s: GameState, sq: Squad, inc: Incident): string | null {
   if (sq.status !== 'ready') return `Отряд «${sq.name}» недоступен.`;
-  const fit = sq.memberIds.filter((id) => {
-    const p = s.staff.find((x) => x.id === id);
-    return p && !['dead', 'missing', 'critical', 'serious_injury'].includes(p.health);
-  });
-  if (!fit.length) return `В отряде «${sq.name}» нет годных к выезду сотрудников.`;
   if (!['new', 'acknowledged', 'escalated'].includes(inc.state)) return 'На этот вызов уже назначен отряд или он закрыт.';
   if (s.economy.balance < DISPATCH_COST) return 'Недостаточно средств на выезд.';
   const target = districtById(inc.districtId);

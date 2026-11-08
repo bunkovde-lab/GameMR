@@ -2,7 +2,7 @@
  * Доменная модель W2 — подмножество ТЗ §5.2, необходимое для одной смены.
  * Деньги хранятся целым числом в сотых долях РЕ (cents), чтобы избежать ошибок округления.
  */
-export const SCHEMA_VERSION = 8;
+export const SCHEMA_VERSION = 9;
 
 import type { Route } from './map/graph';
 
@@ -212,7 +212,49 @@ export interface Incident {
 
 export type TransactionKind =
   | 'funding' | 'salary' | 'dispatch' | 'treatment' | 'hiring' | 'check' | 'training' | 'promotion' | 'implant'
-  | 'upkeep' | 'construction' | 'subsidy' | 'research' | 'fabrication';
+  | 'upkeep' | 'construction' | 'subsidy' | 'research' | 'fabrication' | 'permit_fee' | 'sanction' | 'deal';
+
+/** W8: разрешения (ТЗ §10.1). Постоянные полномочия не хранятся — они действуют всегда. */
+export type PermitKind = 'judicial' | 'interagency' | 'emergency';
+export type PermitStatus = 'pending' | 'granted' | 'denied' | 'used' | 'expired' | 'justified' | 'violation';
+export interface Permit {
+  id: number;
+  kind: PermitKind;
+  /** caseId из ТЗ: пока дела W9 нет, основанием служит конкретный вызов */
+  incidentId: string;
+  target: string;
+  scope: TacticId[];
+  issuer: string;
+  legalBasis: string;
+  requirements: string[];
+  houseId: string | null;
+  requestedShift: number;
+  /** Минута смены, когда придёт решение (pending) */
+  decideMinute: number | null;
+  /** Действует до конца этой смены включительно */
+  expiresShift: number;
+  /** Чрезвычайное: смена обязательной проверки */
+  reviewShift: number | null;
+  /** Риск признания нарушением на проверке, 0…1 (игроку — словом) */
+  auditRisk: number;
+  status: PermitStatus;
+  note: string;
+}
+/** W8: предложение и договор с Домом (ТЗ §10.2). Условия и последствия — в content/politics_v1.json. */
+export interface DealOffer { id: number; templateId: string; expiresShift: number }
+export interface Deal { id: number; templateId: string; acceptedShift: number; endShift: number; status: 'active' | 'completed' | 'broken'; paidBy?: boolean }
+export interface ScheduledEvent { id: number; atShift: number; dealId: number; kind: 'payout' | 'reprisal' }
+export interface Politics {
+  standing: Record<string, number>;
+  coalitions: Record<string, number>;
+  offers: DealOffer[];
+  deals: Deal[];
+  permits: Permit[];
+  scheduled: ScheduledEvent[];
+  /** Смены, в которых проверка признала нарушение */
+  violations: number[];
+  nextId: number;
+}
 
 /** W7.2: протоколы и стадии проекта (ТЗ §9.2). locked/available выводятся из правил и не хранятся. */
 export type ResearchProtocol = 'conservative' | 'accelerated' | 'experimental';
@@ -314,6 +356,7 @@ export interface GameState {
   construction: Build[];
   research: Project[];
   resources: { reagents: number };
+  politics: Politics;
   nextIds: { event: number; transaction: number; incident: number; report: number; staff: number; candidate: number };
 }
 
@@ -334,6 +377,8 @@ export type Command =
       memberIds?: string[];
       commanderId?: string;
       equipmentIds?: string[];
+      /** W8: действовать по чрезвычайному основанию, если для тактики нет разрешения */
+      emergency?: boolean;
     }
   | { type: 'SET_ROAD_ENABLED'; edgeId: string; enabled: boolean }
   | { type: 'CHOOSE_OPTION'; squadId: string; optionId: string }
@@ -353,6 +398,10 @@ export type Command =
   | { type: 'START_PROJECT'; projectId: string; protocol: ResearchProtocol; researcherId: string }
   | { type: 'CANCEL_PROJECT'; projectId: string }
   | { type: 'FABRICATE'; projectId: string }
+  | { type: 'REQUEST_PERMIT'; incidentId: string; kind: 'judicial' | 'interagency' }
+  | { type: 'ACCEPT_DEAL'; offerId: number }
+  | { type: 'DECLINE_DEAL'; offerId: number }
+  | { type: 'BREAK_DEAL'; dealId: number }
   | { type: 'END_SHIFT' }
   | { type: 'ADVANCE_SHIFT' };
 

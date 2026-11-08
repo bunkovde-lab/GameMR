@@ -508,3 +508,24 @@ td.bad { color: var(--bad); }
 .member-rows li > span.face-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .face-row .pick-text { display: grid; gap: 2px; min-width: 0; }
 .face-row .pick-text small { color: var(--muted); font-size: 12px; }
+
+/* W8: полномочия и политика Домов */
+.legal-box { display: grid; gap: 8px; margin-top: 8px; padding: 10px 12px; border: 1px solid #7a5a3a; border-radius: 8px; background: #1a130e; }
+.legal-box p { margin: 0; }
+.case-req { display: grid; gap: 6px; padding-top: 8px; border-top: 1px solid var(--stroke2); }
+.case-req:first-of-type { border-top: 0; padding-top: 0; }
+.case-req p { margin: 0; }
+.staff-table td.wrap { white-space: normal; min-width: 160px; }
+.staff-table td.good, .good { color: var(--green, #6fbf73); }
+.staff-table td.bad, .bad { color: var(--bad, #e06666); }
+.staff-table td.mid { color: var(--gold, #c9a46a); }
+.coalitions { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.coalition { display: grid; gap: 6px; }
+.coalition.strong { border-color: var(--gold, #c9a46a); }
+.meter { position: relative; height: 10px; border-radius: 5px; background: #23262d; overflow: hidden; }
+.meter span { position: absolute; inset: 0 auto 0 0; background: #2f9fb8; border-radius: 5px; }
+.meter i { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--text, #eee); opacity: .7; }
+.currents { font-size: 13px; }
+.deal .terms { grid-template-columns: max-content 1fr; font-size: 13px; }
+.deal .terms dd { white-space: normal; text-align: left; font-weight: 400; }
+.deal .btn.danger { white-space: normal; text-align: left; height: auto; min-height: var(--tap); }

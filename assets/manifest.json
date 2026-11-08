@@ -268,52 +268,52 @@
       "file": "assets/ui/kit_v2/crest_directorate.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "review",
+      "status": "integrated",
       "width": 256,
       "height": 256,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
-      "approvedBy": null,
-      "notes": "Шапка, герб или стяг: кандидат, требует отдельного утверждения."
+      "approvedBy": "Дмитрий",
+      "notes": "Шапка, герб или стяг: кандидат, требует отдельного утверждения. Утверждено Дмитрием в треде проекта 2026-11-08 («Утверждаю») как оформление; подключено в src/ui/kit-png.css. Эмблемы и герб не фиксируют канон лора."
     },
     {
       "id": "ART008_HEADER_SPIRE_OVERLAY",
       "file": "assets/ui/kit_v2/header_spire_overlay.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "review",
+      "status": "integrated",
       "width": 1024,
       "height": 64,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
-      "approvedBy": null,
-      "notes": "Шапка, герб или стяг: кандидат, требует отдельного утверждения."
+      "approvedBy": "Дмитрий",
+      "notes": "Шапка, герб или стяг: кандидат, требует отдельного утверждения. Утверждено Дмитрием в треде проекта 2026-11-08 («Утверждаю») как оформление; подключено в src/ui/kit-png.css. Эмблемы и герб не фиксируют канон лора."
     },
     {
       "id": "ART008_HEADER_STRIP",
       "file": "assets/ui/kit_v2/header_strip.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "review",
+      "status": "integrated",
       "width": 1024,
       "height": 64,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
-      "approvedBy": null,
-      "notes": "Шапка, герб или стяг: кандидат, требует отдельного утверждения."
+      "approvedBy": "Дмитрий",
+      "notes": "Шапка, герб или стяг: кандидат, требует отдельного утверждения. Утверждено Дмитрием в треде проекта 2026-11-08 («Утверждаю») как оформление; подключено в src/ui/kit-png.css. Эмблемы и герб не фиксируют канон лора."
     },
     {
       "id": "ART008_PANEL_CREST_TOP",
       "file": "assets/ui/kit_v2/panel_crest_top.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "review",
+      "status": "integrated",
       "width": 384,
       "height": 96,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
-      "approvedBy": null,
-      "notes": "Шапка, герб или стяг: кандидат, требует отдельного утверждения."
+      "approvedBy": "Дмитрий",
+      "notes": "Шапка, герб или стяг: кандидат, требует отдельного утверждения. Утверждено Дмитрием в треде проекта 2026-11-08 («Утверждаю») как оформление; подключено в src/ui/kit-png.css. Эмблемы и герб не фиксируют канон лора."
     },
     {
       "id": "ART008_PANEL_FRAME_9S",
@@ -346,78 +346,78 @@
       "file": "assets/ui/kit_v2/squad_banner_axon.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "review",
+      "status": "integrated",
       "width": 96,
       "height": 160,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
-      "approvedBy": null,
-      "notes": "Шапка, герб или стяг: кандидат, требует отдельного утверждения."
+      "approvedBy": "Дмитрий",
+      "notes": "Шапка, герб или стяг: кандидат, требует отдельного утверждения. Утверждено Дмитрием в треде проекта 2026-11-08 («Утверждаю») как оформление; подключено в src/ui/kit-png.css. Эмблемы и герб не фиксируют канон лора."
     },
     {
       "id": "ART008_SQUAD_BANNER_CORTEX",
       "file": "assets/ui/kit_v2/squad_banner_cortex.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "review",
+      "status": "integrated",
       "width": 96,
       "height": 160,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
-      "approvedBy": null,
-      "notes": "Шапка, герб или стяг: кандидат, требует отдельного утверждения."
+      "approvedBy": "Дмитрий",
+      "notes": "Шапка, герб или стяг: кандидат, требует отдельного утверждения. Утверждено Дмитрием в треде проекта 2026-11-08 («Утверждаю») как оформление; подключено в src/ui/kit-png.css. Эмблемы и герб не фиксируют канон лора."
     },
     {
       "id": "ART008_SQUAD_BANNER_OMEGA",
       "file": "assets/ui/kit_v2/squad_banner_omega.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "review",
+      "status": "integrated",
       "width": 96,
       "height": 160,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
-      "approvedBy": null,
-      "notes": "Шапка, герб или стяг: кандидат, требует отдельного утверждения."
+      "approvedBy": "Дмитрий",
+      "notes": "Шапка, герб или стяг: кандидат, требует отдельного утверждения. Утверждено Дмитрием в треде проекта 2026-11-08 («Утверждаю») как оформление; подключено в src/ui/kit-png.css. Эмблемы и герб не фиксируют канон лора."
     },
     {
       "id": "ART008_SQUAD_BANNER_RESONANCE",
       "file": "assets/ui/kit_v2/squad_banner_resonance.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "review",
+      "status": "integrated",
       "width": 96,
       "height": 160,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
-      "approvedBy": null,
-      "notes": "Шапка, герб или стяг: кандидат, требует отдельного утверждения."
+      "approvedBy": "Дмитрий",
+      "notes": "Шапка, герб или стяг: кандидат, требует отдельного утверждения. Утверждено Дмитрием в треде проекта 2026-11-08 («Утверждаю») как оформление; подключено в src/ui/kit-png.css. Эмблемы и герб не фиксируют канон лора."
     },
     {
       "id": "ART008_SQUAD_BANNER_SIGMA",
       "file": "assets/ui/kit_v2/squad_banner_sigma.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "review",
+      "status": "integrated",
       "width": 96,
       "height": 160,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
-      "approvedBy": null,
-      "notes": "Шапка, герб или стяг: кандидат, требует отдельного утверждения."
+      "approvedBy": "Дмитрий",
+      "notes": "Шапка, герб или стяг: кандидат, требует отдельного утверждения. Утверждено Дмитрием в треде проекта 2026-11-08 («Утверждаю») как оформление; подключено в src/ui/kit-png.css. Эмблемы и герб не фиксируют канон лора."
     },
     {
       "id": "ART008_SQUAD_BANNER_VECTOR",
       "file": "assets/ui/kit_v2/squad_banner_vector.png",
       "category": "ui",
       "role": "ART-008 графический элемент интерфейса",
-      "status": "review",
+      "status": "integrated",
       "width": 96,
       "height": 160,
       "alpha": true,
       "source": "GameMR_ART008_KitV2_Production_REVIEW.zip",
-      "approvedBy": null,
-      "notes": "Шапка, герб или стяг: кандидат, требует отдельного утверждения."
+      "approvedBy": "Дмитрий",
+      "notes": "Шапка, герб или стяг: кандидат, требует отдельного утверждения. Утверждено Дмитрием в треде проекта 2026-11-08 («Утверждаю») как оформление; подключено в src/ui/kit-png.css. Эмблемы и герб не фиксируют канон лора."
     },
     {
       "id": "ART008_SQUAD_CARD_9S",

@@ -28,8 +28,7 @@ describe('App shell', () => {
     render(<App />);
     fireEvent.click(screen.getByTestId('start-shift'));
     expect(getGame().phase).toBe('ACTIVE');
-    const item = screen.getByTestId('incident-bioleak');
-    fireEvent.click(item.querySelector('button')!);
+    fireEvent.click(screen.getByTestId('ack-bioleak'));
     expect(getGame().incidents.find((i) => i.id === 'bioleak')!.state).toBe('acknowledged');
     expect(screen.getByTestId('incident-bioleak').textContent).toContain('Принят');
   });
@@ -44,4 +43,30 @@ describe('App shell', () => {
     expect(screen.queryByTestId('staff-screen')).toBeNull();
     expect(screen.queryByTestId('left-panel')).toBeNull();
   });
+
+  it('MAP-008: choosing an incident in the list opens its card; Escape closes the card', () => {
+    render(<App />);
+    fireEvent.click(screen.getByTestId('start-shift'));
+    fireEvent.click(screen.getByRole('button', { name: getGame().incidents.find((i) => i.id === 'medriot')!.title }));
+    expect(screen.getByTestId('incident-card').textContent).toContain('Бунт в лечебном комплексе');
+    expect(screen.getByTestId('incident-medriot').className).toContain('selected');
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByTestId('incident-card')).toBeNull();
+  });
+
+  it('dispatch from the card shows ETA and cost, then moves the squad (ТЗ: the same core command)', () => {
+    render(<App />);
+    fireEvent.click(screen.getByTestId('start-shift'));
+    fireEvent.click(screen.getByTestId('squad-axon'));
+    expect(screen.getByTestId('squad-card')).toBeTruthy();
+    fireEvent.keyDown(window, { key: 'Escape' });
+    fireEvent.click(screen.getByRole('button', { name: getGame().incidents.find((i) => i.id === 'medriot')!.title }));
+    const option = screen.getByTestId('dispatch-axon');
+    expect(option.textContent).toContain('≈11 мин');
+    expect(option.textContent).toContain('1,25 РЕ');
+    fireEvent.click(option);
+    expect(getGame().squads.find((q) => q.id === 'axon')!.status).toBe('en_route');
+    expect(screen.getByTestId('card-eta').textContent).toContain('11');
+  });
 });
+

@@ -2,7 +2,9 @@
  * Доменная модель W2 — подмножество ТЗ §5.2, необходимое для одной смены.
  * Деньги хранятся целым числом в сотых долях РЕ (cents), чтобы избежать ошибок округления.
  */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
+
+import type { Route } from './map/graph';
 
 export type DistrictId = 'medical' | 'science' | 'admin' | 'industry' | 'gardens' | 'residential';
 export type ShiftPhase = 'BRIEFING' | 'ACTIVE' | 'REVIEW_PENDING' | 'SHIFT_REPORT';
@@ -51,13 +53,25 @@ export interface Staff {
   salary: number;
 }
 
+/** Движение отряда по графу дорог (W3 §4). Позиция выводится из route + elapsed, а не хранится в пикселях. */
+export interface SquadMovement {
+  route: Route;
+  /** Игровых минут с момента выезда */
+  elapsed: number;
+  destinationIncidentId: string;
+  /** true, если дальше пути нет: отряд остановится на последнем узле маршрута */
+  aborted: boolean;
+}
+
 export interface Squad {
   id: string;
   name: string;
   memberIds: string[];
   status: SquadStatus;
+  /** Узел базирования или последний достигнутый узел */
   currentNodeId: string;
   assignedIncidentId: string | null;
+  movement: SquadMovement | null;
 }
 
 export interface Incident {
@@ -74,7 +88,7 @@ export interface Incident {
   createdShift: number;
 }
 
-export type TransactionKind = 'funding' | 'salary';
+export type TransactionKind = 'funding' | 'salary' | 'dispatch';
 
 export interface Transaction {
   id: number;
@@ -127,6 +141,8 @@ export interface GameState {
   staff: Staff[];
   squads: Squad[];
   incidents: Incident[];
+  /** Закрытые рёбра дорожного графа (дорожные ограничения) */
+  roadClosures: string[];
   log: WorldEvent[];
   reports: ShiftReport[];
   nextIds: { event: number; transaction: number; incident: number };
@@ -140,6 +156,8 @@ export type Command =
   | { type: 'TICK'; minutes: number }
   | { type: 'ACKNOWLEDGE_INCIDENT'; incidentId: string }
   | { type: 'ASSIGN_STAFF'; staffId: string; squadId: string }
+  | { type: 'DISPATCH_SQUAD'; squadId: string; incidentId: string }
+  | { type: 'SET_ROAD_ENABLED'; edgeId: string; enabled: boolean }
   | { type: 'END_SHIFT' }
   | { type: 'ADVANCE_SHIFT' };
 

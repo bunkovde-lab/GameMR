@@ -7,6 +7,8 @@ import type { DistrictId, Severity, SquadStatus, StaffRole, Stats } from './type
 
 export const BALANCE = balance;
 export const toCents = (re: number) => Math.round(re * 100);
+/** ТЗ §8.1: средняя отправка 1,25 РЕ (baseline v1.0) */
+export const DISPATCH_COST = toCents(1.25);
 
 export interface StaffSeed {
   id: string; name: string; role: StaffRole; rank: number; xp: number; salary: number; fatigue: number; stats: Stats;

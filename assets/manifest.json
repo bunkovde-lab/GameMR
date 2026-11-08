@@ -1,6 +1,34 @@
 {
   "schemaVersion": 1,
   "project": "GameMR",
-  "note": "No actual binary assets have been committed in this batch; see docs/ASSET_CATALOG.md for planned IDs.",
-  "assets": []
+  "note": "Реестр реально существующих файлов. Правила ведения — docs/art/ART_BRIEF_FOR_CHATGPT.md §2.",
+  "assets": [
+    {
+      "id": "MAP_CITY_APPROVED",
+      "file": "assets/approved_map_original_1672x941.png",
+      "category": "backgrounds",
+      "role": "Утверждённая карта города, 6 районов (W3)",
+      "status": "integrated",
+      "width": 1672,
+      "height": 941,
+      "alpha": false,
+      "sha256": "72ef916c330d70bafa5abbc953d0d040369ac459258c67f30ba9547e09b99ddc",
+      "source": "GameMR_W0_CORE_Map_Prototype.zip, утверждено владельцем; путь совпадает с content/map_config.json → approvedArt.file",
+      "approvedBy": "Дмитрий",
+      "notes": "Пиксели менять запрещено (W3 §0). Проверяется тестом tests/unit/mapAsset.test.ts"
+    },
+    {
+      "id": "UI_ICON_SPRITE_LEGACY",
+      "file": "src/ui/icons.svg",
+      "category": "ui",
+      "role": "35 интерфейсных иконок из прототипа 0.1",
+      "status": "integrated",
+      "width": 24,
+      "height": 24,
+      "alpha": true,
+      "source": "legacy/mir_raskola_ui_proto/index.html",
+      "approvedBy": null,
+      "notes": "placeholder до ART-007"
+    }
+  ]
 }

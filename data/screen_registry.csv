@@ -1,0 +1,23 @@
+﻿id,title,primary_player_actions,critical_data_from_core,status
+UI-01,Карта — режим наблюдения,select_district;select_incident;select_squad;change_layer;pause;zoom;pan,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-02,Карточка происшествия,request_intel;acknowledge;open_dispatch,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-03,Формирование — быстрая отправка,select_ready_squad;set_tactic;dispatch,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-04,Формирование — ручная настройка,assign_members;assign_leader;set_equipment;set_tactic;dispatch,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-05,Особая операция,choose_stage_action;pause;read_briefing,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-06,Результат особой операции,open_report;open_medical;send_evidence;return_to_map,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-07,Кадры — Сводка,select_staff;open_profile_tabs,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-08,Кадры — Развитие,select_skill;start_training;request_promotion,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-09,Кадры — Модификации,select_biological_system;review_compatibility;install_mod,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-10,Кадры — Медицина,select_treatment;queue_treatment,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-11,Кадры — Отношения,select_pair;inspect_history;resolve_conflict_event,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-12,Кадры — История,filter_service_history;open_operation_record,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-13,Найм и подбор,choose_vacancy;vet_candidate;compare_candidates;hire,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-14,Штат и назначения,assign_to_squad;transfer;set_commander;put_to_reserve,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-15,Дирекция — Обзор,open_finance;open_facility;select_priority,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-16,Дирекция — Финансы,allocate_budget;plan_one_time_costs;approve_budget,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-17,Дирекция — Инфраструктура,select_facility;queue_upgrade,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-18,Дирекция — Проекты,select_project;assign_scientists;start_research,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-19,Дирекция — Полномочия,request_permission;view_conditions;override_in_emergency,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-20,Дирекция — Политика Домов,inspect_house;negotiate;sign_deal;review_commitments,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-21,Расследования,select_evidence;link_evidence;reconstruct;interrogate;submit_conclusion,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL
+UI-22,Итоги смены,review_shift_report;plan_next_shift;advance_shift,"GameState + linked domain entities, authoritative and typed",APPROVED_VISUAL

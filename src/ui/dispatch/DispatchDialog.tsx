@@ -10,6 +10,7 @@ import { formatRe } from '../../core/selectors';
 import type { GameState, TacticId } from '../../core/types';
 import { dispatch } from '../../store';
 import { Modal } from '../Modal';
+import { Portrait } from '../Portrait';
 import { groupMods } from '../../core/career';
 import { SQUAD_STATUS } from '../labels';
 
@@ -144,9 +145,12 @@ export function DispatchDialog({ game, incidentId, initialSquadId, onClose, onPr
                   const home = game.squads.find((q) => q.memberIds.includes(p.id));
                   return (
                     <li key={p.id}>
-                      <button className="btn pick" aria-pressed={chosen} disabled={!chosen && (!!why || full)} onClick={() => toggleMember(p.id)} data-testid={`member-${p.id}`}>
-                        <b>{p.name}</b>
-                        <small>{ROLE_LABEL[p.role]} · ранг {p.rank} · усталость {p.fatigue}{home ? ` · «${home.name}»` : ' · резерв'}{why ? ` — ${why}` : ''}</small>
+                      <button className="btn pick with-face" aria-pressed={chosen} disabled={!chosen && (!!why || full)} onClick={() => toggleMember(p.id)} data-testid={`member-${p.id}`}>
+                        <Portrait id={p.id} name={p.name} health={p.health} size="sm" />
+                        <span className="pick-text">
+                          <b>{p.name}</b>
+                          <small>{ROLE_LABEL[p.role]} · ранг {p.rank} · усталость {p.fatigue}{home ? ` · «${home.name}»` : ' · резерв'}{why ? ` — ${why}` : ''}</small>
+                        </span>
                       </button>
                     </li>
                   );

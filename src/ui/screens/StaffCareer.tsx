@@ -7,6 +7,7 @@ import { HEALTH_LOG } from '../../core/healthText';
 import { clockLabel, formatRe } from '../../core/selectors';
 import type { GameState, Staff } from '../../core/types';
 import { dispatch } from '../../store';
+import { Portrait } from '../Portrait';
 
 /** W6 (часть 2): развитие (UI-08), модификации (UI-09), отношения (UI-11), история (UI-12). */
 
@@ -15,9 +16,12 @@ export function PersonPicker({ game, selected, onSelect, archive = false }: { ga
   return (
     <nav className="person-picker" aria-label="Сотрудники">
       {list.map((p) => (
-        <button key={p.id} className={`btn pick${p.health === 'dead' ? ' kia' : ''}`} aria-pressed={selected === p.id} onClick={() => onSelect(p.id)} data-testid={`person-${p.id}`}>
-          <b>{p.name}</b>
-          <small>{ROLE_LABEL[p.role]} · {RANK_NAMES[p.rank - 1]}{p.health === 'dead' ? ' · архив' : ''}</small>
+        <button key={p.id} className={`btn pick with-face${p.health === 'dead' ? ' kia' : ''}`} aria-pressed={selected === p.id} onClick={() => onSelect(p.id)} data-testid={`person-${p.id}`}>
+          <Portrait id={p.id} name={p.name} health={p.health} size="xs" />
+          <span className="pick-text">
+            <b>{p.name}</b>
+            <small>{ROLE_LABEL[p.role]} · {RANK_NAMES[p.rank - 1]}{p.health === 'dead' ? ' · архив' : ''}</small>
+          </span>
         </button>
       ))}
     </nav>

@@ -1,13 +1,7 @@
 import { Icon, type IconName } from '../Icon';
 import type { ViewId } from '../uiState';
 
-interface NavItem {
-  id: string;
-  label: string;
-  icon: IconName;
-  view?: ViewId;
-  stage?: string;
-}
+interface NavItem { id: string; label: string; icon: IconName; view?: ViewId; stage?: string }
 
 /** Разделы по ТЗ §3.2. Активны только реализованные; остальные показывают этап, на котором появятся. */
 const ITEMS: NavItem[] = [
@@ -17,23 +11,14 @@ const ITEMS: NavItem[] = [
   { id: 'directorate', label: 'Дирекция', icon: 'briefcase', stage: 'W7' },
 ];
 
-interface Props {
-  current: ViewId;
-  onOpen: (view: ViewId) => void;
-}
+interface Props { current: ViewId; onOpen: (view: ViewId) => void; canEndShift: boolean; onEndShift: () => void }
 
-export function BottomNav({ current, onOpen }: Props) {
+export function BottomNav({ current, onOpen, canEndShift, onEndShift }: Props) {
   return (
     <nav className="nav" aria-label="Разделы">
       {ITEMS.map((item) =>
         item.view ? (
-          <button
-            key={item.id}
-            className="btn"
-            aria-current={current === item.view ? 'page' : undefined}
-            onClick={() => onOpen(item.view!)}
-            data-testid={`nav-${item.id}`}
-          >
+          <button key={item.id} className="btn" aria-current={current === item.view ? 'page' : undefined} onClick={() => onOpen(item.view!)} data-testid={`nav-${item.id}`}>
             <Icon name={item.icon} /> <span className="label">{item.label}</span>
           </button>
         ) : (
@@ -42,7 +27,7 @@ export function BottomNav({ current, onOpen }: Props) {
           </button>
         ),
       )}
-      <button className="btn end-shift" disabled title="Завершение смены — этап W2" aria-label="Завершить смену — этап W2">
+      <button className="btn end-shift" disabled={!canEndShift} onClick={onEndShift} aria-label="Завершить смену" data-testid="end-shift">
         <Icon name="arrow" /> <span className="label">Завершить смену</span>
       </button>
     </nav>

@@ -6,6 +6,8 @@ test.beforeEach(async ({ page }) => {
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
   await page.goto('/');
   await expect(page.getByTestId('map-stage')).toBeVisible();
+  await page.getByTestId('start-shift').click();
+  await expect(page.getByTestId('briefing')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 

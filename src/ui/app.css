@@ -137,3 +137,77 @@ svg.icon {
   .clock b { font-size: 19px; }
   .brand-glyph { font-size: 30px; }
 }
+
+/* ---------- W2: данные из ядра ---------- */
+.count { min-width: 24px; padding: 1px 7px; border-radius: 99px; background: var(--red-deep); font-size: 12px; text-align: center; }
+.incident-list { list-style: none; margin: 0; padding: 8px; display: grid; gap: 8px; }
+.incident {
+  border: 1px solid var(--stroke2); border-left: 3px solid var(--cyan); border-radius: 10px;
+  padding: 8px 10px; background: var(--raised); display: grid; gap: 4px;
+}
+.incident.sev-critical { border-left-color: var(--red); }
+.incident.sev-high { border-left-color: var(--amber); }
+.incident.st-escalated { background: linear-gradient(90deg, #5a1f2633, var(--raised)); }
+.incident-head { display: flex; justify-content: space-between; gap: 8px; }
+.incident small { color: var(--muted); }
+.deadline { color: var(--amber); font-weight: 600; white-space: nowrap; }
+.st-escalated .deadline { color: var(--bad); }
+.small-action { justify-self: start; margin-top: 2px; }
+
+.ready-count { color: var(--green); font-size: 12px; }
+.squad-list { list-style: none; margin: 0; padding: 4px 8px 8px; display: flex; gap: 8px; overflow-x: auto; flex: 1; }
+.squad {
+  flex: 1 0 150px; display: flex; align-items: center; gap: 10px; min-height: var(--tap);
+  border: 1px solid var(--stroke2); border-radius: 10px; padding: 6px 10px; background: var(--raised);
+}
+.monogram {
+  width: 40px; height: 40px; border-radius: 8px; display: grid; place-items: center; flex-shrink: 0;
+  font-family: Georgia, serif; font-size: 18px; background: linear-gradient(180deg, #3b2a2e, #1b1518); border: 1px solid #6b4a4a;
+}
+.squad-text { display: grid; min-width: 0; }
+.squad-text b, .squad-text small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.squad-text small { color: var(--muted); }
+.tone-green .status { color: var(--green); }
+.tone-cyan .status { color: var(--cyan); }
+.tone-amber .status { color: var(--amber); }
+.tone-red .status { color: var(--bad); }
+.tone-grey .status { color: var(--dim); }
+.squad.tone-red { border-color: #7a3a3a; }
+
+.overlay { position: fixed; inset: 0; z-index: 20; background: #05080dcc; display: grid; place-items: center; padding: 12px; }
+.modal { width: min(560px, 100%); max-height: calc(100dvh - 24px); display: flex; flex-direction: column; background: var(--surface); }
+.modal-body { padding: 14px 16px; overflow-y: auto; }
+.modal-sub { display: block; font-size: 12px; color: var(--muted); font-weight: 400; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.modal-actions.wrap { flex-wrap: wrap; justify-content: flex-start; }
+.btn.primary { border-color: #c96a68; background: linear-gradient(180deg, #8d3138, #511f27); font-weight: 600; }
+.btn.danger { border-color: #7a3a3a; color: var(--bad); }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; margin: 0; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; text-align: right; font-weight: 600; }
+.hint { color: var(--dim); font-size: 12px; }
+.slot-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.slot-list li { display: flex; align-items: center; gap: 8px; }
+.slot-list li > span { flex: 1; display: grid; }
+.slot-list small { color: var(--muted); }
+
+.staff-table { width: 100%; border-collapse: collapse; }
+.staff-table th, .staff-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--stroke2); white-space: nowrap; }
+.staff-table th { color: var(--muted); font-weight: 500; font-size: 12px; }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(var(--nav-h) + var(--squads-h) + 20px); transform: translateX(-50%); z-index: 30;
+  background: var(--surface); border: 1px solid var(--stroke); border-radius: 10px; padding: 10px 16px; box-shadow: var(--shadow);
+  max-width: min(520px, calc(100vw - 32px));
+}
+.toast.bad { border-color: var(--bad); }
+.toast.good { border-color: var(--green); }
+
+@media (max-height: 560px) {
+  .squad-list { padding: 4px 6px; }
+  .squad { flex-basis: 128px; padding: 2px 8px; min-height: 44px; }
+  .monogram { display: none; }
+  .monogram { width: 32px; height: 32px; font-size: 14px; }
+  .squad-text .cnt { display: none; }
+  .squad-text b { font-size: 13px; }
+}

@@ -1,4 +1,5 @@
 import { initialPolitics } from './politics';
+import { initialInvestigations } from './investigations';
 import { allegianceStart, initialRelations } from './career';
 import { initialFacilities } from './facilities';
 import { RESEARCH } from './research';
@@ -88,6 +89,7 @@ export function createInitialState(seed: number = DEFAULT_SEED): GameState {
     research: [],
     resources: { reagents: RESEARCH.reagents.start },
     politics: initialPolitics(),
+    investigations: initialInvestigations(),
     nextIds: { event: 2, transaction: 1, incident: 1, report: 1, staff: 13, candidate: 1 },
   };
   seedOperationsInProgress(state);

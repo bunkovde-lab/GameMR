@@ -7,7 +7,7 @@ interface NavItem { id: string; label: string; icon: IconName; view?: ViewId; st
 const ITEMS: NavItem[] = [
   { id: 'map', label: 'Карта', icon: 'map', view: 'map' },
   { id: 'staff', label: 'Кадры', icon: 'users', view: 'staff' },
-  { id: 'investigations', label: 'Расследования', icon: 'search', stage: 'W9' },
+  { id: 'investigations', label: 'Расследования', icon: 'search', view: 'investigations' },
   { id: 'directorate', label: 'Дирекция', icon: 'briefcase', view: 'directorate' },
 ];
 

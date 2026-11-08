@@ -2,7 +2,7 @@
  * Доменная модель W2 — подмножество ТЗ §5.2, необходимое для одной смены.
  * Деньги хранятся целым числом в сотых долях РЕ (cents), чтобы избежать ошибок округления.
  */
-export const SCHEMA_VERSION = 9;
+export const SCHEMA_VERSION = 10;
 
 import type { Route } from './map/graph';
 
@@ -212,7 +212,42 @@ export interface Incident {
 
 export type TransactionKind =
   | 'funding' | 'salary' | 'dispatch' | 'treatment' | 'hiring' | 'check' | 'training' | 'promotion' | 'implant'
-  | 'upkeep' | 'construction' | 'subsidy' | 'research' | 'fabrication' | 'permit_fee' | 'sanction' | 'deal';
+  | 'upkeep' | 'construction' | 'subsidy' | 'research' | 'fabrication' | 'permit_fee' | 'sanction' | 'deal' | 'expertise';
+
+/** W9: расследования (ТЗ §11). Связи хранятся без статуса: статус выводится из анализа улики. */
+export type AnalysisResult = 'none' | 'confirmed' | 'inconclusive' | 'forgery' | 'misled';
+export type InterrogationMethod = 'standard' | 'present' | 'skilled' | 'pressure';
+export type CaseDecisionKind = 'charge' | 'transfer' | 'close';
+export interface CaseEvidence {
+  id: string;
+  foundShift: number;
+  analysis: AnalysisResult;
+  /** Сколько раз проверяли: повторная проверка точнее */
+  checks: number;
+  /** Сомнительная допустимость: усиленный допрос или нарушенная цепочка хранения */
+  questionable: boolean;
+  /** Для улик с места: при сорванной задаче «сохранность улик» */
+  custodyNote?: string;
+}
+export interface CaseTask { kind: 'analyze' | 'interrogate'; target: string; method?: InterrogationMethod; staffId: string; doneAt: number }
+export interface CaseFile {
+  id: string;
+  incidentId: string;
+  openedShift: number;
+  status: 'open' | 'charged' | 'transferred' | 'closed';
+  evidence: CaseEvidence[];
+  links: { evidenceId: string; hypothesisId: string }[];
+  /** Реконструкция: улика → индекс временного слота */
+  timeline: Record<string, number>;
+  working: string | null;
+  interviews: { personId: string; method: InterrogationMethod; shift: number; staffId: string }[];
+  tasks: CaseTask[];
+  expertiseBonus: number;
+  decision?: { kind: CaseDecisionKind; hypothesisId?: string; shift: number; court?: 'accepted' | 'returned' };
+  /** Смена, когда вскроется ошибочное решение; после вскрытия — revealed */
+  revealShift?: number;
+  revealed?: boolean;
+}
 
 /** W8: разрешения (ТЗ §10.1). Постоянные полномочия не хранятся — они действуют всегда. */
 export type PermitKind = 'judicial' | 'interagency' | 'emergency';
@@ -357,6 +392,8 @@ export interface GameState {
   research: Project[];
   resources: { reagents: number };
   politics: Politics;
+  /** W9: дела (ТЗ §11) */
+  investigations: { cases: CaseFile[] };
   nextIds: { event: number; transaction: number; incident: number; report: number; staff: number; candidate: number };
 }
 
@@ -402,6 +439,14 @@ export type Command =
   | { type: 'ACCEPT_DEAL'; offerId: number }
   | { type: 'DECLINE_DEAL'; offerId: number }
   | { type: 'BREAK_DEAL'; dealId: number }
+  | { type: 'ANALYZE_EVIDENCE'; caseId: string; evidenceId: string; staffId: string }
+  | { type: 'LINK_EVIDENCE'; caseId: string; evidenceId: string; hypothesisId: string }
+  | { type: 'UNLINK_EVIDENCE'; caseId: string; evidenceId: string; hypothesisId: string }
+  | { type: 'SET_WORKING_HYPOTHESIS'; caseId: string; hypothesisId: string | null }
+  | { type: 'PLACE_EVIDENCE'; caseId: string; evidenceId: string; slot: number | null }
+  | { type: 'INTERROGATE'; caseId: string; personId: string; method: InterrogationMethod; staffId: string }
+  | { type: 'REQUEST_EXPERTISE'; caseId: string }
+  | { type: 'CONCLUDE_CASE'; caseId: string; decision: CaseDecisionKind; hypothesisId?: string }
   | { type: 'END_SHIFT' }
   | { type: 'ADVANCE_SHIFT' };
 

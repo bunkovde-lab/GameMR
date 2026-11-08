@@ -28,3 +28,7 @@ export function formatRe(cents: number): string {
   const frac = abs % 100;
   return `${sign}${whole}${frac ? ',' + String(frac).padStart(2, '0') : ''}`;
 }
+
+/** W9: сотрудник занят анализом или допросом по делу. */
+export const caseTaskOf = (s: GameState, staffId: string) =>
+  s.investigations.cases.flatMap((c) => c.tasks).find((t) => t.staffId === staffId);

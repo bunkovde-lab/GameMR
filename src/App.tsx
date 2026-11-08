@@ -11,6 +11,7 @@ import { SquadStrip } from './ui/shell/SquadStrip';
 import { BottomNav } from './ui/shell/BottomNav';
 import { StaffScreen } from './ui/screens/StaffScreen';
 import { DirectorateScreen } from './ui/screens/DirectorateScreen';
+import { InvestigationsScreen } from './ui/screens/InvestigationsScreen';
 import { BriefingDialog, EndShiftConfirm, ShiftReportDialog } from './ui/PhaseDialogs';
 import { SettingsDialog } from './ui/SettingsDialog';
 import { Toast } from './ui/Toast';
@@ -99,6 +100,7 @@ export function App() {
             />
           )}
           {ui.view === 'staff' && <StaffScreen game={game} onClose={() => uiDispatch({ type: 'OPEN_VIEW', view: 'map' })} />}
+          {ui.view === 'investigations' && <InvestigationsScreen game={game} onClose={() => uiDispatch({ type: 'OPEN_VIEW', view: 'map' })} />}
           {ui.view === 'directorate' && <DirectorateScreen game={game} onClose={() => uiDispatch({ type: 'OPEN_VIEW', view: 'map' })} />}
         </main>
         <SquadStrip game={game} selectedId={ui.selection?.kind === 'squad' ? ui.selection.id : null} onSelect={(id) => select({ kind: 'squad', id })} />

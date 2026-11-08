@@ -1,6 +1,7 @@
 import { groupMods } from './career';
 import { forecastNarrow, researchOf } from './research';
 import { permitBlocker } from './politics';
+import { caseTaskOf } from './selectors';
 import dispatchFile from '../../content/dispatch_v1.json';
 import { DISPATCH_COST, INCIDENT_TEMPLATES, ROLE_LABEL } from './content';
 import { buildRoute, etaMinutes, type Route } from './map/graph';
@@ -81,6 +82,7 @@ export function memberBlocker(s: GameState, staffId: string, squadId: string): s
   if (pt) return pt.kind === 'implant' ? 'реабилитация после установки органа' : 'на лечении';
   if (p.training) return 'на обучении';
   if (researchOf(s, staffId)) return 'ведёт исследование';
+  if (caseTaskOf(s, staffId)) return 'работает по делу';
   if (p.adaptation > 0) return 'адаптация после найма';
   const other = s.squads.find((q) => q.id !== squadId && q.memberIds.includes(staffId));
   if (other && other.status !== 'ready') return `занят: отряд «${other.name}»`;

@@ -1,0 +1,52 @@
+[
+  {
+    "id": "medriot",
+    "title": "Бунт в лечебном комплексе",
+    "districtId": "medical",
+    "spawnId": "medical:spawn:01",
+    "severity": "critical",
+    "deadlineMinutes": 12,
+    "state": "new",
+    "flags": []
+  },
+  {
+    "id": "bioleak",
+    "title": "Утечка биоматериала",
+    "districtId": "science",
+    "spawnId": "science:spawn:01",
+    "severity": "high",
+    "deadlineMinutes": 27,
+    "state": "new",
+    "flags": []
+  },
+  {
+    "id": "raid",
+    "title": "Вооружённая вылазка",
+    "districtId": "industry",
+    "spawnId": "industry:spawn:01",
+    "severity": "high",
+    "deadlineMinutes": 38,
+    "state": "new",
+    "flags": []
+  },
+  {
+    "id": "missing",
+    "title": "Пропажа регистратора",
+    "districtId": "admin",
+    "spawnId": "admin:spawn:01",
+    "severity": "medium",
+    "deadlineMinutes": 44,
+    "state": "new",
+    "flags": []
+  },
+  {
+    "id": "illegal",
+    "title": "Нелегальная модификация",
+    "districtId": "residential",
+    "spawnId": "residential:spawn:01",
+    "severity": "medium",
+    "deadlineMinutes": 56,
+    "state": "new",
+    "flags": []
+  }
+]

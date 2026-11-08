@@ -1,0 +1,25 @@
+{
+  "_status": "Стартовый штат 12 человек по ТЗ §7.1: 4 стража, 3 следователя, 2 Ловчих, 2 биокриминалиста, 1 аналитик/техник. Имена и параметры ВРЕМЕННЫЕ (OPEN-08): взяты из прототипа 0.1; Лика Орт переведена в следователи, Тарн Сев — в аналитики/техники (решение C-5 отчёта W0, ждёт подтверждения). Пять качеств выведены из навыков прототипа: реакция=бой, анализ, контроль; стойкость и авторитет — provisional.",
+  "staff": [
+    { "id": "p1",  "name": "Мара Касс",   "role": "lovchiy",      "rank": 3, "xp": 29, "salary": 4, "fatigue": 20, "stats": { "reaction": 5, "analysis": 2, "control": 3, "resilience": 4, "authority": 3 } },
+    { "id": "p2",  "name": "Корд Рейн",   "role": "guard",        "rank": 3, "xp": 25, "salary": 3, "fatigue": 22, "stats": { "reaction": 4, "analysis": 2, "control": 4, "resilience": 4, "authority": 3 } },
+    { "id": "p3",  "name": "Ирма Весс",   "role": "investigator", "rank": 2, "xp": 13, "salary": 3, "fatigue": 32, "stats": { "reaction": 2, "analysis": 5, "control": 3, "resilience": 2, "authority": 2 } },
+    { "id": "p4",  "name": "Элиас Верн",  "role": "guard",        "rank": 2, "xp": 17, "salary": 3, "fatigue": 38, "stats": { "reaction": 3, "analysis": 2, "control": 4, "resilience": 3, "authority": 2 } },
+    { "id": "p5",  "name": "Сай Тесса",   "role": "biocriminalist","rank": 2, "xp": 15, "salary": 3, "fatigue": 17, "stats": { "reaction": 1, "analysis": 3, "control": 2, "resilience": 2, "authority": 2 } },
+    { "id": "p6",  "name": "Арден Ласс",  "role": "guard",        "rank": 2, "xp": 13, "salary": 2, "fatigue": 29, "stats": { "reaction": 3, "analysis": 2, "control": 3, "resilience": 3, "authority": 2 } },
+    { "id": "p7",  "name": "Нейра Тор",   "role": "biocriminalist","rank": 2, "xp": 12, "salary": 3, "fatigue": 63, "stats": { "reaction": 1, "analysis": 4, "control": 2, "resilience": 2, "authority": 2 } },
+    { "id": "p8",  "name": "Тарн Сев",    "role": "analyst",      "rank": 1, "xp": 5,  "salary": 2, "fatigue": 20, "stats": { "reaction": 2, "analysis": 4, "control": 3, "resilience": 2, "authority": 1 } },
+    { "id": "p9",  "name": "Сели Ренн",   "role": "investigator", "rank": 3, "xp": 26, "salary": 3, "fatigue": 12, "stats": { "reaction": 2, "analysis": 5, "control": 4, "resilience": 3, "authority": 3 } },
+    { "id": "p10", "name": "Гард Верек",  "role": "guard",        "rank": 2, "xp": 11, "salary": 3, "fatigue": 25, "stats": { "reaction": 4, "analysis": 1, "control": 3, "resilience": 4, "authority": 2 } },
+    { "id": "p11", "name": "Лика Орт",    "role": "investigator", "rank": 2, "xp": 14, "salary": 3, "fatigue": 45, "stats": { "reaction": 3, "analysis": 3, "control": 4, "resilience": 3, "authority": 2 } },
+    { "id": "p12", "name": "Ран Ветт",    "role": "lovchiy",      "rank": 2, "xp": 17, "salary": 2, "fatigue": 41, "stats": { "reaction": 5, "analysis": 2, "control": 2, "resilience": 4, "authority": 2 } }
+  ],
+  "squadMembers": {
+    "axon": ["p1", "p2"],
+    "vector": ["p3", "p4"],
+    "sigma": ["p5", "p6"],
+    "cortex": ["p7", "p8"],
+    "resonance": ["p9", "p10"],
+    "omega": ["p11", "p12"]
+  }
+}

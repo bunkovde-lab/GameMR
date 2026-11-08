@@ -1,0 +1,50 @@
+[
+  {
+    "id": "axon",
+    "name": "Аксон",
+    "status": "ready",
+    "currentNodeId": "ADMIN_DEPOT",
+    "vehicleMode": "road",
+    "assignedIncidentId": null
+  },
+  {
+    "id": "vector",
+    "name": "Вектор",
+    "status": "on_scene",
+    "currentNodeId": "IND_MAIN",
+    "vehicleMode": "road",
+    "assignedIncidentId": "raid"
+  },
+  {
+    "id": "sigma",
+    "name": "Сигма",
+    "status": "resting",
+    "currentNodeId": "SCI_MAIN",
+    "vehicleMode": "road",
+    "assignedIncidentId": null
+  },
+  {
+    "id": "cortex",
+    "name": "Кортекс",
+    "status": "treatment",
+    "currentNodeId": "MED_MAIN",
+    "vehicleMode": "road",
+    "assignedIncidentId": null
+  },
+  {
+    "id": "resonance",
+    "name": "Резонанс",
+    "status": "ready",
+    "currentNodeId": "RES_MAIN",
+    "vehicleMode": "road",
+    "assignedIncidentId": null
+  },
+  {
+    "id": "omega",
+    "name": "Омега",
+    "status": "recovery",
+    "currentNodeId": "GARDENS_MAIN",
+    "vehicleMode": "road",
+    "assignedIncidentId": null
+  }
+]

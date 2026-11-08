@@ -1,0 +1,11 @@
+{
+  "_source": "ТЗ v2.0 §4.1 и map_config.json W3 (id и названия). Доверие — стартовые значения прототипа 0.1, provisional.",
+  "districts": [
+    { "id": "medical", "name": "Медицинский район", "civilianTrust": 81 },
+    { "id": "science", "name": "Научный квартал", "civilianTrust": 68 },
+    { "id": "admin", "name": "Административный центр", "civilianTrust": 77 },
+    { "id": "industry", "name": "Промышленный сектор", "civilianTrust": 63 },
+    { "id": "gardens", "name": "Северные сады", "civilianTrust": 74 },
+    { "id": "residential", "name": "Жилые кварталы", "civilianTrust": 69 }
+  ]
+}

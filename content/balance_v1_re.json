@@ -1,0 +1,22 @@
+{
+  "_status": "PROVISIONAL_RULE — baseline ТЗ v1.0 (ТЗ v2.0 §8.1), не утверждённый баланс; OPEN-01, OPEN-02",
+  "currency": "РЕ",
+  "startingBalance": 105,
+  "fundingPerShift": 46,
+  "shift": {
+    "_note": "Длина смены и часы не заданы ТЗ; рабочее значение для W2",
+    "startClockMinute": 480,
+    "lengthMinutes": 720
+  },
+  "realMsPerGameMinuteAtX1": 1000,
+  "district": {
+    "_note": "Стартовые показатели районов. Доверие — из прототипа 0.1, безопасность — общий показатель прототипа (72)",
+    "startingSafety": 72,
+    "escalationSafetyPenalty": 2,
+    "escalationTrustPenalty": 1
+  },
+  "squad": {
+    "maxMembers": 3
+  },
+  "incidentsPerNewShift": 3
+}

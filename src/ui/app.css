@@ -1,0 +1,139 @@
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body {
+  background: radial-gradient(circle at 50% -15%, #27313a 0%, #0a0d13 58%);
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+  font-size: var(--font);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+button:disabled { cursor: not-allowed; opacity: 0.46; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+svg.icon {
+  width: 19px; height: 19px; flex-shrink: 0;
+  fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round;
+}
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Каркас: HUD / рабочая область / отряды / навигация ---------- */
+.app-shell {
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: var(--hud-h) minmax(0, 1fr) var(--squads-h) var(--nav-h);
+  gap: var(--gap);
+  padding: 0 var(--gap) var(--gap);
+  max-width: 2350px;
+  margin: 0 auto;
+}
+
+.btn {
+  min-width: var(--tap); min-height: var(--tap);
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--stroke2); border-radius: 10px;
+  background: var(--raised);
+}
+.btn:hover:not(:disabled) { filter: brightness(1.13); }
+.btn[aria-pressed='true'], .btn[aria-current='page'] {
+  border-color: #c96a68; background: linear-gradient(180deg, #8d3138, #511f27);
+}
+.btn.icon-only { padding: 0; }
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--stroke2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  min-height: 0;
+}
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 6px 8px 6px 14px; border-bottom: 1px solid var(--stroke2);
+}
+.panel-header h2 { margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+.empty {
+  color: var(--muted); padding: 14px; line-height: 1.45;
+}
+.empty small { display: block; color: var(--dim); margin-top: 4px; }
+
+/* ---------- Верхний HUD ---------- */
+.hud {
+  display: flex; align-items: center; gap: 12px; min-width: 0;
+  background: linear-gradient(180deg, #161b23ee, #090d13ea);
+  border-bottom: 1px solid #58606b88;
+  padding: 0 8px;
+  box-shadow: 0 4px 24px #0009;
+}
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand-glyph { font: 40px Georgia, serif; color: #ef7466; text-shadow: 0 0 16px #b9212c99; line-height: 1; }
+.brand strong { font-family: Georgia, serif; font-size: 19px; letter-spacing: 1.4px; display: block; white-space: nowrap; }
+.brand span { font-size: 11px; color: var(--muted); letter-spacing: 0.8px; white-space: nowrap; }
+.clock { border-left: 1px solid #8c785a77; padding-left: 12px; white-space: nowrap; }
+.clock b { font-size: 24px; letter-spacing: 1px; display: block; line-height: 1.1; }
+.clock small { color: var(--muted); font-size: 11px; }
+.speed { display: flex; gap: 4px; }
+.hud-spacer { flex: 1; }
+.stats { display: flex; gap: 2px; }
+.stat { padding: 0 10px; border-left: 1px solid var(--stroke2); text-align: center; white-space: nowrap; }
+.stat b { display: block; font-size: 18px; }
+.stat small { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+
+/* ---------- Рабочая область: карта во всю ширину, панели поверх ---------- */
+.workspace { position: relative; min-height: 0; }
+.map-stage {
+  position: absolute; inset: 0;
+  border-radius: var(--radius);
+  border: 1px solid var(--stroke2);
+  overflow: hidden;
+  background:
+    linear-gradient(#9bc0c40e 1px, transparent 1px) 0 0 / 46px 46px,
+    linear-gradient(90deg, #9bc0c40e 1px, transparent 1px) 0 0 / 46px 46px,
+    radial-gradient(circle at 50% 45%, #1a2530, #0b1118 70%);
+  display: grid; place-items: center;
+}
+.map-placeholder { text-align: center; color: var(--muted); max-width: 420px; padding: 16px; }
+.map-placeholder b { display: block; color: var(--gold); font-family: Georgia, serif; font-size: 20px; letter-spacing: 1px; margin-bottom: 6px; }
+.map-tools { position: absolute; top: 10px; left: 10px; display: flex; gap: 6px; }
+
+.left-panel, .right-panel {
+  position: absolute; top: 0; bottom: 0; z-index: 2;
+  display: flex; flex-direction: column;
+}
+.left-panel { left: 0; width: var(--left-w); }
+.right-panel { right: 0; width: var(--right-w); }
+.panel-body { overflow-y: auto; min-height: 0; flex: 1; }
+
+/* ---------- Лента отрядов ---------- */
+.squads { display: flex; flex-direction: column; overflow: hidden; }
+.squads .panel-header { border-bottom: 0; padding-top: 4px; padding-bottom: 0; }
+.squads .panel-header h2 { font-size: 12px; color: var(--gold); letter-spacing: 1px; text-transform: uppercase; }
+
+/* ---------- Нижняя навигация ---------- */
+.nav { display: flex; gap: 6px; }
+.nav .btn { flex: 1; min-width: 0; white-space: nowrap; }
+.nav .btn.end-shift { border-color: #8c785a; background: linear-gradient(180deg, #3a3122, #1d1912); }
+.nav .stage { font-size: 10px; color: var(--dim); }
+
+/* ---------- Экран-раздел (пробный, без данных) ---------- */
+.screen { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.screen .panel-body { padding: 18px; }
+
+/* ---------- Адаптивность ---------- */
+@media (max-width: 1260px) {
+  .brand-text span, .clock small { display: none; }
+  .stat { padding: 0 7px; }
+}
+@media (max-width: 940px) {
+  .brand-text, .stat small { display: none; }
+  .nav .label { display: none; }
+  .stats .stat:nth-child(n + 3) { display: none; }
+}
+@media (max-height: 560px) {
+  .squads .panel-header { display: none; }
+  .clock b { font-size: 19px; }
+  .brand-glyph { font-size: 30px; }
+}

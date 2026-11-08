@@ -1,0 +1,185 @@
+/* Оформление по утверждённому UI-kit v2 (docs/art/APPROVED_UI_KIT_V2.md, art_refs/ui_kit_approved_v2.png).
+   Концепт не вырезается и не подкладывается картинкой: рамки, шапки, кнопки и карточки отрядов
+   нарисованы кодом (CSS + маленькие inline-SVG), чтобы текст, числа и состояния оставались живыми.
+   Когда ChatGPT пришлёт отдельные файлы ART-008 (9-slice рамки, шапка, кнопки), они заменят
+   соответствующие фоны здесь, не трогая компоненты. */
+
+/* ---------- Текстуры и орнаменты ---------- */
+:root {
+  /* Мелкое «зерно» состаренного металла: SVG-шум, без внешних файлов. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* Центральный шпиль шапки (как навершие в UI-kit): золотой ромб-остриё. */
+  --spire: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='14' viewBox='0 0 60 14'%3E%3Cpath d='M0 7h22l8-6 8 6h22' fill='none' stroke='%23c9a46a' stroke-width='1.2'/%3E%3Cpath d='M30 2l4 5-4 5-4-5z' fill='%23e84c50'/%3E%3C/svg%3E");
+  /* Угловой орнамент панели: двойная бронзовая скоба со срезом. */
+  --corner: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 22 22'%3E%3Cpath d='M1 21V7l6-6h14' fill='none' stroke='%23c9a46a' stroke-width='1.5'/%3E%3Cpath d='M5 21V9l4-4h12' fill='none' stroke='%2368543d' stroke-width='1'/%3E%3Ccircle cx='7' cy='7' r='1.4' fill='%23e84c50'/%3E%3C/svg%3E");
+  --metal: linear-gradient(180deg, #14181eF5 0%, #0b0e13f5 55%, #120c10f5 100%);
+  --edge-in: inset 0 0 0 1px #0b1016, inset 0 0 0 2px #483c2f99;
+}
+
+body {
+  font-family: var(--font-ui);
+  background:
+    radial-gradient(ellipse at 50% -20%, #2a1418 0%, transparent 55%),
+    radial-gradient(circle at 50% 120%, #1c0a0e 0%, transparent 60%),
+    var(--bg);
+}
+
+/* ---------- Панели: тёмный металл, двойная бронзовая кромка, угловые скобы ---------- */
+.panel {
+  position: relative;
+  background: var(--grain), var(--metal);
+  border: 1px solid var(--stroke);
+  box-shadow: var(--edge-in), var(--shadow);
+}
+.panel::before, .panel::after {
+  content: ''; position: absolute; width: 22px; height: 22px; pointer-events: none; z-index: 1;
+  background: var(--corner) no-repeat;
+}
+.panel::before { top: -1px; left: -1px; }
+.panel::after { top: -1px; right: -1px; transform: scaleX(-1); }
+.left-panel.panel, .right-panel.panel { position: absolute; }
+.screen.panel { position: absolute; background: var(--grain), linear-gradient(180deg, #13171d, #0a0d11 60%, #110b0e); }
+
+/* Шапка: орнаментальная полоса с багряной жилой и центральным шпилем. */
+.panel-header {
+  position: relative;
+  border-bottom: 1px solid #00000000;
+  background:
+    linear-gradient(90deg, transparent, #c9a46a 18%, #c9a46a 82%, transparent) bottom / 100% 1px no-repeat,
+    linear-gradient(90deg, transparent 10%, #e84c5099 50%, transparent 90%) bottom 3px left / 100% 1px no-repeat,
+    linear-gradient(180deg, #1a1d23, #0f1217);
+}
+.panel-header::after {
+  content: ''; position: absolute; left: 50%; bottom: -6px; width: 60px; height: 14px; transform: translateX(-50%);
+  background: var(--spire) no-repeat center; pointer-events: none;
+}
+.panel-header h2 { font-family: var(--font-title); font-weight: 400; font-size: 20px; letter-spacing: 0.6px; color: var(--gold-light); }
+.panel-header h2 svg.icon { color: var(--gold); }
+.squads .panel-header { background: none; }
+.squads .panel-header::after { display: none; }
+.squads .panel-header h2 { font-family: var(--font-title); font-size: 14px; color: var(--gold); letter-spacing: 2px; }
+.section-title { font-family: var(--font-title); font-size: 15px; font-weight: 400; color: var(--gold); letter-spacing: 1.5px; }
+
+/* ---------- Кнопки: пять состояний по UI-kit ---------- */
+.btn {
+  position: relative;
+  border: 1px solid #68543d;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #222329, #101215);
+  box-shadow: inset 0 0 0 1px #0b0d10, inset 0 0 0 2px #c9a46a22, 0 1px 2px #000a;
+  color: var(--text);
+  transition: background-color 0.12s, border-color 0.12s, box-shadow 0.12s;
+}
+.btn:hover:not(:disabled) {
+  filter: none;
+  border-color: #b08a55;
+  background: linear-gradient(180deg, #342b2d, #15161b);
+  box-shadow: inset 0 0 0 1px #0b0d10, inset 0 0 0 2px #e6c58d33, 0 0 8px #c9a46a33;
+}
+.btn:active:not(:disabled) {
+  border-color: #8a3a3a;
+  background: linear-gradient(180deg, #69232a, #260f16);
+  box-shadow: inset 0 2px 6px #000c;
+  transform: translateY(1px);
+}
+.btn[aria-pressed='true'], .btn[aria-current='page'], .btn[aria-selected='true'], .btn.primary,
+.layer-tools .btn[aria-pressed='true'] {
+  border-color: #e6c58d;
+  background: linear-gradient(180deg, #a52730, #401018);
+  box-shadow: inset 0 0 0 1px #2a0a0e, inset 0 0 0 2px #e6c58d55, 0 0 12px #e84c5066;
+  color: #fff4e4;
+}
+.btn[aria-pressed='true']:hover:not(:disabled), .btn[aria-current='page']:hover:not(:disabled), .btn[aria-selected='true']:hover:not(:disabled),
+.btn.primary:hover:not(:disabled) { background: linear-gradient(180deg, #b62e38, #4a121b); border-color: #f0d6a6; }
+.btn:disabled {
+  opacity: 1;
+  color: #6c6a6a;
+  border-color: #34302b;
+  background: linear-gradient(180deg, #17181b, #111215);
+  box-shadow: inset 0 0 0 1px #0b0d10;
+}
+.btn:disabled svg.icon { opacity: 0.5; }
+/* Выбранное состояние отличается не только цветом: золотая метка снизу. */
+.btn[aria-pressed='true']::after, .btn[aria-current='page']::after, .btn[aria-selected='true']::after {
+  content: ''; position: absolute; left: 50%; bottom: 3px; width: 18px; height: 2px; margin-left: -9px;
+  background: var(--gold-light); border-radius: 1px;
+}
+.btn.pick[aria-pressed='true']::after { left: auto; right: 10px; top: 10px; bottom: auto; width: 8px; height: 8px; margin: 0; transform: rotate(45deg); }
+.btn.danger { color: var(--bad); border-color: #7a3a3a; }
+.btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.layer-tools .btn, .zoom-tools .btn, .map-tools .btn { background: linear-gradient(180deg, #1c1d22ee, #0e1013ee); }
+
+/* ---------- Верхний HUD и нижняя навигация (CSS, без больших PNG — STYLE_REF01 §4–5) ---------- */
+.hud {
+  position: relative;
+  background:
+    linear-gradient(90deg, transparent, #c9a46a 20%, #c9a46a 80%, transparent) bottom / 100% 1px no-repeat,
+    linear-gradient(90deg, transparent 15%, #e84c5088 50%, transparent 85%) bottom 3px left / 100% 1px no-repeat,
+    var(--grain), linear-gradient(180deg, #16181d, #0a0c10);
+  border-bottom: 0;
+  box-shadow: 0 6px 24px #000c;
+}
+.brand-glyph { color: var(--crimson-glow); text-shadow: 0 0 14px #aa253099; }
+.brand strong { font-family: var(--font-title); font-weight: 400; font-size: 22px; letter-spacing: 2px; color: var(--gold-light); }
+.brand span { letter-spacing: 1.4px; }
+.clock { border-left-color: #68543d; }
+.clock b { font-family: var(--font-ui); font-weight: 700; color: #fff4e4; }
+.stat { border-left-color: #483c2f; }
+.stat b { font-weight: 700; color: #fff4e4; }
+.stat small { color: var(--muted); }
+.nav .btn { font-weight: 500; letter-spacing: 0.3px; }
+.nav .btn.end-shift { border-color: #c9a46a; background: linear-gradient(180deg, #3d3020, #17130d); color: var(--gold-light); }
+
+/* ---------- Карточки отрядов: багряный стяг слева, бронзовая рамка ---------- */
+.squad {
+  position: relative; padding: 0 10px 0 0; gap: 10px; overflow: hidden;
+  border: 1px solid #68543d; border-radius: 6px;
+  background: var(--grain), linear-gradient(180deg, #17191e, #0c0e12);
+  box-shadow: inset 0 0 0 1px #0b0d10, inset 0 0 0 2px #483c2f88;
+}
+.squad:hover:not(:disabled) { border-color: #b08a55; }
+.squad.selected, .squad[aria-pressed='true'] { border-color: var(--gold-light); box-shadow: inset 0 0 0 1px #2a0a0e, inset 0 0 0 2px #e6c58d55, 0 0 12px #e84c5066; background: var(--grain), linear-gradient(180deg, #2a1418, #0f0b0d); }
+.squad[aria-pressed='true']::after { display: none; }
+.squad.tone-red { border-color: #8a3a3a; }
+.monogram {
+  align-self: stretch; height: auto; width: 46px; border: 0; border-radius: 0;
+  font-family: var(--font-title); font-size: 18px; color: var(--gold-light);
+  background: linear-gradient(180deg, #8d1f28, #4a1016);
+  clip-path: polygon(0 0, 100% 0, 100% 78%, 50% 100%, 0 78%);
+  box-shadow: inset -1px 0 #c9a46a;
+  text-shadow: 0 1px 2px #000;
+}
+.squad-text b { font-weight: 600; }
+
+/* ---------- Списки, карточки, окна ---------- */
+.incident, .sq-card, .dispatch-summary {
+  border-color: #483c2f;
+  background: linear-gradient(180deg, #15181dee, #0e1115ee);
+  box-shadow: inset 0 1px #ffffff08;
+}
+.incident.selected { border-color: var(--gold-light); box-shadow: inset 0 0 0 1px #e6c58d55, 0 0 10px #e84c5044; }
+.incident.sev-critical { border-left-color: var(--crimson-glow); }
+.count { background: var(--crimson); color: #fff4e4; font-weight: 600; }
+.modal { background: var(--grain), linear-gradient(180deg, #13171d, #0a0d11); }
+.overlay { background: #040507d9; }
+.modal-footer { background: linear-gradient(180deg, #111419, #0b0d11); border-top-color: #483c2f; }
+.card-title, .outcome { font-family: var(--font-title); font-weight: 400; }
+.card-title { font-size: 21px; color: var(--gold-light); }
+.forecast b { font-family: var(--font-title); }
+.toast { background: linear-gradient(180deg, #16191e, #0d0f13); border-color: #68543d; }
+.staff-table th { color: var(--gold); font-family: var(--font-title); font-size: 14px; letter-spacing: 0.6px; font-weight: 400; }
+.staff-table th, .staff-table td { border-bottom-color: #2a2621; }
+.chips > div { border-color: #483c2f; background: #0c0f13; }
+.district-label { font-family: var(--font-title); font-size: 14px; color: #f2dfb8; }
+.map-stage { border-color: #68543d; box-shadow: var(--edge-in); }
+
+@media (max-height: 560px) {
+  .panel-header h2 { font-size: 17px; }
+  .brand strong { font-size: 18px; }
+  .monogram { display: none; }
+  .squad { padding: 2px 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn { transition: none; }
+  .btn:active:not(:disabled) { transform: none; }
+}

@@ -1,8 +1,9 @@
 /*
  * ART-008: утверждённые PNG UI-kit v2 поверх CSS-версии (theme.css).
- * Подключены только одобренные владельцем файлы (docs/art/ART008_UIKIT_V2_HANDOFF.md):
- * 5 состояний кнопки, рамка панели, рамка карточки отряда, рамка портрета.
- * Шапка, навершие, стяги и герб ждут отдельной приёмки и здесь не используются.
+ * Первая партия (docs/art/ART008_UIKIT_V2_HANDOFF.md): 5 состояний кнопки, рамка панели,
+ * рамка карточки отряда, рамка портрета. Вторая партия, утверждённая Дмитрием 2026-11-08:
+ * полоса шапки со шпилем, навершие окон, 6 стягов отрядов, герб Дирекции.
+ * Стяги и герб утверждены как оформление; канон лора по ним не фиксируется.
  * Файлы нарисованы в 2×: slice в пикселях файла, ширина рамки на экране — половина или меньше.
  * Рисунок кладётся псевдоэлементом под текст, поэтому размеры и зона касания кнопок не меняются.
  */
@@ -15,6 +16,10 @@
   --kit-panel: url('../../assets/ui/kit_v2/panel_frame_9s.png');
   --kit-squad: url('../../assets/ui/kit_v2/squad_card_9s.png');
   --kit-portrait: url('../../assets/ui/kit_v2/portrait_frame.png');
+  --kit-header: url('../../assets/ui/kit_v2/header_strip.png');
+  --kit-spire: url('../../assets/ui/kit_v2/header_spire_overlay.png');
+  --kit-crest-top: url('../../assets/ui/kit_v2/panel_crest_top.png');
+  --kit-crest: url('../../assets/ui/kit_v2/crest_directorate.png');
 }
 
 /* ---------- Кнопки ---------- */
@@ -95,3 +100,42 @@
 /* Узкая лента отрядов: тоньше рамка, чтобы не лечь на заголовок «Оперативные группы». */
 .squads.panel::after { border-width: 12px; border-image-width: 12px; }
 .squads .panel-header { padding-left: 14px; padding-right: 14px; }
+
+/* ---------- Полоса шапки со шпилем (края 128 px файла не тянутся) ---------- */
+.panel-header { background: linear-gradient(180deg, #1a1d23, #0f1217); }
+.panel-header::before {
+  content: ''; position: absolute; left: 6px; right: 6px; bottom: -8px; height: 16px; pointer-events: none; z-index: 1;
+  border-style: solid; border-width: 0 32px;
+  border-image: var(--kit-header) 0 128 fill / 0 32px / 0 stretch;
+}
+.panel-header::after {
+  bottom: -8px; width: 32px; height: 16px; z-index: 2;
+  background: var(--kit-spire) center / contain no-repeat;
+}
+.squads .panel-header::before { display: none; }
+
+/* ---------- Навершие над крупными окнами ---------- */
+.modal.wide::before {
+  content: ''; display: block; position: absolute; left: 50%; top: -14px; width: 128px; height: 32px; transform: translateX(-50%);
+  background: var(--kit-crest-top) center / contain no-repeat; pointer-events: none; z-index: 4;
+}
+@media (max-height: 560px) { .modal.wide::before { display: none; } }
+
+/* ---------- Стяги отрядов ---------- */
+.squad-list .squad .monogram[class*='banner-'] {
+  width: 46px; clip-path: none; box-shadow: none; color: transparent; text-shadow: none;
+  background: center / contain no-repeat; filter: drop-shadow(0 2px 3px #000a);
+}
+.monogram.banner-axon { background-image: url('../../assets/ui/kit_v2/squad_banner_axon.png') !important; }
+.monogram.banner-vector { background-image: url('../../assets/ui/kit_v2/squad_banner_vector.png') !important; }
+.monogram.banner-sigma { background-image: url('../../assets/ui/kit_v2/squad_banner_sigma.png') !important; }
+.monogram.banner-cortex { background-image: url('../../assets/ui/kit_v2/squad_banner_cortex.png') !important; }
+.monogram.banner-resonance { background-image: url('../../assets/ui/kit_v2/squad_banner_resonance.png') !important; }
+.monogram.banner-omega { background-image: url('../../assets/ui/kit_v2/squad_banner_omega.png') !important; }
+
+/* ---------- Герб Дирекции в верхней панели ---------- */
+.brand-glyph {
+  width: 40px; height: 40px; flex: none; font-size: 0; color: transparent; text-shadow: none;
+  background: var(--kit-crest) center / contain no-repeat;
+}
+@media (max-height: 560px) { .brand-glyph { width: 30px; height: 30px; } }

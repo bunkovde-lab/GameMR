@@ -18,7 +18,7 @@ export function SquadStrip({ game, selectedId, onSelect }: { game: GameState; se
           return (
             <li key={q.id} className="squad-item">
               <button className={`squad tone-${st.tone}${selectedId === q.id ? ' selected' : ''}`} data-testid={`squad-${q.id}`} onClick={() => onSelect(q.id)} aria-pressed={selectedId === q.id}>
-              <span className="monogram" aria-hidden="true">{members[0] ? initials(members[0].name) : '—'}</span>
+              <span className={`monogram banner-${q.id}`} aria-hidden="true">{members[0] ? initials(members[0].name) : '—'}</span>
               <span className="squad-text">
                 <b>«{q.name}»</b>
                 <small><span className="cnt">{members.length}/3 · </span><span className="status">{st.label}</span></small>

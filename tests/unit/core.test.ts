@@ -58,7 +58,7 @@ describe('CORE-01 determinism', () => {
       const b = run(createInitialState(7), cmds);
       expect(JSON.stringify(a)).toBe(JSON.stringify(b));
     }
-  });
+  }, 60_000); // 1000 прогонов × 40 команд: ~4 с локально, на CI-раннере дольше стандартных 5 с
   it('different seeds produce different new-shift incidents', () => {
     const a = ok(fullShift(createInitialState(1)), { type: 'ADVANCE_SHIFT' });
     const b = ok(fullShift(createInitialState(2)), { type: 'ADVANCE_SHIFT' });

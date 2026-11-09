@@ -11,6 +11,8 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   const url = new URL(req.url);
   if (req.method !== 'GET' || url.origin !== self.location.origin) return;
+  // Музыка (AUDIO v1): браузер запрашивает её частями (Range), такие ответы нельзя класть в кэш — отдаём напрямую из сети.
+  if (req.headers.has('range') || /\.(mp3|ogg|m4a)$/.test(url.pathname)) return;
   const hashed = /\/assets\/[^/]+-[\w-]{8}\.\w+$/.test(url.pathname);
   if (hashed) {
     e.respondWith(caches.match(req).then((hit) => hit || fetch(req).then((res) => {

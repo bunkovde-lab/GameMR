@@ -4,6 +4,7 @@ import { parseSave } from '../persistence/saveFormat';
 import { SLOTS, exportJson, listSlots, loadFromSlot, saveToSlot, type SlotId } from '../persistence/saveStore';
 import { getGame, notify, replaceGame } from '../store';
 import { Modal } from './Modal';
+import { MusicSettings } from './audio/MusicSettings';
 
 type SlotInfo = Awaited<ReturnType<typeof listSlots>>;
 
@@ -66,6 +67,7 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
           Новая игра
         </button>
       </div>
+      <MusicSettings />
     </Modal>
   );
 }

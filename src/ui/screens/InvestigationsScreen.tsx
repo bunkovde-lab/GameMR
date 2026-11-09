@@ -520,7 +520,8 @@ function Interviews({ game, f, d }: { game: GameState; f: CaseFile; d: CaseDef }
           return (
             <article key={p.id} className="sq-card person-card" data-testid={`person-${p.id}`}>
               <header className="face-row">
-                <Portrait id={p.portrait} name={avail ? p.name : '?'} size="sm" />
+                {/* Пока фигурант неизвестен, лицо не показываем: иначе арт выдаёт, кто появится в деле. */}
+                <Portrait id={avail ? p.portrait : 'npc_unknown'} name={avail ? p.name : '?'} size="sm" />
                 <span><b>{avail ? p.name : 'Фигурант пока неизвестен'}</b><br /><small className="muted">{avail ? p.role : p.requiresFlag ? 'нужно сначала найти человека' : 'появится, когда найдутся основания'}</small></span>
               </header>
               {avail && asked.map((l) => (

@@ -65,3 +65,23 @@ describe('ART-009 портреты кандидатов', async () => {
     });
   });
 });
+
+/** ART-011: фон допросной и 9 лиц фигурантов; ключи совпадают с content/cases_v1.json. */
+describe('ART-011 допросная и фигуранты', async () => {
+  const cases = (await import('../../content/cases_v1.json')).default as { cases: { persons: { portrait: string }[] }[] };
+  const keys = cases.cases.flatMap((c) => c.persons.map((p) => p.portrait));
+  it('у каждого фигуранта есть файл, хеш из реестра и игровые копии', () => {
+    expect(keys).toHaveLength(9);
+    for (const k of keys) {
+      const a = manifest.assets.find((x) => x.file === `assets/characters/${k}.png`)!;
+      expect(a, k).toBeTruthy();
+      expect(createHash('sha256').update(readFileSync(a.file)).digest('hex')).toBe(a.sha256);
+      expect(existsSync(`assets/characters/web/portrait_${k}.webp`)).toBe(true);
+      expect(existsSync(`assets/characters/web/face_${k}.webp`)).toBe(true);
+    }
+  });
+  it('фон допросной в реестре и на месте', () => {
+    const a = manifest.assets.find((x) => x.file === 'assets/backgrounds/interrogation_room_bg.png')!;
+    expect(createHash('sha256').update(readFileSync(a.file)).digest('hex')).toBe(a.sha256);
+  });
+});

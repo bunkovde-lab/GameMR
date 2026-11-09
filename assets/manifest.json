@@ -801,6 +801,182 @@
       "approvedBy": null,
       "notes": "2px stroke; color #C9A46A; may be themed by CSS filter or inline SVG · Подключено в игру (ART-010 PR); художественная приёмка Дмитрия ожидается.",
       "sha256": "a98f8c5f1a7b784fdb31dceb5f1b9220a35105523c718269c50a330f5b55dd64"
+    },
+    {
+      "id": "interrogation_room_bg",
+      "file": "assets/backgrounds/interrogation_room_bg.png",
+      "category": "backgrounds",
+      "role": "ART-011 interrogation background",
+      "status": "integrated",
+      "width": 1920,
+      "height": 1080,
+      "alpha": false,
+      "sha256": "0ef720e3b4d504e8a775f0e550faee9270f99a2724694058ecabb06be4a87a2e",
+      "source": "ART-011_FOR_CHATGPT.md; AI-generated concept-art sheet processed to individual files",
+      "approvedBy": null,
+      "notes": "Visual review required: extracted from generated art sheet and resized; code can test but not claim native production quality."
+    },
+    {
+      "id": "npc_c1_01",
+      "file": "assets/characters/npc_c1_01.png",
+      "category": "characters",
+      "role": "ART-011 NPC interrogation portrait",
+      "status": "integrated",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "1787be2b48c27ef9d0090ad7ddb80ba631755bfa961f283338b5d55ef8baa406",
+      "source": "ART-011_FOR_CHATGPT.md; AI-generated concept-art sheet processed to individual files",
+      "approvedBy": null,
+      "notes": "Visual review required: extracted from generated art sheet and resized; code can test but not claim native production quality. · Игровые копии кадрированы без однотонных полей сверху/снизу (scripts/build_portraits.py); оригинал не изменён.",
+      "webCopies": [
+        "assets/characters/web/portrait_npc_c1_01.webp",
+        "assets/characters/web/face_npc_c1_01.webp"
+      ]
+    },
+    {
+      "id": "npc_c1_02",
+      "file": "assets/characters/npc_c1_02.png",
+      "category": "characters",
+      "role": "ART-011 NPC interrogation portrait",
+      "status": "integrated",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "68d8dd34272998ef1f0bc30ac6e38982e87b229c5239b9c3344d3cadfd623e05",
+      "source": "ART-011_FOR_CHATGPT.md; AI-generated concept-art sheet processed to individual files",
+      "approvedBy": null,
+      "notes": "Visual review required: extracted from generated art sheet and resized; code can test but not claim native production quality. · Игровые копии кадрированы без однотонных полей сверху/снизу (scripts/build_portraits.py); оригинал не изменён.",
+      "webCopies": [
+        "assets/characters/web/portrait_npc_c1_02.webp",
+        "assets/characters/web/face_npc_c1_02.webp"
+      ]
+    },
+    {
+      "id": "npc_c1_03",
+      "file": "assets/characters/npc_c1_03.png",
+      "category": "characters",
+      "role": "ART-011 NPC interrogation portrait",
+      "status": "integrated",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "1372f7140f5e5f8ded05b9e188afd5df0953f8e2c04d46ef66c5705422d60433",
+      "source": "ART-011_FOR_CHATGPT.md; AI-generated concept-art sheet processed to individual files",
+      "approvedBy": null,
+      "notes": "Visual review required: extracted from generated art sheet and resized; code can test but not claim native production quality. · Игровые копии кадрированы без однотонных полей сверху/снизу (scripts/build_portraits.py); оригинал не изменён.",
+      "webCopies": [
+        "assets/characters/web/portrait_npc_c1_03.webp",
+        "assets/characters/web/face_npc_c1_03.webp"
+      ]
+    },
+    {
+      "id": "npc_c2_01",
+      "file": "assets/characters/npc_c2_01.png",
+      "category": "characters",
+      "role": "ART-011 NPC interrogation portrait",
+      "status": "integrated",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "acb1048cbd173d1b6e789d31e85b7505dca15c4a6915bd26a9db948fabfbb4ef",
+      "source": "ART-011_FOR_CHATGPT.md; AI-generated concept-art sheet processed to individual files",
+      "approvedBy": null,
+      "notes": "Visual review required: extracted from generated art sheet and resized; code can test but not claim native production quality. · Игровые копии кадрированы без однотонных полей сверху/снизу (scripts/build_portraits.py); оригинал не изменён.",
+      "webCopies": [
+        "assets/characters/web/portrait_npc_c2_01.webp",
+        "assets/characters/web/face_npc_c2_01.webp"
+      ]
+    },
+    {
+      "id": "npc_c2_02",
+      "file": "assets/characters/npc_c2_02.png",
+      "category": "characters",
+      "role": "ART-011 NPC interrogation portrait",
+      "status": "integrated",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "ef79037d02166fcb3b7aef93150aab09f6a1bcb89c9ba65d04654f18e7de0e8d",
+      "source": "ART-011_FOR_CHATGPT.md; AI-generated concept-art sheet processed to individual files",
+      "approvedBy": null,
+      "notes": "Visual review required: extracted from generated art sheet and resized; code can test but not claim native production quality. · Игровые копии кадрированы без однотонных полей сверху/снизу (scripts/build_portraits.py); оригинал не изменён.",
+      "webCopies": [
+        "assets/characters/web/portrait_npc_c2_02.webp",
+        "assets/characters/web/face_npc_c2_02.webp"
+      ]
+    },
+    {
+      "id": "npc_c2_03",
+      "file": "assets/characters/npc_c2_03.png",
+      "category": "characters",
+      "role": "ART-011 NPC interrogation portrait",
+      "status": "integrated",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "28f90cd03cb9440e90a2eeb74544e9c507846e59fa05fb07cf99121a8ef37db5",
+      "source": "ART-011_FOR_CHATGPT.md; AI-generated concept-art sheet processed to individual files",
+      "approvedBy": null,
+      "notes": "Visual review required: extracted from generated art sheet and resized; code can test but not claim native production quality. · Игровые копии кадрированы без однотонных полей сверху/снизу (scripts/build_portraits.py); оригинал не изменён.",
+      "webCopies": [
+        "assets/characters/web/portrait_npc_c2_03.webp",
+        "assets/characters/web/face_npc_c2_03.webp"
+      ]
+    },
+    {
+      "id": "npc_c3_01",
+      "file": "assets/characters/npc_c3_01.png",
+      "category": "characters",
+      "role": "ART-011 NPC interrogation portrait",
+      "status": "integrated",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "3e18f962323f2b19b7b4b6cc290cf8e04824eff73f4e6c2e384e3602e6a0e600",
+      "source": "ART-011_FOR_CHATGPT.md; AI-generated concept-art sheet processed to individual files",
+      "approvedBy": null,
+      "notes": "Visual review required: extracted from generated art sheet and resized; code can test but not claim native production quality. · Игровые копии кадрированы без однотонных полей сверху/снизу (scripts/build_portraits.py); оригинал не изменён.",
+      "webCopies": [
+        "assets/characters/web/portrait_npc_c3_01.webp",
+        "assets/characters/web/face_npc_c3_01.webp"
+      ]
+    },
+    {
+      "id": "npc_c3_02",
+      "file": "assets/characters/npc_c3_02.png",
+      "category": "characters",
+      "role": "ART-011 NPC interrogation portrait",
+      "status": "integrated",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "b4d4e79ec31e6f90e11a044d003cf369805796be5a70e3d82a76b19ad8b21980",
+      "source": "ART-011_FOR_CHATGPT.md; AI-generated concept-art sheet processed to individual files",
+      "approvedBy": null,
+      "notes": "Visual review required: extracted from generated art sheet and resized; code can test but not claim native production quality. · Игровые копии кадрированы без однотонных полей сверху/снизу (scripts/build_portraits.py); оригинал не изменён.",
+      "webCopies": [
+        "assets/characters/web/portrait_npc_c3_02.webp",
+        "assets/characters/web/face_npc_c3_02.webp"
+      ]
+    },
+    {
+      "id": "npc_c3_03",
+      "file": "assets/characters/npc_c3_03.png",
+      "category": "characters",
+      "role": "ART-011 NPC interrogation portrait",
+      "status": "integrated",
+      "width": 512,
+      "height": 640,
+      "alpha": false,
+      "sha256": "6460585fd1838ede8fcb3a95c812f6c7ade2907d41a3e747bd3735307c5d419a",
+      "source": "ART-011_FOR_CHATGPT.md; AI-generated concept-art sheet processed to individual files",
+      "approvedBy": null,
+      "notes": "Visual review required: extracted from generated art sheet and resized; code can test but not claim native production quality. · Игровые копии кадрированы без однотонных полей сверху/снизу (scripts/build_portraits.py); оригинал не изменён.",
+      "webCopies": [
+        "assets/characters/web/portrait_npc_c3_03.webp",
+        "assets/characters/web/face_npc_c3_03.webp"
+      ]
     }
   ]
 }

@@ -159,3 +159,22 @@ test('ART-010: board background, evidence frames and type icons are the delivere
   const box = (await card.boundingBox())!;
   expect(box.height).toBeGreaterThanOrEqual(44);
 });
+
+test('ART-011: interrogation room background and faces of known persons; unknown persons stay faceless', async ({ page }, info) => {
+  await load(page, 'mid_c2');
+  await page.getByTestId('case-tab-c2').click();
+  await page.getByTestId('case-mode-interviews').click();
+  const room = page.getByTestId('interviews');
+  await expect(room).toHaveAttribute('style', /interrogation_room_bg/);
+  const imgs = room.locator('.person-card img');
+  await expect(imgs.first()).toBeVisible();
+  // Маленькие webp Vite встраивает как data:-адрес, поэтому проверяем число лиц: по одному на каждого известного фигуранта.
+  const unknown = room.locator('.person-card', { hasText: 'Фигурант пока неизвестен' });
+  const known = (await room.locator('.person-card').count()) - (await unknown.count());
+  expect(known).toBeGreaterThan(0);
+  await expect(imgs).toHaveCount(known);
+  await expect.poll(() => imgs.evaluateAll((xs) => xs.every((x) => (x as HTMLImageElement).naturalWidth > 0))).toBe(true);
+  for (let i = 0; i < (await unknown.count()); i++) await expect(unknown.nth(i).locator('img')).toHaveCount(0);
+  await page.getByText('Сохранение импортировано.').waitFor({ state: 'hidden' }).catch(() => {});
+  await page.screenshot({ path: `test-results/screens/art011-interviews-${info.project.name}.png` });
+});

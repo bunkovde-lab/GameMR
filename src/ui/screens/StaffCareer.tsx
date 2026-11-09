@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   BRANCH_IDS, CAREER, NODES, ORGANS, RANK_NAMES, courseBlocker, innateSystems, metabolic, nodeById, organBlocker, organById,
   promotionStatus, relationsOf, seedReasons, skillPoints,
@@ -8,22 +9,54 @@ import { clockLabel, formatRe } from '../../core/selectors';
 import type { GameState, Staff } from '../../core/types';
 import { dispatch } from '../../store';
 import { Portrait } from '../Portrait';
+import { staffGroups } from './staffGroups';
 
 /** W6 (часть 2): развитие (UI-08), модификации (UI-09), отношения (UI-11), история (UI-12). */
 
 export function PersonPicker({ game, selected, onSelect, archive = false }: { game: GameState; selected: string; onSelect: (id: string) => void; archive?: boolean }) {
-  const list = game.staff.filter((p) => archive || p.health !== 'dead');
+  const groups = staffGroups(game, archive);
+  const home = groups.find((g) => g.members.some((p) => p.id === selected))?.key;
+  // Свёрнуто всё, кроме состава выбранного сотрудника; игрок сам раскрывает остальные стрелкой.
+  const [open, setOpen] = useState<Set<string>>(() => new Set(home ? [home] : []));
+  const toggle = (key: string) => setOpen((prev) => {
+    const next = new Set(prev);
+    if (next.has(key)) next.delete(key); else next.add(key);
+    return next;
+  });
   return (
-    <nav className="person-picker" aria-label="Сотрудники">
-      {list.map((p) => (
-        <button key={p.id} className={`btn pick with-face${p.health === 'dead' ? ' kia' : ''}`} aria-pressed={selected === p.id} onClick={() => onSelect(p.id)} data-testid={`person-${p.id}`}>
-          <Portrait id={p.id} name={p.name} health={p.health} size="xs" />
-          <span className="pick-text">
-            <b>{p.name}</b>
-            <small>{ROLE_LABEL[p.role]} · {RANK_NAMES[p.rank - 1]}{p.health === 'dead' ? ' · архив' : ''}</small>
-          </span>
-        </button>
-      ))}
+    <nav className="person-picker grouped" aria-label="Сотрудники по составам">
+      {groups.filter((g) => g.members.length > 0).map((g) => {
+        const isOpen = open.has(g.key);
+        const hasSelected = g.key === home;
+        return (
+          <section key={g.key} className={`pick-group${g.key === 'reserve' ? ' reserve' : ''}${g.key === 'archive' ? ' archive' : ''}`} data-testid={`pick-group-${g.key}`}>
+            <button
+              className="btn group-toggle"
+              aria-expanded={isOpen}
+              aria-controls={`pick-group-body-${g.key}`}
+              onClick={() => toggle(g.key)}
+              data-testid={`group-toggle-${g.key}`}
+            >
+              <span className="caret" aria-hidden="true">{isOpen ? '▾' : '▸'}</span>
+              <b>{g.title}</b>
+              <small>{g.members.length} чел.{!isOpen && hasSelected ? ' · выбран' : ''}</small>
+            </button>
+            {isOpen && (
+              <div className="pick-group-body" id={`pick-group-body-${g.key}`}>
+                {g.members.map((p) => (
+                  <button key={p.id} className={`btn pick with-face${p.health === 'dead' ? ' kia' : ''}`} aria-pressed={selected === p.id} onClick={() => onSelect(p.id)} data-testid={`person-${p.id}`}>
+                    <Portrait id={p.id} name={p.name} health={p.health} size="xs" />
+                    <span className="pick-text">
+                      <b>{p.name}</b>
+                      <small>{ROLE_LABEL[p.role]} · {RANK_NAMES[p.rank - 1]}{g.commanderId === p.id ? ' · командир' : ''}{p.health === 'dead' ? ' · архив' : ''}</small>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      })}
     </nav>
   );
 }

@@ -25,6 +25,7 @@ test('staff: every starting employee shows a loaded portrait; dossier has a larg
   await expect(page.getByTestId('roster').locator('.portrait.sm').first()).toBeVisible();
   await page.screenshot({ path: `test-results/screens/art005-roster-${info.project.name}.png` });
   await page.getByTestId('staff-tab-history').click();
+  await page.getByTestId('group-toggle-resonance').click();
   await page.getByTestId('person-p9').click();
   const big = page.locator('.person-head').getByTestId('portrait-p9');
   await expect(big.locator('img')).toHaveAttribute('alt', 'Портрет: Сели Ренн');

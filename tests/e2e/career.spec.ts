@@ -42,6 +42,7 @@ test('modifications: incompatible organ is explained; installation goes to the c
 
 test('relations: links with reasons from the journal and seeded history', async ({ page }, info) => {
   await page.getByTestId('staff-tab-relations').click();
+  await page.getByTestId('group-toggle-vector').click();
   await page.getByTestId('person-p3').click();
   await expect(page.getByTestId('relations-table')).toContainText('Лика Орт');
   await expect(page.getByTestId('relations-table')).toContainText('конфликт');

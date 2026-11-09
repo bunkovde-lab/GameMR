@@ -1,0 +1,17 @@
+{
+  "name": "Мир Раскола: Право на порядок",
+  "short_name": "Право на порядок",
+  "description": "Стратегия о руководителе городской безопасности Багряных домов.",
+  "lang": "ru",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#07090d",
+  "theme_color": "#101319",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -9,6 +9,7 @@ import { SQUAD_STATUS } from '../labels';
 import type { LayerId, Selection } from '../uiState';
 import { DEFAULT_SAFE, clampCamera, ensureVisible, transform, worldToScreen, zoomAt, type Camera, type Viewport, W, H } from './camera';
 import { INCIDENT_ICON, incidentPoint, squadPoint } from './entities';
+import { layoutMarkers } from './markerLayout';
 
 interface Props {
   game: GameState;
@@ -43,6 +44,7 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
   const [cam, setCam] = useState<Camera>({ zoom: 1, panX: 0, panY: 0 });
   const [artProblem, setArtProblem] = useState<string | null>(null);
   const [hoverDistrict, setHoverDistrict] = useState<string | null>(null);
+  const [expandedCluster, setExpandedCluster] = useState<string | null>(null);
   const drag = useRef<DragState | null>(null);
   const suppressClick = useRef(false);
 
@@ -274,26 +276,55 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
             const [x, y] = screen(nodePosition(d.serviceNode));
             return <span key={d.id} className="depot" style={{ left: x, top: y }} title={`Опорный узел: ${d.name}`} aria-hidden="true" />;
           })}
-          {layers.events && openIncidents.map((inc) => {
-            const p = incidentPoint(inc);
-            if (!p) return null;
-            const [x, y] = screen(p);
-            if (!onStage([x, y])) return null;
-            const selected = selection?.kind === 'incident' && selection.id === inc.id;
+          {layers.events && (() => {
+            const items = openIncidents.flatMap((inc) => {
+              const p = incidentPoint(inc);
+              if (!p) return [];
+              const [x, y] = screen(p);
+              return onStage([x, y]) ? [{ id: inc.id, x, y, severity: inc.severity }] : [];
+            });
+            const lay = layoutMarkers(items, expandedCluster);
+            const byId = new Map(openIncidents.map((i) => [i.id, i]));
             return (
-              <button
-                key={inc.id}
-                className={`marker incident sev-${inc.severity} st-${inc.state}${selected ? ' selected' : ''}`}
-                style={{ left: x, top: y }}
-                onClick={() => onSelect({ kind: 'incident', id: inc.id })}
-                aria-label={`Вызов: ${inc.title}`}
-                aria-pressed={selected}
-                data-testid={`marker-incident-${inc.id}`}
-              >
-                <Icon name={INCIDENT_ICON[inc.templateId] ?? 'warning'} />
-              </button>
+              <>
+                {lay.markers.some((m) => m.moved) && (
+                  <svg className="marker-leaders" aria-hidden="true">
+                    {lay.markers.filter((m) => m.moved).map((m) => <line key={m.id} x1={m.anchorX} y1={m.anchorY} x2={m.x} y2={m.y} />)}
+                    {lay.markers.filter((m) => m.moved).map((m) => <circle key={`a-${m.id}`} cx={m.anchorX} cy={m.anchorY} r={4} />)}
+                  </svg>
+                )}
+                {lay.markers.map((m) => {
+                  const inc = byId.get(m.id)!;
+                  const selected = selection?.kind === 'incident' && selection.id === inc.id;
+                  return (
+                    <button
+                      key={inc.id}
+                      className={`marker incident sev-${inc.severity} st-${inc.state}${selected ? ' selected' : ''}`}
+                      style={{ left: m.x, top: m.y }}
+                      onClick={() => onSelect({ kind: 'incident', id: inc.id })}
+                      aria-label={`Вызов: ${inc.title}`}
+                      aria-pressed={selected}
+                      data-testid={`marker-incident-${inc.id}`}
+                    >
+                      <Icon name={INCIDENT_ICON[inc.templateId] ?? 'warning'} />
+                    </button>
+                  );
+                })}
+                {lay.clusters.map((c) => (
+                  <button
+                    key={c.key}
+                    className={`marker cluster sev-${c.top}`}
+                    style={{ left: c.x, top: c.y }}
+                    onClick={() => setExpandedCluster(c.key)}
+                    aria-label={`Вызовов рядом: ${c.ids.length}. Развернуть`}
+                    data-testid="marker-cluster"
+                  >
+                    <b>{c.ids.length}</b>
+                  </button>
+                ))}
+              </>
             );
-          })}
+          })()}
           {visibleSquads.map((q) => {
             const [x, y] = screen(squadPoint(game, q));
             const off = (squadOffsets.get(q.id) ?? 0) * 46;
@@ -318,6 +349,9 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
       )}
 
       {artProblem && <div className="map-warning" role="alert">{artProblem}</div>}
+      {expandedCluster && layers.events && expandedCluster.split('|').some((id) => openIncidents.some((i) => i.id === id)) && (
+        <button className="btn cluster-collapse" onClick={() => setExpandedCluster(null)} data-testid="cluster-collapse">Свернуть группу вызовов</button>
+      )}
 
       {!leftPanelOpen && (
         <div className="map-tools">

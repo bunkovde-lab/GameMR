@@ -25,3 +25,10 @@ bootstrap().finally(() => {
     </StrictMode>,
   );
 });
+
+// W10: установка на главный экран и офлайн-запуск (только в собранной версии, не в режиме разработки и не во встроенных просмотрах).
+if (import.meta.env.PROD && 'serviceWorker' in navigator && window.isSecureContext && window.top === window.self) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`, { scope: import.meta.env.BASE_URL }).catch(() => {});
+  });
+}

@@ -4,7 +4,7 @@ import { memberBlocker } from '../../core/dispatch';
 import { HEALTH_LOG } from '../../core/healthText';
 import { formatRe } from '../../core/selectors';
 import {
-  PLAN_IDS, PLANS, STAFF_RULES, TREATABLE, bedsUsed, capsulesUsed, patientOf, reserve, squadCommander, squadOf,
+  PLAN_IDS, PLANS, STAFF_RULES, TREATABLE, bedsUsed, capsulesUsed, patientOf, reserve, squadCommander,
   suitability, treatmentForecast, vacancies,
 } from '../../core/staff';
 import type { Candidate, DossierStatus, GameState, StaffRole, Stats } from '../../core/types';
@@ -14,6 +14,7 @@ import { Portrait } from '../Portrait';
 import { medicalCapacity } from '../../core/facilities';
 import { Development, History, Modifications, PersonPicker, Relations } from './StaffCareer';
 import { SQUAD_STATUS } from '../labels';
+import { staffGroups } from './staffGroups';
 
 const RANKS = ['I', 'II', 'III', 'IV', 'V'];
 type Tab = 'summary' | 'roster' | 'medical' | 'hiring' | 'development' | 'mods' | 'relations' | 'history';
@@ -79,30 +80,42 @@ export function StaffScreen({ game, onClose }: { game: GameState; onClose: () =>
 }
 
 function Summary({ game }: { game: GameState }) {
+  const groups = staffGroups(game, true);
   return (
     <>
       <div className="table-scroll">
-        <table className="staff-table">
+        <table className="staff-table grouped">
           <thead>
-            <tr><th>Сотрудник</th><th>Должность</th><th>Ранг</th><th>Отряд</th><th>Состояние</th><th>Усталость</th><th>Жалование</th></tr>
+            <tr><th>Сотрудник</th><th>Должность</th><th>Ранг</th><th>Состояние</th><th>Усталость</th><th>Жалование</th></tr>
           </thead>
-          <tbody>
-            {game.staff.map((p) => {
-              const sq = squadOf(game, p.id);
-              const pt = patientOf(game, p.id);
-              return (
-                <tr key={p.id} data-testid={`staff-${p.id}`} className={p.health === 'dead' ? 'kia' : undefined}>
-                  <td><span className="name-cell"><Portrait id={p.id} name={p.name} health={p.health} size="xs" />{p.name}</span></td>
-                  <td>{ROLE_LABEL[p.role]}</td>
-                  <td>{RANKS[p.rank - 1]}</td>
-                  <td>{p.health === 'dead' ? 'архив' : sq ? `«${sq.name}»` : 'резерв'}</td>
-                  <td className={`health h-${p.health}`}>{HEALTH_LOG[p.health]}{pt ? ' · в клинике' : ''}{p.adaptation ? ' · адаптация' : ''}</td>
-                  <td>{p.fatigue}%</td>
-                  <td>{formatRe(p.salary)} РЕ</td>
-                </tr>
-              );
-            })}
-          </tbody>
+          {groups.map((g, i) => (
+            <tbody key={g.key} className={`staff-group${g.key === 'reserve' ? ' reserve' : ''}${g.key === 'archive' ? ' archive' : ''}`} data-testid={`summary-group-${g.key}`}>
+              {i > 0 && <tr className="group-gap" aria-hidden="true"><td colSpan={6} /></tr>}
+              <tr className="group-head">
+                <th colSpan={6} scope="rowgroup">
+                  <span className="group-title">{g.squad ? 'Состав ' : ''}{g.title}</span>
+                  {g.squad && <small className={`tone-${SQUAD_STATUS[g.squad.status].tone}`}><span className="status">{SQUAD_STATUS[g.squad.status].label}</span></small>}
+                  <small className="muted">{g.squad ? `${g.members.length}/3` : `${g.members.length} чел.`}</small>
+                </th>
+              </tr>
+              {g.members.length === 0 && (
+                <tr><td colSpan={6} className="muted">{g.squad ? 'Нет людей — состав не может выехать.' : 'Все распределены по составам.'}</td></tr>
+              )}
+              {g.members.map((p) => {
+                const pt = patientOf(game, p.id);
+                return (
+                  <tr key={p.id} data-testid={`staff-${p.id}`} className={p.health === 'dead' ? 'kia' : undefined}>
+                    <td><span className="name-cell"><Portrait id={p.id} name={p.name} health={p.health} size="xs" />{p.name}{g.commanderId === p.id ? <em className="cmd"> · командир</em> : null}</span></td>
+                    <td>{ROLE_LABEL[p.role]}</td>
+                    <td>{RANKS[p.rank - 1]}</td>
+                    <td className={`health h-${p.health}`}>{HEALTH_LOG[p.health]}{pt ? ' · в клинике' : ''}{p.adaptation ? ' · адаптация' : ''}</td>
+                    <td>{p.fatigue}%</td>
+                    <td>{formatRe(p.salary)} РЕ</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          ))}
         </table>
       </div>
       <p className="empty"><small>Имена и параметры временные (OPEN-08).</small></p>

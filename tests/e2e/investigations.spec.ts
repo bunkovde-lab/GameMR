@@ -208,3 +208,23 @@ for (const op of ['op1', 'op2'] as const) {
     }
   });
 }
+
+for (const [fx, id, key] of [['case_c1', 'c1', 'case1_registry_office'], ['mid_c2', 'c2', 'case2_clinic'], ['case_c3', 'c3', 'case3_lab']] as const) {
+  test(`ART-013: case header of ${id} shows the location ${key}`, async ({ page }, info) => {
+    await load(page, fx);
+    await page.getByTestId(`case-tab-${id}`).click();
+    const head = page.getByTestId(`case-${id}`).locator(`header.case-head[data-art="${key}"]`);
+    await expect(head).toHaveClass(/with-art/);
+    await expect(head).toHaveAttribute('style', /url\(/);
+    // Текст шапки читаем: слева затемнение 92 %, место — справа.
+    expect((await head.boundingBox())!.height).toBeGreaterThanOrEqual(60);
+    await page.getByText('Сохранение импортировано.').waitFor({ state: 'hidden' }).catch(() => {});
+    await page.screenshot({ path: `test-results/screens/art013-${id}-${info.project.name}.png` });
+    if (info.project.name === 'pc-1920') {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await head.scrollIntoViewIfNeeded();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      await page.screenshot({ path: `test-results/screens/art013-${id}-portrait.png` });
+    }
+  });
+}

@@ -979,6 +979,34 @@
       ]
     },
     {
+      "id": "ART012_OP1_KEY",
+      "file": "assets/events/op1_key.png",
+      "category": "events",
+      "role": "Ключевой художественный фон особой операции «Контур 18»",
+      "status": "approved",
+      "width": 1920,
+      "height": 1080,
+      "alpha": false,
+      "sha256": "2507dd1c237e8876f142751c4529530d06399565b555f1d3221b40f8b4eba7d1",
+      "source": "ART-012_FOR_CHATGPT.md (Claude, 2026-11-09); ChatGPT ImageGen composite source, individual scene isolated and extended",
+      "approvedBy": "Dmitry (2026-11-09)",
+      "notes": "Подпольная операционная жилого блока: Страж в тяжёлой броне и Ловчий у хирургического шлюза, за ним пациенты и медицинский персонал. Создан отдельно от второго сюжета путём выделения половины исходного диптиха и мягкого продолжения фона сверху и снизу; центральный игровой кадр чёткий. Требует авторской приёмки; при полосе y=324..756 сюжет читается, запрошена визуальная проверка."
+    },
+    {
+      "id": "ART012_OP2_KEY",
+      "file": "assets/events/op2_key.png",
+      "category": "events",
+      "role": "Ключевой художественный фон особой операции «Красная герметизация»",
+      "status": "approved",
+      "width": 1920,
+      "height": 1080,
+      "alpha": false,
+      "sha256": "15c72ab6f266360ed7ea385470723bf9e3e4d74c6b923ebee369ec6867ff20e4",
+      "source": "ART-012_FOR_CHATGPT.md (Claude, 2026-11-09); ChatGPT ImageGen composite source, individual scene isolated and extended",
+      "approvedBy": "Dmitry (2026-11-09)",
+      "notes": "Первый Дом: аварийно изолированный биологический отсек, неантропоморфная культура в герметичном резервуаре, сотрудники в защитных костюмах. Создан отдельно от второго сюжета путём выделения половины исходного диптиха и мягкого продолжения фона сверху и снизу; центральный игровой кадр чёткий. Требует авторской приёмки; при полосе y=324..756 сюжет читается, запрошена визуальная проверка."
+    },
+    {
       "id": "scene_med_organ_vault",
       "file": "assets/events/scene_med_organ_vault.png",
       "category": "events",

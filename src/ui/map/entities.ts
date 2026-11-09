@@ -25,11 +25,20 @@ export const CLUSTER_MARKER = 'marker_cluster';
 
 export const incidentPoint = (inc: Incident): Point | undefined => spawnPosition(inc.spawnId);
 
-/** Позиция отряда выводится из состояния ядра, а не хранится в пикселях (W3 §4). */
-export function squadPoint(game: GameState, sq: Squad): Point {
+/**
+ * Позиция отряда выводится из состояния ядра, а не хранится в пикселях (W3 §4).
+ * subMinute — доля текущей игровой минуты (0..1) для плавного движения между тиками; ядро её не видит.
+ */
+export function squadPoint(game: GameState, sq: Squad, subMinute = 0): Point {
   const inc = sq.assignedIncidentId ? game.incidents.find((i) => i.id === sq.assignedIncidentId) : undefined;
-  const target = inc ? incidentPoint(inc) : undefined;
-  if (sq.movement && target) return positionOnRoute(sq.movement.route, sq.movement.elapsed, target);
+  const m = sq.movement;
+  const moving = m && (sq.status === 'en_route' || sq.status === 'returning');
+  // Возвращение на базу: цели-вызова нет, едем до последнего узла маршрута.
+  const target = inc ? incidentPoint(inc) : moving ? nodePosition(m.route.nodeIds[m.route.nodeIds.length - 1]!) : undefined;
+  if (m && target) {
+    const t = moving ? Math.min(m.route.totalMinutes, m.elapsed + Math.min(1, Math.max(0, subMinute))) : m.elapsed;
+    return positionOnRoute(m.route, t, target);
+  }
   if (sq.status === 'on_scene' && target) return target;
   return nodePosition(sq.currentNodeId);
 }

@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 
@@ -10,7 +11,7 @@ async function start(page: Page) {
   await page.goto('/');
   await page.getByTestId('start-shift').click();
   await expect(page.getByTestId('map-image')).toBeVisible();
-  await expect.poll(() => page.getByTestId('map-image').evaluate((i: HTMLImageElement) => i.naturalWidth)).toBe(1672);
+  await expect.poll(() => page.getByTestId('map-image').evaluate((i: HTMLImageElement) => i.naturalWidth)).toBe(2560);
   return errors;
 }
 
@@ -29,9 +30,69 @@ async function centerOf(page: Page, testId: string) {
   return { x: b.x + b.width / 2, y: b.y + b.height * (shield ? 0.97 : 0.5) };
 }
 
+test('ART-019: the whole city fits the free part of the map window without zooming or scrolling', async ({ page }, info) => {
+  const errors = await start(page);
+  const stage = (await page.getByTestId('map-stage').boundingBox())!;
+  const img = (await page.getByTestId('map-image').boundingBox())!;
+  expect(img.x).toBeGreaterThanOrEqual(stage.x - 1);
+  expect(img.y).toBeGreaterThanOrEqual(stage.y - 1);
+  expect(img.x + img.width).toBeLessThanOrEqual(stage.x + stage.width + 1);
+  expect(img.y + img.height).toBeLessThanOrEqual(stage.y + stage.height + 1);
+  // карта занимает свободное место целиком по одной из сторон
+  const left = (await page.getByTestId('left-panel').count()) ? await page.getByTestId('left-panel').boundingBox() : null;
+  const freeW = stage.width - (left && info.project.name !== 'phone-844' ? left.x + left.width - stage.x : 0);
+  expect(Math.max(img.width / freeW, img.height / stage.height)).toBeGreaterThan(0.97);
+  if (left) expect(img.x).toBeGreaterThanOrEqual(left.x + left.width - 1);
+  // все вызовы видны без прокрутки
+  for (const id of ['medriot', 'bioleak', 'raid', 'missing', 'illegal']) await expect(page.getByTestId(`marker-incident-${id}`)).toBeInViewport();
+  await expect(page.getByTestId('map-life')).toBeAttached();
+  await expect(page.getByTestId('map-ambient')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('ART-019: night falls smoothly, weather, unrest and a patrol en route are drawn; effects can be turned down', async ({ page }, info) => {
+  const errors = await start(page);
+  await page.getByTestId('open-settings').click();
+  await page.locator('input[type="file"]').setInputFiles({ name: 'city_night.json', mimeType: 'application/json', buffer: readFileSync('test-results/fixtures/city_night.json') });
+  await expect(page.getByTestId('settings')).toHaveCount(0);
+  await expect(page.getByTestId('map-night')).toHaveAttribute('data-night', '1.00');
+  await expect(page.getByTestId('map-ambient')).toContainText('Ночь');
+  await expect(page.getByTestId('map-ambient')).toContainText('Неспокойно: 3');
+  await page.getByTestId('toggle-pause').click();
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: `test-results/screens/art019-night-${info.project.name}.png` });
+
+  await page.getByTestId('open-settings').click();
+  await page.locator('input[type="file"]').setInputFiles({ name: 'city_rain.json', mimeType: 'application/json', buffer: readFileSync('test-results/fixtures/city_rain.json') });
+  await expect(page.getByTestId('settings')).toHaveCount(0);
+  await expect(page.getByTestId('map-weather')).toBeVisible();
+  await page.getByTestId('toggle-pause').click();
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: `test-results/screens/art019-rain-${info.project.name}.png` });
+
+  await page.getByTestId('open-settings').click();
+  await page.getByTestId('effects-off').click();
+  await expect(page.getByTestId('effects-off')).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Закрыть' }).click();
+  await expect(page.getByTestId('map-life')).toHaveAttribute('data-level', 'off');
+  await page.reload();
+  await expect(page.getByTestId('map-stage')).toBeVisible();
+  if (await page.getByTestId('start-shift').isVisible()) await page.getByTestId('start-shift').click();
+  await expect(page.getByTestId('map-life')).toHaveAttribute('data-level', 'off');
+  expect(errors).toEqual([]);
+});
+
+test('ART-019: the previous city art is the splash behind the briefing', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByTestId('briefing')).toBeVisible();
+  await expect(page.getByTestId('city-splash')).toBeVisible();
+  await page.getByTestId('start-shift').click();
+  await expect(page.getByTestId('city-splash')).toHaveCount(0);
+});
+
 test('MAP-001/003: approved art is loaded at native size and markers are enabled', async ({ page }) => {
   const errors = await start(page);
-  await expect(page.getByTestId('map-image')).toHaveJSProperty('naturalHeight', 941);
+  await expect(page.getByTestId('map-image')).toHaveJSProperty('naturalHeight', 1440);
   await expect(page.getByRole('alert')).toHaveCount(0);
   await expect(page.getByTestId('marker-incident-missing')).toBeVisible();
   expect(errors).toEqual([]);
@@ -80,6 +141,8 @@ test('MAP-012/013: zoom keeps the marker anchored to the same map point', async 
 test('MAP-014: dragging pans the map without selecting anything', async ({ page }, info) => {
   test.skip(info.project.name === 'phone-844', 'проверяется на ПК и планшете');
   await start(page);
+  // ART-019: при zoom 1 весь город на экране — сдвигать нечего; приближаем и тянем.
+  await page.getByTestId('zoom-in').click();
   await page.getByTestId('zoom-in').click();
   const stage = (await page.getByTestId('map-stage').boundingBox())!;
   const x0 = (await page.getByTestId('map-image').boundingBox())!.x;

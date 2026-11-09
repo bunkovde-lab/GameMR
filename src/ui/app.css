@@ -222,6 +222,20 @@ svg.icon {
 .map-world { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
 .map-world img { display: block; width: 100%; height: 100%; pointer-events: auto; -webkit-user-drag: none; }
 .map-geo { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
+/* ART-019: ночная карта поверх дневной, прозрачность = уровень ночи (плавно между минутами) */
+.map-world .map-night { position: absolute; inset: 0; transition: opacity 1.2s linear; }
+/* Поля по краям (окно шире/уже 16:9): та же карта, размытая и затемнённая */
+.map-backdrop { position: absolute; inset: -40px; width: calc(100% + 80px); height: calc(100% + 80px); object-fit: cover; filter: blur(22px) brightness(0.4) saturate(0.7); pointer-events: none; }
+.map-life { position: absolute; left: 0; top: 0; pointer-events: none; }
+.map-ambient {
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1;
+  display: flex; gap: 6px; pointer-events: auto; font-size: 12px; white-space: nowrap;
+}
+.map-ambient span { padding: 3px 9px; border-radius: 999px; background: #0c1016d9; border: 1px solid var(--stroke2); color: var(--muted, #b9b0a0); }
+.map-ambient .hot { color: #ff9a6a; border-color: #8d3138; }
+.workspace:has(.left-panel) .map-ambient { left: calc(50% + var(--left-w) / 2); }
+.city-splash { position: fixed; inset: 0; z-index: 19; background: #05070b center / cover no-repeat; }
+.city-splash + .overlay { background: #0405078c; }
 .district-hit {
   pointer-events: auto; cursor: pointer; fill: transparent; stroke: transparent; stroke-width: 2;
   vector-effect: non-scaling-stroke; transition: fill 0.15s, stroke 0.15s;
@@ -344,6 +358,8 @@ svg.icon {
 @media (max-width: 950px) {
   .left-panel, .right-panel { width: min(var(--left-w), 86vw); }
   .workspace:has(.left-panel) .map-tools, .workspace:has(.left-panel) .layer-tools { left: 10px; }
+  .workspace:has(.left-panel) .map-ambient { left: 50%; }
+  .map-ambient { font-size: 11px; top: 6px; }
   .workspace:has(.right-panel) .zoom-tools { right: 10px; }
   .layer-tools .label { display: none; }
   .district-label { font-size: 11px; }

@@ -46,3 +46,25 @@ test('dispatch: member buttons carry portraits and keep a 44 px touch target', a
   expect((await btn.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await page.screenshot({ path: `test-results/screens/art005-dispatch-${info.project.name}.png` });
 });
+
+test('ART-009: candidates show their portrait; a hired candidate keeps the same face', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone-844', 'ПК и планшет');
+  await page.getByTestId('nav-staff').click();
+  await page.getByTestId('staff-tab-hiring').click();
+  const first = page.getByTestId('hiring').locator('[data-testid^="candidate-"]').first();
+  const img = first.locator('.portrait.lg img');
+  await expect.poll(() => loaded(img)).toBe(true);
+  const name = (await first.locator('header b').textContent())!;
+  await page.screenshot({ path: `test-results/screens/art009-hiring-${info.project.name}.png` });
+  const cid = (await first.getAttribute('data-testid'))!.replace('candidate-', '');
+  await page.getByTestId(`hire-${cid}`).click();
+  await page.getByTestId('staff-tab-summary').click();
+  const face = page.locator('.staff-table').getByTestId('portrait-p13').locator('img');
+  await face.scrollIntoViewIfNeeded();
+  await expect.poll(() => loaded(face)).toBe(true);
+  // Портрет привязан к имени из пула: нанятый — тот же человек, лицо не заменено монограммой.
+  await expect(page.getByTestId('staff-p13')).toContainText(name);
+  await expect(page.locator('.staff-table').getByTestId('portrait-p13').locator('.portrait-initials')).toHaveCount(0);
+  await page.getByTestId('staff-tab-roster').click();
+  await page.screenshot({ path: `test-results/screens/art009-hired-${info.project.name}.png` });
+});

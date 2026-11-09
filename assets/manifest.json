@@ -1302,13 +1302,13 @@
       "file": "assets/backgrounds/campaign_title.png",
       "category": "backgrounds",
       "role": "Заставка кампании «Неисполненный жребий»",
-      "status": "review",
+      "status": "approved",
       "width": 1920,
       "height": 1080,
       "alpha": false,
       "sha256": "fa5454ef133d974aa628e2eb8ea1f76a349fdbf83d5678d248bcdfca343d9267",
       "source": "ART-014_FOR_CHATGPT.md, ChatGPT image_gen montage 2026-11-09, cropped and aspect-preserving upscaled from a quadrant",
-      "approvedBy": null,
+      "approvedBy": "Dmitry (2026-11-09)",
       "notes": "dark left-bottom for text; crop of concept sheet",
       "webCopies": [
         "assets/backgrounds/campaign_title.webp"
@@ -1319,13 +1319,13 @@
       "file": "assets/events/ending_order.png",
       "category": "events",
       "role": "Финал «Порядок удержан»",
-      "status": "review",
+      "status": "approved",
       "width": 1920,
       "height": 1080,
       "alpha": false,
       "sha256": "6789fe0d185ed9891fd6e87482dc9da261be5c183e34ab54924f3d7284e0085a",
       "source": "ART-014_FOR_CHATGPT.md, ChatGPT image_gen montage 2026-11-09, cropped and aspect-preserving upscaled from a quadrant",
-      "approvedBy": null,
+      "approvedBy": "Dmitry (2026-11-09)",
       "notes": "court hearing, central specimen evidence",
       "webCopies": [
         "assets/events/ending_order.webp"
@@ -1336,13 +1336,13 @@
       "file": "assets/events/ending_cost.png",
       "category": "events",
       "role": "Финал «Порядок ценой людей»",
-      "status": "review",
+      "status": "approved",
       "width": 1920,
       "height": 1080,
       "alpha": false,
       "sha256": "2ab9f0a022a6b08df04d99ecbc2f07709089050643cc044442ce54d352087d88",
       "source": "ART-014_FOR_CHATGPT.md, ChatGPT image_gen montage 2026-11-09, cropped and aspect-preserving upscaled from a quadrant",
-      "approvedBy": null,
+      "approvedBy": "Dmitry (2026-11-09)",
       "notes": "families watching a working clinic through glass",
       "webCopies": [
         "assets/events/ending_cost.webp"
@@ -1353,13 +1353,13 @@
       "file": "assets/events/ending_collapse.png",
       "category": "events",
       "role": "Финал «Дирекция отстранена»",
-      "status": "review",
+      "status": "approved",
       "width": 1920,
       "height": 1080,
       "alpha": false,
       "sha256": "be8bce2884d665aec6b2fb6c474a6349c44db8ffe86a68bfd53a8a952ff95248",
       "source": "ART-014_FOR_CHATGPT.md, ChatGPT image_gen montage 2026-11-09, cropped and aspect-preserving upscaled from a quadrant",
-      "approvedBy": null,
+      "approvedBy": "Dmitry (2026-11-09)",
       "notes": "PROVISIONAL MISMATCH: exterior transfer of authority instead of empty director office; redraw before final approval",
       "webCopies": [
         "assets/events/ending_collapse.webp"

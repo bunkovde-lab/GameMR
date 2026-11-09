@@ -371,7 +371,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
       const def = dealDef(offer.templateId)!;
       s.politics.offers = s.politics.offers.filter((o) => o !== offer);
       s.politics.standing[def.houseId] = Math.max(-100, (s.politics.standing[def.houseId] ?? 0) + POLITICS.declineStanding);
-      log(s, 'deal_declined', `Отклонено предложение ${houseById(def.houseId)!.label}: «${def.title}».`);
+      log(s, 'deal_declined', `Отклонено предложение (${houseById(def.houseId)!.label}): «${def.title}».`);
       return { ok: true, state: s };
     }
     case 'BREAK_DEAL': {

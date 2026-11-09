@@ -617,6 +617,9 @@ td.bad { color: var(--bad); }
 .statement.tainted { border-left: 3px solid var(--amber); padding-left: 8px; }
 .interviews[style] { padding: 12px; border-radius: 12px; }
 .case-head.with-art { padding: 14px 16px; border-radius: 12px; background-size: cover; background-position: center; }
+/* ART-013: место дела видно полосой y 300–600 исходника; на широком экране шапка выше, чтобы в кадр попал сам объект. */
+.case-head.with-art { min-height: clamp(96px, 9vw, 180px); display: flex; flex-direction: column; justify-content: center; background-position: right center; }
+@media (min-width: 900px) { .case-head.with-art > * { max-width: 58%; } }
 .good { color: var(--green); }
 .bad { color: var(--red); }
 .mid { color: var(--amber); }

@@ -1,0 +1,229 @@
+{
+  "_status": "PROVISIONAL_STORY — по сценарному пакету ChatGPT docs/story/W9_CASES_v1.md (PR #27), принят Дмитрием как рабочая основа 2026-11-08. Имена рабочие (OPEN-08), Дома «Первый…Шестой» (OPEN-04), числа — гипотезы до баланса W10 (OPEN-07). Поля truth/bears/forged/grade — скрытая истина, интерфейс их не показывает.",
+  "rules": {
+    "shiftMinutes": 720,
+    "analysis": {
+      "lab": { "label": "лабораторный анализ", "minutes": 90, "reagents": 1, "roles": ["biocriminalist", "analyst"], "speedPerLabLevel": 0.25 },
+      "desk": { "label": "проверка источника", "minutes": 45, "reagents": 0, "roles": ["investigator", "analyst", "biocriminalist"], "speedPerLabLevel": 0 }
+    },
+    "quality": { "base": 0.45, "perAnalysis": 0.08, "repeatBonus": 0.1 },
+    "detect": { "base": 0.3, "perAnalysis": 0.1, "repeatBonus": 0.15 },
+    "interrogation": { "minutes": 40, "roles": ["investigator", "analyst", "lovchiy"], "skilledMinAnalysis": 4 },
+    "actionRoles": { "field": ["investigator", "lovchiy", "guard"], "desk": ["investigator", "analyst"], "lab": ["biocriminalist", "analyst"] },
+    "casePermit": { "judicialBase": 0.5, "perAnalyzed": 0.05, "trustMin": 60, "trustBonus": 0.1, "violationPenalty": 0.2, "interagencyBase": 0.35, "standingFactor": 0.01, "min": 0.05, "max": 0.95 },
+    "chargeMin": 3,
+    "court": { "base": 0.55, "perExtra": 0.1, "perQuestionable": 0.15, "perEdge": 0.05, "min": 0.1, "max": 0.95 },
+    "expertise": { "fee": 2, "bonus": 0.2 },
+    "revealAfterShifts": 2,
+    "rightCharge": { "trust": 4 },
+    "revealFalse": { "trust": -8, "violation": true, "coalition": { "open": 5 }, "text": "Обвинение оказалось ошибочным: всплыли факты, которые дело не учло." },
+    "pressure": { "coalition": { "open": -2 }, "text": "Усиленный допрос попал в журнал Открытого контура." }
+  },
+  "evidenceTypes": {
+    "bio_sample": "биообразец", "document": "документ", "recording": "запись", "testimony": "показания",
+    "object": "предмет", "finance": "финансовый след", "registry": "запись реестра", "location": "место"
+  },
+  "methods": {
+    "standard": "Беседа",
+    "present": "Предъявить",
+    "protect": "Предложить защиту",
+    "negotiate": "Переговоры",
+    "pressure": "Усиленный допрос"
+  },
+  "cases": [
+    {
+      "id": "c1", "number": 418, "title": "Вычеркнутый", "templateId": "missing", "houseId": "h2", "fromShift": 1, "toShift": 4,
+      "summary": "Регистратор архива родословных Идан Кер не вышел на смену. Его пропуск зарегистрирован ночью, хотя коллеги уверены, что он уехал. У Идана есть семья; его нельзя автоматически считать погибшим.",
+      "slots": ["до ночной смены", "02:16", "после доступа", "утро"],
+      "hypotheses": [
+        { "id": "h1a", "title": "Самовольное исчезновение", "text": "Кер украл сведения и скрылся.", "grade": "false" },
+        { "id": "h1b", "title": "Внутриведомственный подлог", "text": "Начальство изменило реестр и заставило Кера замолчать.", "grade": "partial" },
+        { "id": "h1c", "title": "Сбой системы сверки", "text": "Повреждение узла и подрядчик породили дубли.", "grade": "false" },
+        { "id": "h1d", "title": "Организованная схема Домов", "text": "Данные, документы и перевозка — части одной цепи.", "grade": "true" }
+      ],
+      "evidence": [
+        { "id": "e01", "type": "registry", "origin": "scene", "title": "Ночной доступ по пропуску", "source": "Пропускной терминал архива", "text": "Пропуск Кера: вход в 02:16. Само по себе не доказывает, что он был на месте.", "slot": 1, "analysis": "desk", "bears": { "h1a": "contradicts", "h1b": "supports" }, "resultText": "Пропуск настоящий, но рисунок вен на терминале не принадлежит Керу: картой воспользовался другой." },
+        { "id": "e02", "type": "recording", "origin": "scene", "title": "Зацикленный фрагмент камеры", "source": "Камеры и задержки архива", "text": "19 секунд видео заменены штатным зацикленным кадром. Мог быть аварийный ремонт.", "slot": 1, "analysis": "desk", "bears": { "h1c": "contradicts", "h1b": "supports", "h1d": "supports" }, "resultText": "Замена сделана вручную через сервисный доступ, а не автоматикой ремонта." },
+        { "id": "e03", "type": "document", "origin": "action:a_list", "title": "Список отсрочек", "source": "Закрытые записи Второго Дома", "text": "Девять записей получили статус «перенос», хотя медицинский журнал их не подтверждает. Защищённые фамилии скрыты.", "analysis": "desk", "forged": true, "fakeBears": { "h1c": "supports" }, "fakeText": "Переносы оформлены штатно, похоже на сбой учёта.", "bears": { "h1b": "supports", "h1d": "supports", "h1c": "contradicts" }, "resultText": "Медицинские основания вписаны задним числом: это не сбой, а подлог." },
+        { "id": "e04", "type": "testimony", "origin": "person:p2", "title": "Показания Бо Этты", "source": "Бо Этта, инженер ночной сверки", "text": "Кер потребовал двойную копию сверки, но официально просил только замену рабочего узла.", "slot": 0, "analysis": "desk", "bears": { "h1b": "supports", "h1a": "supports" }, "resultText": "Заявка Кера на замену узла есть в журнале; о двойной копии — только её слова." },
+        { "id": "e05", "type": "finance", "origin": "action:a_pay", "title": "Оплата ночного доступа", "source": "Служебные платежи архива", "text": "Ночной доступ оплачен подрядчику. Сначала выглядит как штатный счёт.", "analysis": "desk", "bears": { "h1d": "supports", "h1c": "contradicts" }, "resultText": "Подрядчик — прокладка: счёт закрыт через казначейство Пятого Дома в обход тендера." },
+        { "id": "e06", "type": "object", "origin": "action:a_route", "title": "Маршрут контейнера", "source": "Маршрут аварийной доставки", "text": "Контейнер регистрации побывал в жилом секторе, что не предусмотрено сверкой. Возможна ошибка перевозчика.", "slot": 2, "analysis": "desk", "bears": { "h1d": "supports", "h1c": "contradicts" }, "resultText": "Остановка у жилого блока длилась сорок минут: контейнер выгружали. Адрес записан.", "setsFlag": "c1_address" },
+        { "id": "e07", "type": "document", "origin": "action:a_search", "title": "Заявление Кера", "source": "Голосовая запись Идана Кера", "text": "«Ошибка не в жребии. Ошибка в тех, кто считается пришедшим». Заявление неполно.", "slot": 3, "analysis": "desk", "bears": { "h1a": "contradicts", "h1b": "supports", "h1d": "supports" }, "resultText": "Запись подлинная, сделана утром после доступа." },
+        { "id": "e08", "type": "registry", "origin": "action:a_compare", "title": "Две версии архива", "source": "Санкционированное сопоставление", "text": "У нескольких записей заменён идентификатор обязанности, а не дата. Подписью Нориса мог воспользоваться другой оператор.", "analysis": "desk", "bears": { "h1b": "supports", "h1d": "supports", "h1c": "contradicts" }, "resultText": "Замены проведены пакетом за одну ночь, через маршрутизацию с печатью Нориса Сала." },
+        { "id": "e09", "type": "testimony", "origin": "person:p1", "title": "Норис о приказе казначейства", "source": "Норис Сал", "text": "Перевозку он авторизовал «по линии казначейства», без имени.", "analysis": "desk", "bears": { "h1d": "supports" }, "resultText": "Совпадает с маршрутом и оплатой подрядчика." },
+        { "id": "e10", "type": "testimony", "origin": "person:p1", "title": "Имя подрядчика", "source": "Норис Сал, усиленный допрос", "text": "Под давлением Норис называет подрядчика.", "analysis": "desk", "bears": { "h1d": "supports" }, "resultText": "Подрядчик существует; связь с приказом не доказана." },
+        { "id": "e11", "type": "registry", "origin": "person:p2", "title": "Аварийная копия сверки", "source": "Тайник Бо Этты", "text": "Исходный индекс ночной сверки до подмены.", "analysis": "desk", "bears": { "h1b": "supports", "h1d": "supports", "h1c": "contradicts" }, "resultText": "Копия подлинная: подмена видна по каждому из девяти номеров.", "setsFlag": "c1_original_index_preserved" }
+      ],
+      "edges": [
+        { "a": "e01", "b": "e02", "question": "Кто вошёл в 02:16?", "insight": "Пропуск Кера и подмена кадра в одну минуту: вошёл человек с сервисным доступом, не обязательно Кер." },
+        { "a": "e03", "b": "e08", "question": "Какие поля менялись?", "insight": "Меняли не даты, а идентификатор обязанности: это подмена людей, а не перенос сроков." },
+        { "a": "e05", "b": "e06", "question": "Кто оплатил перевозку?", "insight": "Перевозку в жилой сектор оплатил тот же подрядчик из цепочки Пятого Дома." },
+        { "a": "e04", "b": "e07", "question": "Почему исчез Кер?", "insight": "Кер унёс копию, чтобы её не уничтожили, а не чтобы продать." }
+      ],
+      "actions": [
+        { "id": "a_list", "label": "Запросить список отсрочек", "kind": "desk", "minutes": 60, "permit": "interagency", "houseId": "h2", "reveals": ["e03"], "hint": "Закрытые записи Второго Дома: нужен его допуск." },
+        { "id": "a_pay", "label": "Проанализировать служебные платежи", "kind": "desk", "minutes": 60, "requires": ["e01"], "reveals": ["e05"] },
+        { "id": "a_route", "label": "Осмотреть маршрут аварийной доставки", "kind": "field", "minutes": 90, "requires": ["e02"], "reveals": ["e06"] },
+        { "id": "a_search", "label": "Найти Идана Кера", "kind": "field", "minutes": 120, "requires": ["e06"], "reveals": ["e07"], "flagIfBy": { "shift": 3, "flag": "c1_idan_found" }, "hint": "Если найти до конца смены 3, Кера можно допросить лично. Позже останется только его запись." },
+        { "id": "a_compare", "label": "Сопоставить две версии архива", "kind": "desk", "minutes": 90, "permit": "interagency", "houseId": "h2", "requires": ["e03"], "reveals": ["e08"] }
+      ],
+      "persons": [
+        { "id": "p1", "name": "Норис Сал", "role": "заместитель хранителя реестра Второго Дома", "portrait": "npc_c1_01", "houseId": "h2", "requires": ["e03"],
+          "lines": [
+            { "id": "l1", "method": "standard", "text": "«Я лично не выдавал ни одной отсрочки»." },
+            { "id": "l2", "method": "present", "needs": ["e08"], "text": "Признаёт, что его печать подписала маршрутизацию, но не медицинское основание: «Печатью пользуется весь отдел»." },
+            { "id": "l3", "method": "present", "needs": ["e05", "e08"], "text": "Спрошенный, почему он авторизовал перевозку, называет приказ «по линии казначейства». Имени не даёт.", "reveals": "e09" },
+            { "id": "l4", "method": "pressure", "text": "Называет имя подрядчика. Юрист Второго Дома сразу оспаривает протокол.", "reveals": "e10", "standing": { "h2": -5 } }
+          ] },
+        { "id": "p2", "name": "Бо Этта", "role": "инженер ночной сверки", "portrait": "npc_c1_02",
+          "lines": [
+            { "id": "l1", "method": "standard", "text": "«Той ночью система сама ушла в перезагрузку». Вспоминает, что Кер просил двойную копию.", "reveals": "e04" },
+            { "id": "l2", "method": "protect", "needs": ["e02", "e04"], "text": "Под защитой признаёт: перезапуск и запрос Кера совпали, она скрыла это из страха перед увольнением. Называет место аварийной копии.", "reveals": "e11" },
+            { "id": "l3", "method": "pressure", "text": "Пугается и путается; доверие к её показаниям потеряно." }
+          ] },
+        { "id": "p3", "name": "Идан Кер", "role": "пропавший регистратор", "portrait": "npc_c1_03", "requiresFlag": "c1_idan_found",
+          "lines": [
+            { "id": "l1", "method": "standard", "text": "«Я не пытался скрыться от закона»." },
+            { "id": "l2", "method": "present", "needs": ["e01", "e06"], "text": "Признаёт, что вывез копию в обход режима архива, чтобы её не уничтожили. Он и свидетель, и нарушитель.", "setsFlag": "c1_idan_protected" }
+          ] }
+      ],
+      "conclusions": [
+        { "id": "charge_noris", "kind": "charge", "label": "Обвинить Нориса Сала", "hypotheses": ["h1b", "h1d"], "hint": "Быстрая официальная победа. Риск выдать цепь за одиночный проступок.", "effects": { "trust": 4, "standing": { "h2": -10 } }, "flags": ["c1_archivist_arrested"] },
+        { "id": "audit", "kind": "final", "label": "Ходатайство о независимом аудите", "hint": "Улики сохранятся, но Пятый Дом успеет подготовиться.", "needsEdges": 2, "money": -2, "effects": { "trust": 2, "coalition": { "open": 3 } }, "flags": ["c1_evidence_lawful", "c5_prepared"], "strong": true },
+        { "id": "discipline", "kind": "close", "label": "Закрыть как дисциплинарный случай", "hint": "Ресурс сегодня, кризис позже.", "money": 3, "effects": { "standing": { "h2": 5 } }, "reveal": { "trust": -5, "text": "Дело Кера всплыло снова: «дисциплинарный случай» оказался подменой людей." } }
+      ]
+    },
+    {
+      "id": "c2", "number": 431, "title": "Замена плоти", "templateId": "illegal", "houseId": "h6", "fromShift": 5, "toShift": 8,
+      "summary": "В жилом блоке найдена подпольная операционная. Официально — торговцы нелегальными усилениями. Хирург меняла биометрическое распознавание людей, которых чужая запись превратила в обязательных доноров, и брала за это деньги.",
+      "slots": ["до операции", "операция", "после операции", "вывоз отходов"],
+      "hypotheses": [
+        { "id": "h2a", "title": "Коммерческое подполье", "text": "Ашер продавала опасные изменения богатым клиентам; совпадения с реестром случайны.", "grade": "false" },
+        { "id": "h2b", "title": "Спасательная сеть", "text": "Вмешательства защищали подставленных людей.", "grade": "partial" },
+        { "id": "h2c", "title": "Сеть платных отсрочек", "text": "Клиника — звено между финансами, госпиталями и архивом.", "grade": "true" },
+        { "id": "h2d", "title": "Принуждение внутри Дома", "text": "Клиника скрывала опыты Первого Дома.", "grade": "false" }
+      ],
+      "evidence": [
+        { "id": "e01", "type": "bio_sample", "origin": "scene", "title": "Маскирующие ткани", "source": "Операционная", "text": "Мягкие биометрические маскирующие ткани. Могли использоваться для нелегальной косметики.", "slot": 1, "analysis": "lab", "bears": { "h2a": "contradicts", "h2b": "supports", "h2c": "supports" }, "resultText": "Ткани подгоняют биометрию под чужой профиль обязательства: для косметики они не нужны." },
+        { "id": "e02", "type": "document", "origin": "action:a_search", "title": "Реестр пациентов", "source": "Судебный обыск", "text": "У двух пациентов гражданские карты не совпадают с генетическими признаками обязательства. Возможна «защита свидетеля».", "slot": 0, "analysis": "desk", "bears": { "h2b": "supports", "h2c": "supports", "h2a": "contradicts" }, "resultText": "Программы защиты свидетелей на эти имена нет: обязательство переписано на них чужой записью." },
+        { "id": "e03", "type": "recording", "origin": "action:a_statement", "title": "Заявление пациента", "source": "Добровольное заявление", "text": "«Мне сделали операцию, чтобы я не попал вместо другого». Схемы пациент не знает.", "slot": 1, "analysis": "desk", "bears": { "h2b": "supports", "h2a": "contradicts" }, "resultText": "Номер пациента в реестре изменён за неделю до операции." },
+        { "id": "e04", "type": "finance", "origin": "action:a_books", "title": "Платёжный след", "source": "Бухгалтерия клиники", "text": "Поступления от подрядчика Пятого Дома. Возможна закупка медпомощи.", "analysis": "desk", "bears": { "h2c": "supports" }, "resultText": "Платежи оформлены как «компенсации», но совпадают по датам с отсрочками." },
+        { "id": "e05", "type": "document", "origin": "action:a_protocols", "title": "Протоколы отсрочек", "source": "Изъятая копия", "text": "Подпись Севы Гель на заключениях об отсрочке.", "analysis": "desk", "forged": true, "fakeBears": { "h2c": "contradicts" }, "fakeText": "Заключения оформлены по форме: похоже на законные медицинские отсрочки.", "bears": { "h2c": "supports", "h2d": "contradicts" }, "resultText": "Заключения подложные: медицинских оснований нет, подписи ставились пачкой за одну ночь." },
+        { "id": "e06", "type": "testimony", "origin": "person:p1", "title": "Показания Ашер", "source": "Таль Ашер", "text": "Несколько пациентов просили вернуть прежние идентификаторы: страх разоблачения сильнее нелегальности.", "slot": 2, "analysis": "desk", "bears": { "h2b": "supports", "h2a": "contradicts" }, "resultText": "Двое пациентов подтверждают её слова." },
+        { "id": "e07", "type": "registry", "origin": "action:a_crosscheck", "title": "Одна ветвь реестра", "source": "Сопоставление с делом №418", "text": "Имена ночной сверки и «пациенты без очереди» входят в одну административную ветвь. Возможно, общий подрядчик.", "analysis": "desk", "bears": { "h2c": "supports", "h2a": "contradicts" }, "resultText": "Совпадают не только ветвь, но и даты замены идентификаторов." },
+        { "id": "e08", "type": "location", "origin": "action:a_waste", "title": "Отходы в лабораторию", "source": "Экспертиза отходов", "text": "Медицинские остатки отправляли на анализ тканевых культур в лабораторию Первого Дома.", "slot": 3, "analysis": "lab", "bears": { "h2d": "supports", "h2c": "supports" }, "resultText": "Направления подписаны тем же подрядчиком; лаборатория получала материал, но заказчиком не была.", "setsFlag": "c2_waste_link" },
+        { "id": "e09", "type": "document", "origin": "person:p1", "title": "Журнал операций Ашер", "source": "Таль Ашер", "text": "Кто, когда и под чьё обязательство был изменён.", "analysis": "desk", "bears": { "h2b": "supports", "h2c": "supports" }, "resultText": "Журнал полный; один пациент прошёл процедуру под угрозой.", "setsFlag": "c2_ledger_preserved" },
+        { "id": "e10", "type": "registry", "origin": "person:p2", "title": "Исходный журнал отсрочек", "source": "Сева Гель", "text": "Носитель журнала отсрочек Шестого Дома.", "analysis": "desk", "bears": { "h2c": "supports", "h2d": "contradicts" }, "resultText": "Подлинник: в нём видна цепочка служебных приказов от казначейства." },
+        { "id": "e11", "type": "testimony", "origin": "person:p2", "title": "Признание Гель против Ашер", "source": "Сева Гель, незаконное давление", "text": "«Это всё Ашер, она продавала операции».", "analysis": "desk", "bears": { "h2a": "supports" }, "resultText": "Подробностей Гель назвать не смогла." },
+        { "id": "e12", "type": "testimony", "origin": "person:p3", "title": "Слова Тисса", "source": "Варен Тисс", "text": "«Без этого погибли бы пациенты на других уровнях общества».", "analysis": "desk", "bears": { "h2c": "supports" }, "resultText": "Тисс не отрицает цепочку приказов, но и не признаёт её под протокол." }
+      ],
+      "edges": [
+        { "a": "e02", "b": "e07", "question": "Кого прятали?", "insight": "Пациенты без очереди — те же люди, чьи обязательства переписала ночная сверка." },
+        { "a": "e04", "b": "c1:e05", "question": "Один ли плательщик?", "insight": "Клинику и ночной доступ в архив оплачивал один подрядчик." },
+        { "a": "e05", "b": "c1:e03", "question": "Откуда отсрочки?", "insight": "Подписи Гель стоят на тех самых «переносах» из списка Второго Дома." },
+        { "a": "e01", "b": "e03", "question": "Зачем операция?", "insight": "Маскировка нужна, чтобы человек не попал на жребий вместо другого." }
+      ],
+      "actions": [
+        { "id": "a_search", "label": "Обыск реестров пациентов", "kind": "field", "minutes": 90, "permit": "judicial", "reveals": ["e02"], "hint": "Жилой дом: обыск только по ордеру." },
+        { "id": "a_statement", "label": "Принять заявление пациента", "kind": "desk", "minutes": 45, "reveals": ["e03"] },
+        { "id": "a_books", "label": "Проверить бухгалтерию клиники", "kind": "desk", "minutes": 60, "requires": ["e01"], "reveals": ["e04"] },
+        { "id": "a_protocols", "label": "Изъять копию протоколов отсрочек", "kind": "field", "minutes": 60, "permit": "judicial", "requires": ["e02"], "reveals": ["e05"] },
+        { "id": "a_crosscheck", "label": "Сопоставить с данными дела №418", "kind": "desk", "minutes": 60, "requires": ["c1:e03", "c1:e08"], "reveals": ["e07"], "hint": "Нужны список отсрочек и две версии архива из дела №418." },
+        { "id": "a_crosscheck_alt", "label": "Сопоставить по картам пациентов (без архива)", "kind": "desk", "minutes": 120, "requires": ["e02"], "reveals": ["e07"], "weak": "Сопоставлено без архива Второго Дома: суд сочтёт неполным.", "hint": "Обходной путь, если данных дела №418 нет: дольше и слабее." },
+        { "id": "a_waste", "label": "Экспертиза отходов", "kind": "lab", "minutes": 90, "requires": ["e01"], "reveals": ["e08"] }
+      ],
+      "persons": [
+        { "id": "p1", "name": "Таль Ашер", "role": "подпольный хирург", "portrait": "npc_c2_01",
+          "lines": [
+            { "id": "l1", "method": "standard", "text": "«Я никого не продавала». Рассказывает, что пациенты просили вернуть прежние идентификаторы.", "reveals": "e06" },
+            { "id": "l2", "method": "present", "needs": ["e04"], "text": "Признаёт деньги от подрядчика: «на расходники»." },
+            { "id": "l3", "method": "present", "needs": ["e03"], "text": "Признаёт, что часть пациентов согласилась сама." },
+            { "id": "l4", "method": "protect", "needs": ["e02"], "text": "Под обещание свидетельской защиты признаёт, что один пациент был вынужден пройти процедуру, и отдаёт журнал операций.", "reveals": "e09", "setsFlag": "c2_surgeon_cooperates" },
+            { "id": "l5", "method": "pressure", "text": "Замыкается. Журнал операций, по её словам, сгорел.", "setsFlag": "c2_ledger_lost" }
+          ] },
+        { "id": "p2", "name": "Сева Гель", "role": "врач донорской службы Шестого Дома", "portrait": "npc_c2_02", "houseId": "h6", "requires": ["e05"],
+          "lines": [
+            { "id": "l1", "method": "standard", "text": "«Медицинские решения выдаёт врач, не казначейство»." },
+            { "id": "l2", "method": "present", "needs": ["e05", "e04"], "text": "Признаёт свои подписи и внешнюю оплату." },
+            { "id": "l3", "method": "protect", "needs": ["e05", "e07"], "text": "Видит связь с заменами и при защите семьи выдаёт исходный носитель журнала.", "reveals": "e10" },
+            { "id": "l4", "method": "pressure", "text": "Даёт ложное признание против Ашер.", "reveals": "e11" }
+          ] },
+        { "id": "p3", "name": "Варен Тисс", "role": "финансовый уполномоченный Пятого Дома", "portrait": "npc_c2_03", "houseId": "h5", "requires": ["e04"],
+          "lines": [
+            { "id": "l1", "method": "standard", "text": "«Мы финансировали компенсацию людям, а не отсрочки»." },
+            { "id": "l2", "method": "present", "needs": ["e05", "e07"], "text": "Не отрицает цепочку приказов: считает, что иначе погибли бы пациенты на других уровнях общества.", "reveals": "e12", "setsFlag": "c2_tiss_exposed" },
+            { "id": "l3", "method": "pressure", "text": "Тисс уходит в сопровождении юристов Пятого Дома. Дом заявляет протест.", "standing": { "h5": -10 } }
+          ] }
+      ],
+      "conclusions": [
+        { "id": "arrest_asher", "kind": "charge", "label": "Арестовать Ашер за самовольные вмешательства", "hypotheses": ["h2a", "h2b", "h2c"], "hint": "Крепкое местное дело, но пациенты перестанут доверять.", "effects": { "trust": -3 }, "flags": ["c2_surgeon_arrested"] },
+        { "id": "cooperate", "kind": "final", "label": "Сотрудничество Ашер под контролем суда", "hint": "Спасти людей и поднять документы. Риск для репутации.", "needsFlag": "c2_surgeon_cooperates", "effects": { "trust": 3, "coalition": { "open": 3 }, "standing": { "h6": -5 } }, "flags": ["c2_patients_saved"], "strong": true },
+        { "id": "charge_tiss", "kind": "charge", "label": "Преследовать Тисса через суд", "hypotheses": ["h2c"], "hint": "Отношения с Пятым Домом падают, возможны контрмеры.", "effects": { "standing": { "h5": -20 } }, "flags": ["c2_tiss_accused"] },
+        { "id": "hide", "kind": "close", "label": "Скрыть деятельность клиники ради пациентов", "hint": "Пациенты защищены сейчас; судебная проверка позже может ударить по полномочиям.", "effects": { "trust": 2 }, "flags": ["c2_patients_saved", "c2_hidden"], "reveal": { "trust": -6, "violation": true, "text": "Скрытая клиника всплыла на судебной проверке: полномочия дирекции под вопросом." } }
+      ]
+    },
+    {
+      "id": "c3", "number": 447, "title": "Холодная культура", "templateId": "bioleak", "houseId": "h1", "fromShift": 9, "toShift": 12,
+      "summary": "Датчики фиксируют разгерметизацию лаборатории тканевых культур Первого Дома. Культура растёт в инженерных каналах, исчез контейнер с исходными образцами. Первый Дом говорит «авария», Палата Зеркал требует изолировать партию, больницы просят помощи.",
+      "slots": ["до аварии", "отключение клапанов", "разгерметизация", "после тревоги"],
+      "hypotheses": [
+        { "id": "h3a", "title": "Техническая авария", "text": "Лаборатория скрыла сбой из страха перед Домом.", "grade": "false" },
+        { "id": "h3b", "title": "Уничтожение следов", "text": "Партию уничтожали, чтобы разорвать цепь жребия.", "grade": "partial" },
+        { "id": "h3c", "title": "Операция Палаты Зеркал", "text": "Утечку устроила Палата ради своей партии.", "grade": "false" },
+        { "id": "h3d", "title": "Двойной конфликт", "text": "Незаконная утилизация, попытка сохранить материал и сбой при вмешательстве.", "grade": "true" }
+      ],
+      "evidence": [
+        { "id": "e01", "type": "recording", "origin": "scene", "title": "Журнал аварийных клапанов", "source": "Система разгерметизации", "text": "Клапаны отключены до утечки; в журнале отметка «профилактика».", "slot": 1, "conflictsWith": ["e05"], "analysis": "desk", "forged": true, "fakeBears": { "h3a": "supports" }, "fakeText": "Отметка о профилактике оформлена штатно.", "bears": { "h3a": "contradicts", "h3b": "supports", "h3d": "supports" }, "resultText": "Отметку о профилактике внесли задним числом: клапаны отключили вручную." },
+        { "id": "e02", "type": "bio_sample", "origin": "action:a_sample", "title": "Проба культуры", "source": "Забор в пределах законного доступа", "text": "Часть образцов совпадает с материалом из дела №431. Проба загрязнена.", "analysis": "lab", "bears": { "h3b": "supports", "h3d": "supports", "h3c": "contradicts" }, "resultText": "После очистки совпадение подтверждено: это ткани подменённых доноров." },
+        { "id": "e03", "type": "document", "origin": "action:a_journal", "title": "Журнал культуры", "source": "Первый Дом", "text": "Утилизацию партии назначили заранее и отменили после начала аварии. Возможна обычная рекламация.", "slot": 0, "analysis": "desk", "bears": { "h3b": "supports", "h3d": "supports", "h3a": "contradicts" }, "resultText": "Распоряжение об утилизации пришло извне лаборатории, в обход её совета." },
+        { "id": "e04", "type": "object", "origin": "scene", "title": "Пломба контейнера", "source": "Хранилище образцов", "text": "Пломба переустановлена не лабораторным инструментом. Мог справиться и ремонтный подрядчик.", "slot": 2, "analysis": "desk", "bears": { "h3d": "supports", "h3a": "contradicts" }, "resultText": "Пломбу вскрыли дважды: до аварии и во время неё." },
+        { "id": "e05", "type": "testimony", "origin": "person:p2", "title": "Показания Лоты Вей", "source": "Лота Вей", "text": "«Мне сказали не фиксировать фамилии доноров. Тревогу я включила, когда увидела рост культуры».", "slot": 2, "conflictsWith": ["e01"], "analysis": "desk", "bears": { "h3b": "supports", "h3d": "supports" }, "resultText": "Её пропуск отмечен у отсека после отключения клапанов." },
+        { "id": "e06", "type": "finance", "origin": "action:a_orders", "title": "Заказы на реагенты", "source": "Сверка заказов", "text": "Дополнительные расходники оплачены Пятым Домом через Четвёртый. Связь с фальсификацией спорна.", "analysis": "desk", "bears": { "h3d": "supports" }, "resultText": "Заказ — стерилизатор для полной утилизации партии." },
+        { "id": "e07", "type": "registry", "origin": "action:a_registry", "title": "Сверка реестров", "source": "Межведомственная сверка", "text": "Среди исходных образцов — материал людей, чья обязанность по жребию была подменена.", "analysis": "desk", "bears": { "h3b": "supports", "h3d": "supports", "h3c": "contradicts" }, "resultText": "Совпадение по семи донорам из дел №418 и №431.", "setsFlag": "c3_e07_found" },
+        { "id": "e08", "type": "document", "origin": "person:p3", "title": "Требование Палаты Зеркал", "source": "Наль Рез", "text": "Палата пыталась изолировать одну партию до распоряжения об утилизации. Защищала доказательство или свой интерес.", "analysis": "desk", "bears": { "h3c": "supports", "h3d": "supports" }, "resultText": "Требование датировано днём раньше утечки." },
+        { "id": "e09", "type": "testimony", "origin": "person:p1", "title": "Сейн о приказе сверху", "source": "Эрк Сейн", "text": "Приказ об утилизации пришёл «сверху»; своё участие он смягчает.", "analysis": "desk", "bears": { "h3b": "supports", "h3d": "supports" }, "resultText": "Слова совпадают с журналом культуры." },
+        { "id": "e10", "type": "bio_sample", "origin": "person:p2", "title": "Жизнеспособный образец", "source": "Лота Вей", "text": "Образец, который Вей сохранила до утилизации.", "analysis": "lab", "bears": { "h3b": "supports", "h3d": "supports" }, "resultText": "Чистый образец с донорскими метками: пригоден для суда.", "setsFlag": "c3_sample_admissible" }
+      ],
+      "edges": [
+        { "a": "e02", "b": "c2:e08", "question": "Откуда материал?", "insight": "Проба совпадает с отходами подпольной операционной." },
+        { "a": "e07", "b": "c2:e07", "question": "Те же ли люди?", "insight": "Доноры в культурах — люди из одной ветви реестра с пациентами клиники." },
+        { "a": "e03", "b": "e08", "question": "Кто первым тронул партию?", "insight": "Палата требовала изоляции до распоряжения об утилизации: она знала о партии." },
+        { "a": "e01", "b": "e04", "question": "Одна ли рука?", "insight": "Клапаны и пломбу трогали до аварии: утечка случилась при вмешательстве." }
+      ],
+      "actions": [
+        { "id": "a_sample", "label": "Взять пробу в пределах законного доступа", "kind": "lab", "minutes": 90, "reveals": ["e02"] },
+        { "id": "a_journal", "label": "Запросить журнал культуры у Первого Дома", "kind": "desk", "minutes": 60, "permit": "interagency", "houseId": "h1", "reveals": ["e03"] },
+        { "id": "a_orders", "label": "Сверить заказы на реагенты", "kind": "desk", "minutes": 60, "reveals": ["e06"] },
+        { "id": "a_registry", "label": "Межведомственная сверка реестров", "kind": "desk", "minutes": 90, "permit": "interagency", "houseId": "h1", "requires": ["e02"], "reveals": ["e07"] }
+      ],
+      "persons": [
+        { "id": "p1", "name": "Эрк Сейн", "role": "директор лаборатории Первого Дома", "portrait": "npc_c3_01", "houseId": "h1",
+          "lines": [
+            { "id": "l1", "method": "standard", "text": "«Мы ничего не уничтожали: была рекламация»." },
+            { "id": "l2", "method": "present", "needs": ["e04"], "text": "Признаёт ручную замену пломбы, но называет её ремонтом." },
+            { "id": "l3", "method": "present", "needs": ["e07"], "text": "Раскрывает приказ «сверху» об утилизации, смягчая своё участие.", "reveals": "e09" },
+            { "id": "l4", "method": "pressure", "text": "Без допуска давление делает его показания спорными. Первый Дом протестует.", "standing": { "h1": -10 } }
+          ] },
+        { "id": "p2", "name": "Лота Вей", "role": "исследовательница культур", "portrait": "npc_c3_02",
+          "lines": [
+            { "id": "l1", "method": "standard", "text": "Рассказывает, как включила тревогу.", "reveals": "e05" },
+            { "id": "l2", "method": "protect", "needs": ["e01"], "text": "Под защитой и с медицинской эвакуацией отдаёт сохранённый образец.", "reveals": "e10", "setsFlag": "c3_lota_saved" },
+            { "id": "l3", "method": "pressure", "text": "Пугается; её показания теряют вес." }
+          ] },
+        { "id": "p3", "name": "Наль Рез", "role": "представитель Палаты Зеркал (не подчиняется дирекции)", "portrait": "npc_c3_03",
+          "lines": [
+            { "id": "l1", "method": "standard", "text": "«Вы хотите установить виновных. Я хочу, чтобы они не смогли использовать этот материал снова»." },
+            { "id": "l2", "method": "negotiate", "needs": ["e03"], "text": "В обмен на изоляцию партии даёт узкое подтверждение своего требования. Приказ начальства не раскрывает.", "reveals": "e08", "setsFlag": "c3_mirrors_arrangement" },
+            { "id": "l3", "method": "pressure", "text": "Силовое удержание агента Палаты: внутренний кризис с независимым институтом.", "setsFlag": "c3_mirrors_conflict", "violation": true }
+          ] }
+      ],
+      "conclusions": [
+        { "id": "public", "kind": "final", "label": "Публичная независимая экспертиза", "hint": "Максимальная проверяемость. Риск распространения материала и скандала.", "needsFlag": "c3_e07_found", "effects": { "safety": -5, "coalition": { "open": 5 }, "standing": { "h1": -15 } }, "flags": ["campaign_public_hearing"], "strong": true },
+        { "id": "dossier", "kind": "final", "label": "Закрытое досье нескольким Домам", "hint": "Порядок сегодня, цена непрозрачности.", "effects": { "trust": -3, "coalition": { "continuity": 5 }, "standing": { "h1": 5, "h5": 5 } }, "flags": ["campaign_closed_compact"] },
+        { "id": "mirrors", "kind": "final", "label": "Передать материал Палате Зеркал под протокол", "hint": "Партия в безопасности, судебная доказательность слабеет.", "effects": { "safety": 3 }, "flags": ["c3_mirrors_arrangement", "c3_sample_lost"] },
+        { "id": "lab_charge", "kind": "charge", "label": "Жёсткая ответственность лаборатории", "hypotheses": ["h3a", "h3b", "h3d"], "hint": "Местная победа, неполная истина о жребии.", "effects": { "standing": { "h1": -10 } }, "flags": ["c3_lab_charged"] },
+        { "id": "civil", "kind": "close", "label": "Оставить дело, ресурсы — на гражданскую защиту", "hint": "Улики могут исчезнуть, но жизни важнее.", "effects": { "trust": 3, "safety": 3 }, "flags": ["c3_civil_priority"] }
+      ]
+    }
+  ]
+}

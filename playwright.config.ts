@@ -10,6 +10,7 @@ export const VIEWPORTS = [
 
 export default defineConfig({
   testDir: 'tests/e2e',
+  globalSetup: './tests/e2e/setup/global-setup.mjs',
   fullyParallel: true,
   reporter: process.env.CI ? 'github' : 'list',
   use: { baseURL: 'http://localhost:4173', trace: 'off' },

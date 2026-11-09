@@ -26,7 +26,7 @@ const KIND_LABEL: Record<TransactionKind, string> = {
   funding: 'Финансирование', subsidy: 'Субсидия', salary: 'Жалование', upkeep: 'Содержание объектов', dispatch: 'Выезды',
   treatment: 'Лечение', hiring: 'Найм', check: 'Проверки', training: 'Обучение', promotion: 'Аттестация', implant: 'Органы',
   construction: 'Строительство', research: 'Исследования', fabrication: 'Изготовление',
-  permit_fee: 'Пошлины', sanction: 'Санкции', deal: 'Договоры с Домами',
+  permit_fee: 'Пошлины', sanction: 'Санкции', deal: 'Договоры с Домами', expertise: 'Экспертизы',
 };
 
 /** W7 (часть 1): Дирекция — обзор (UI-15), финансы (UI-16), инфраструктура (UI-17). */

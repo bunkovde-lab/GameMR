@@ -3,6 +3,7 @@ import { toCents } from './content';
 import { researchCells } from './facilities';
 import { nextFloat } from './rng';
 import { dealReagents } from './politics';
+import { caseTaskOf } from './selectors';
 import type { GameState, Project, ProjectStatus, ResearchProtocol, Staff, StaffRole } from './types';
 
 /**
@@ -73,6 +74,7 @@ export function researcherBlocker(s: GameState, projectId: string, staffId: stri
   if (['serious_injury', 'critical', 'missing'].includes(p.health)) return 'Не допущен(а) по состоянию.';
   if (researchOf(s, p.id)) return 'Ведёт другой проект.';
   if (p.training) return 'На курсе.';
+  if (caseTaskOf(s, p.id)) return 'Работает по делу.';
   if (s.medical.patients.some((x) => x.staffId === p.id)) return 'В клинике.';
   if (s.squads.some((q) => q.memberIds.includes(p.id) && DEPLOYED.includes(q.status))) return 'На задании.';
   return null;

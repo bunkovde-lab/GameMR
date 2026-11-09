@@ -18,6 +18,14 @@ const byId = (files: Record<string, string>) => {
   }
   return out;
 };
+/** W9 (ART-011): лица фигурантов дел — face_npc_c1_01.webp и т. п. Пока файлов нет, показывается монограмма. */
+const npcFaces = import.meta.glob('../../assets/characters/web/face_npc_*.webp', { eager: true, import: 'default' }) as Record<string, string>;
+const npcFulls = import.meta.glob('../../assets/characters/web/portrait_npc_*.webp', { eager: true, import: 'default' }) as Record<string, string>;
+const npcById = (files: Record<string, string>) =>
+  Object.fromEntries(Object.entries(files).flatMap(([path, url]) => {
+    const m = /_(npc_c\d_\d\d)\.webp$/.exec(path);
+    return m ? [[m[1]!, url]] : [];
+  }));
 const candFaces = import.meta.glob('../../assets/characters/web/face_c*.webp', { eager: true, import: 'default' }) as Record<string, string>;
 const candFulls = import.meta.glob('../../assets/characters/web/portrait_c*.webp', { eager: true, import: 'default' }) as Record<string, string>;
 /** Имя из пула найма → файл cNN (порядок имён в staff_v1.json). */
@@ -30,8 +38,8 @@ const byName = (files: Record<string, string>) => {
   }
   return out;
 };
-const FACE = byId(faces);
-const FULL = byId(fulls);
+const FACE = { ...byId(faces), ...npcById(npcFaces) };
+const FULL = { ...byId(fulls), ...npcById(npcFulls) };
 const FACE_BY_NAME = byName(candFaces);
 const FULL_BY_NAME = byName(candFulls);
 

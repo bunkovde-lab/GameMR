@@ -2,7 +2,7 @@
  * Доменная модель W2 — подмножество ТЗ §5.2, необходимое для одной смены.
  * Деньги хранятся целым числом в сотых долях РЕ (cents), чтобы избежать ошибок округления.
  */
-export const SCHEMA_VERSION = 9;
+export const SCHEMA_VERSION = 10;
 
 import type { Route } from './map/graph';
 
@@ -212,7 +212,80 @@ export interface Incident {
 
 export type TransactionKind =
   | 'funding' | 'salary' | 'dispatch' | 'treatment' | 'hiring' | 'check' | 'training' | 'promotion' | 'implant'
-  | 'upkeep' | 'construction' | 'subsidy' | 'research' | 'fabrication' | 'permit_fee' | 'sanction' | 'deal';
+  | 'upkeep' | 'construction' | 'subsidy' | 'research' | 'fabrication' | 'permit_fee' | 'sanction' | 'deal' | 'expertise';
+
+/** W9: расследования (ТЗ §11). Статусы связей выводятся из анализа улик и не хранятся. */
+export type AnalysisResult = 'none' | 'confirmed' | 'inconclusive' | 'forgery' | 'misled';
+export type InterrogationMethod = 'standard' | 'present' | 'protect' | 'negotiate' | 'pressure';
+export interface CaseEvidence {
+  id: string;
+  foundShift: number;
+  analysis: AnalysisResult;
+  /** Сколько раз проверяли: повторная проверка точнее */
+  checks: number;
+  /** Сомнительная допустимость: усиленный допрос, нарушенная цепочка хранения, неполный источник */
+  questionable: boolean;
+  custodyNote?: string;
+}
+export interface CaseTask {
+  kind: 'analyze' | 'interrogate' | 'action';
+  /** Улика, человек или следственное действие */
+  target: string;
+  lineId?: string;
+  staffId: string;
+  doneAt: number;
+}
+export interface CaseFile {
+  id: string;
+  incidentId: string;
+  openedShift: number;
+  status: 'open' | 'charged' | 'concluded' | 'closed';
+  evidence: CaseEvidence[];
+  /** Улика → версия */
+  links: { evidenceId: string; hypothesisId: string }[];
+  /** Улика ↔ улика (b может ссылаться на другое дело: «c1:e05») */
+  pairs: { a: string; b: string }[];
+  /** Реконструкция: улика → индекс временного слота */
+  timeline: Record<string, number>;
+  working: string | null;
+  /** Заданные вопросы: personId:lineId */
+  asked: string[];
+  actionsDone: string[];
+  tasks: CaseTask[];
+  expertiseBonus: number;
+  decision?: { conclusionId: string; hypothesisId?: string; shift: number; court?: 'accepted' | 'returned' };
+  revealShift?: number;
+  revealed?: boolean;
+}
+
+/** W9: особые операции (ТЗ §12) и кампания (ТЗ §13). */
+export interface SpecialOpState {
+  id: string;
+  squadId: string;
+  memberIds: string[];
+  startedShift: number;
+  phase: number;
+  choices: string[];
+  scores: Record<string, number>;
+  risk: number;
+  status: 'active' | 'done';
+  report?: SpecialOpReport;
+}
+export interface SpecialOpReport {
+  outcome: Outcome;
+  objectives: { id: string; label: string; result: 'done' | 'partial' | 'failed' }[];
+  casualties: { staffId: string; name: string; before: HealthState; after: HealthState }[];
+  notes: string[];
+  seen: boolean;
+}
+export interface Campaign {
+  flags: string[];
+  /** Выбор в сюжетных узлах: shift → optionId */
+  choices: Record<string, string>;
+  ops: SpecialOpState[];
+  ending: 'order' | 'cost' | 'collapse' | null;
+  endingSeen: boolean;
+}
 
 /** W8: разрешения (ТЗ §10.1). Постоянные полномочия не хранятся — они действуют всегда. */
 export type PermitKind = 'judicial' | 'interagency' | 'emergency';
@@ -220,8 +293,11 @@ export type PermitStatus = 'pending' | 'granted' | 'denied' | 'used' | 'expired'
 export interface Permit {
   id: number;
   kind: PermitKind;
-  /** caseId из ТЗ: пока дела W9 нет, основанием служит конкретный вызов */
+  /** Вызов-основание; для разрешений по делу — вызов, с которого дело открыто */
   incidentId: string;
+  /** W9: разрешение на следственное действие по делу */
+  caseId?: string;
+  actionId?: string;
   target: string;
   scope: TacticId[];
   issuer: string;
@@ -357,6 +433,9 @@ export interface GameState {
   research: Project[];
   resources: { reagents: number };
   politics: Politics;
+  /** W9: дела (ТЗ §11) */
+  investigations: { cases: CaseFile[] };
+  campaign: Campaign;
   nextIds: { event: number; transaction: number; incident: number; report: number; staff: number; candidate: number };
 }
 
@@ -402,6 +481,23 @@ export type Command =
   | { type: 'ACCEPT_DEAL'; offerId: number }
   | { type: 'DECLINE_DEAL'; offerId: number }
   | { type: 'BREAK_DEAL'; dealId: number }
+  | { type: 'ANALYZE_EVIDENCE'; caseId: string; evidenceId: string; staffId: string }
+  | { type: 'LINK_EVIDENCE'; caseId: string; evidenceId: string; hypothesisId: string }
+  | { type: 'UNLINK_EVIDENCE'; caseId: string; evidenceId: string; hypothesisId: string }
+  | { type: 'SET_WORKING_HYPOTHESIS'; caseId: string; hypothesisId: string | null }
+  | { type: 'PLACE_EVIDENCE'; caseId: string; evidenceId: string; slot: number | null }
+  | { type: 'LINK_PAIR'; caseId: string; a: string; b: string }
+  | { type: 'UNLINK_PAIR'; caseId: string; a: string; b: string }
+  | { type: 'INTERROGATE'; caseId: string; personId: string; lineId: string; staffId: string }
+  | { type: 'CASE_ACTION'; caseId: string; actionId: string; staffId: string }
+  | { type: 'REQUEST_CASE_PERMIT'; caseId: string; actionId: string }
+  | { type: 'REQUEST_EXPERTISE'; caseId: string }
+  | { type: 'CONCLUDE_CASE'; caseId: string; conclusionId: string; hypothesisId?: string }
+  | { type: 'STORY_CHOICE'; shift: number; optionId: string }
+  | { type: 'START_SPECIAL_OP'; opId: string; squadId: string }
+  | { type: 'SPECIAL_OP_CHOICE'; opId: string; optionId: string }
+  | { type: 'ACK_SPECIAL_OP'; opId: string }
+  | { type: 'ACK_ENDING' }
   | { type: 'END_SHIFT' }
   | { type: 'ADVANCE_SHIFT' };
 

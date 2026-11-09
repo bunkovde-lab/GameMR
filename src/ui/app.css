@@ -530,6 +530,114 @@ td.bad { color: var(--bad); }
 .deal .terms dd { white-space: normal; text-align: left; font-weight: 400; }
 .deal .btn.danger { white-space: normal; text-align: left; height: auto; min-height: var(--tap); }
 
+/* W9: расследования (ТЗ §11). Доска — карточки улик слева, версии справа, связи линиями поверх. */
+.case-head p { margin: 0 0 4px; }
+.case-tabs { flex-wrap: wrap; }
+.case-tabs .btn { flex: 1 1 auto; }
+.board { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 300px); gap: 10px 56px; align-items: start; }
+.board-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 1; }
+.board-lines .link { fill: none; stroke-width: 2; }
+.board-lines .link.proposed { stroke: var(--muted); stroke-dasharray: 6 5; }
+.board-lines .link.supported { stroke: var(--green); }
+.board-lines .link.contradicted { stroke: var(--red); stroke-dasharray: 2 4; stroke-width: 2.5; }
+.evidence-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+.evidence-card {
+  position: relative; z-index: 2; display: grid; gap: 4px; align-content: start; text-align: left; min-height: 96px; padding: 10px 12px;
+  border: 1px solid var(--stroke2); border-radius: 10px; background: var(--raised); color: inherit; font: inherit; cursor: pointer;
+}
+.evidence-card:hover { border-color: var(--crimson-glow); }
+.evidence-card.selected { border-color: #ff8a78; box-shadow: inset 0 0 0 1px #ff8a78; }
+.evidence-card .ev-type { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.evidence-card .ev-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.link-chip { font-size: 12px; color: var(--muted); }
+.link-chip.supported { color: var(--green); }
+.link-chip.contradicted { color: var(--red); }
+.hypotheses { display: grid; gap: 8px; }
+.hyp-card { position: relative; z-index: 2; display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--stroke2); border-radius: 10px; background: var(--raised); }
+.hyp-card header { display: flex; justify-content: space-between; gap: 6px; align-items: baseline; }
+.hyp-card.working { border-color: var(--green); }
+.evidence-panel { margin-top: 10px; }
+.evidence-panel .kv dd { text-align: left; font-weight: 400; }
+.evidence-panel .kv { grid-template-columns: max-content 1fr; }
+.result-text { margin: 0; padding: 8px 10px; border-left: 3px solid var(--crimson); background: #0000002e; }
+.seg.wrap .btn { flex: 0 1 auto; }
+.slots { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.slot { display: grid; gap: 6px; align-content: start; min-height: 90px; padding: 8px 10px; border: 1px dashed var(--stroke2); border-radius: 10px; }
+.slot-item { display: grid; padding: 6px 8px; border-radius: 8px; background: var(--raised); border: 1px solid var(--stroke2); font-size: 13px; }
+.slot-item.misfit { border-color: var(--amber); }
+.place-list li { display: grid; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--stroke2); }
+.person-card .face-row { display: flex; gap: 10px; align-items: center; justify-content: flex-start; }
+.statement { margin: 0; font-size: 14px; }
+.method-list, .decision-list { display: grid; gap: 8px; }
+.method-list > div, .decision-list > div { display: grid; gap: 2px; justify-items: start; }
+.radio { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; }
+.radio input { width: 20px; height: 20px; accent-color: var(--crimson); }
+.confirm { border-color: var(--amber); }
+@media (max-width: 949px) {
+  .board { grid-template-columns: 1fr; gap: 10px; }
+  .board-lines { display: none; }
+}
+
+/* W9 (сценарий «Неисполненный жребий»): сопоставления, действия, кампания, особые операции, финалы. */
+.board[style] { padding: 12px; border-radius: 12px; }
+.board-lines .link.pair { stroke-width: 2.5; }
+.board-lines .link.pair.supported { stroke: var(--gold-light); }
+.evidence-card.pinned { border-style: dashed; background: #1a1712f0; }
+.pinned-title { grid-column: 1 / -1; margin: 6px 0 0; }
+.pair-list { margin-top: 10px; }
+.pair-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--stroke2); }
+.pair-row .insight { grid-column: 1 / -1; color: var(--gold-light); }
+.pair-row.contradicted b { color: var(--red); }
+.pair-row.supported b { color: var(--green); }
+.action-card { display: grid; gap: 6px; align-content: start; }
+.action-card header { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.action-card.done { opacity: 0.8; }
+.action-card .btn.primary { justify-self: start; }
+.permit-row { display: grid; gap: 4px; justify-items: start; padding: 6px 8px; border-left: 3px solid var(--gold); background: #0000002e; }
+.staff-pick { display: inline-flex; align-items: center; gap: 6px; }
+.statement.tainted { border-left: 3px solid var(--amber); padding-left: 8px; }
+.interviews[style] { padding: 12px; border-radius: 12px; }
+.case-head.with-art { padding: 14px 16px; border-radius: 12px; background-size: cover; background-position: center; }
+.good { color: var(--green); }
+.bad { color: var(--red); }
+.mid { color: var(--amber); }
+
+.art-slot { position: relative; display: grid; align-content: end; border-radius: 10px; overflow: hidden; background-size: cover; background-position: center; min-height: 120px; }
+.art-slot.placeholder { background: repeating-linear-gradient(135deg, #141922 0 14px, #10141b 14px 28px); border: 1px dashed var(--stroke2); }
+.art-missing { position: absolute; top: 8px; right: 10px; color: var(--dim); font-size: 11px; }
+.campaign-title { min-height: 150px; padding: 14px 18px; }
+.campaign-title h3 { margin: 0; font-family: var(--font-title); font-size: 30px; color: var(--gold-light); text-shadow: 0 2px 10px #000; }
+.story-card { display: grid; gap: 6px; border-color: var(--gold); }
+.story-card p { margin: 0; }
+.op-card { display: grid; gap: 6px; align-content: start; }
+.op-card header { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.op-card .btn.primary { justify-self: start; }
+.op-thumb { min-height: 90px; }
+.chronicle li { padding: 3px 0; }
+.op-art { min-height: 180px; margin-bottom: 8px; }
+.op-art.short { min-height: 110px; }
+.op-steps { list-style: none; display: flex; gap: 4px; padding: 0; margin: 0 0 8px; flex-wrap: wrap; }
+.op-steps li { flex: 1 1 0; text-align: center; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--stroke2); color: var(--dim); font-size: 13px; }
+.op-steps li.done { color: var(--muted); border-color: var(--stroke); }
+.op-steps li.current { color: var(--text); border-color: var(--crimson-glow); background: var(--red-deep); }
+.op-side { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.op-team li { display: flex; align-items: center; gap: 8px; padding: 2px 0; }
+.op-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.op-option { display: grid; gap: 6px; align-content: start; text-align: left; padding: 10px 12px; min-height: var(--tap); border: 1px solid var(--stroke2); border-radius: 10px; background: var(--raised); }
+.op-option:hover:not(:disabled) { border-color: var(--crimson-glow); }
+.op-option.emergency { border-color: var(--amber); }
+.op-option .ev-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag.bad { color: var(--red); border-color: var(--red); }
+.tag.mid { color: var(--amber); border-color: var(--amber); }
+@media (max-width: 949px) {
+  .op-options { grid-template-columns: 1fr; }
+  .op-side { grid-template-columns: 1fr; }
+}
+@media (max-height: 560px) {
+  .op-art { min-height: 90px; }
+  .campaign-title { min-height: 90px; }
+}
+
 /* ART-009: лицо кандидата в карточке найма */
 .candidate-head { display: flex; gap: 12px; align-items: center; justify-content: flex-start !important; }
 .candidate .portrait.lg { width: 96px; height: 120px; flex: 0 0 auto; }

@@ -1,0 +1,37 @@
+id,title,district,cls,grade,scene,campaign,flags
+01,Бунт в лечебном комплексе,medical,сложное,тяжёлое,scene_med_triage.png,процедурное,medriot_patients_preserved; medriot_medical_records_secured
+02,Пломба без владельца,medical,рядовое,лёгкое,без сцены,смены 5–8; дело 2,c2_transfer_seal_found
+03,Капсулы без получателей,medical,сложное,тяжёлое,scene_med_organ_vault.png,смены 9–12; дело 3,c3_organ_chain_secured; medical_recipients_at_risk
+04,Третий поток сортировки,medical,рядовое,среднее,без сцены,процедурное,
+05,Генетический отказ трансплантата,medical,рядовое,среднее,без сцены,процедурное,
+06,Кровь на лестничном марше,medical,рядовое,лёгкое,без сцены,процедурное,
+07,Утечка биоматериала,science,сложное,тяжёлое,scene_sci_breakin.png,смены 9–12; дело 3,c3_containment_protocol; c3_first_sample_found
+08,"Клетка, которую никто не открывал",science,сложное,тяжёлое,scene_sci_specimen.png,процедурное,science_specimen_contained
+09,Слепой спектрометр,science,рядовое,лёгкое,без сцены,процедурное,
+10,Контейнер из жилого блока,science,рядовое,среднее,без сцены,смены 5–8; дело 2,c2_alt_sample_route
+11,Пустой инкубатор,science,рядовое,лёгкое,без сцены,процедурное,
+12,Свидетель с чужой памятью,science,рядовое,среднее,без сцены,процедурное,
+13,Пропажа регистратора,admin,рядовое,среднее,без сцены,смены 1–4; дело 1,c1_missing_registered
+14,Судебная лестница,admin,сложное,среднее,scene_adm_plaza.png,смены 2–4; дело 1,c1_court_witness_found
+15,Печать отложенного решения,admin,рядовое,среднее,без сцены,процедурное,
+16,Кортеж без маршрута,admin,сложное,тяжёлое,scene_adm_convoy.png,процедурное,admin_convoy_witness_safe
+17,Две версии протокола,admin,рядовое,лёгкое,без сцены,процедурное,
+18,Значок чужого ведомства,admin,рядовое,среднее,без сцены,процедурное,
+19,Вооружённая вылазка,industry,особое,тяжёлое,scene_ind_depot.png,процедурное,industry_raid_container_preserved
+20,Гул под станочным полом,industry,рядовое,среднее,без сцены,процедурное,
+21,Остановка красного контура,industry,сложное,тяжёлое,scene_ind_bioreactor.png,смены 9–12; дело 3,c3_reactor_receipts_available
+22,Забастовка у конвейера,industry,рядовое,лёгкое,без сцены,процедурное,
+23,Ложная третья смена,industry,сложное,среднее,scene_ind_depot.png,процедурное,industry_false_shift_exposed
+24,Старый голос в коллекторе,industry,рядовое,среднее,без сцены,процедурное,
+25,Разрыв зелёного купола,gardens,сложное,тяжёлое,scene_gar_dome_breach.png,процедурное,gardens_dome_safe
+26,"Сад, который отвернулся",gardens,рядовое,лёгкое,без сцены,процедурное,
+27,Споры в вентиляционной решётке,gardens,рядовое,среднее,без сцены,процедурное,
+28,Следы без обуви,gardens,сложное,среднее,scene_gar_night_search.png,процедурное,gardens_missing_workers_found
+29,Питьевая вода зеленеет,gardens,рядовое,среднее,без сцены,процедурное,
+30,Ложный зов зверя,gardens,рядовое,лёгкое,без сцены,процедурное,
+31,Нелегальная модификация,residential,рядовое,среднее,без сцены,смены 5–8; дело 2,c2_illegal_clinic_registered
+32,Карантин на лестничной клетке,residential,сложное,тяжёлое,scene_res_quarantine.png,смены 9–12; дело 3,c3_residential_transport_witness
+33,Квартира без жильца,residential,рядовое,лёгкое,без сцены,процедурное,
+34,Баррикада против врача,residential,сложное,среднее,scene_res_block_clash.png,смены 5–8; дело 2,c2_resident_witness_protected
+35,Лист без опекуна,residential,рядовое,среднее,без сцены,процедурное,
+36,Захват очистного узла,residential,особое,тяжёлое,scene_res_block_clash.png,процедурное,residential_water_grid_safe

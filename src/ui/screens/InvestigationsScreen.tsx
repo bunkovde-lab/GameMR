@@ -10,7 +10,7 @@ import { POLITICS, houseById } from '../../core/politics';
 import { formatRe } from '../../core/selectors';
 import type { CaseFile, GameState, InterrogationMethod, StaffRole } from '../../core/types';
 import { dispatch } from '../../store';
-import { artUrl } from '../art';
+import { artUrl, evidenceIconUrl } from '../art';
 import { Icon, type IconName } from '../Icon';
 import { Portrait } from '../Portrait';
 import { CampaignPanel } from './CampaignPanel';
@@ -25,7 +25,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'interviews', label: 'Допросы' },
   { id: 'conclusion', label: 'Заключение' },
 ];
-/** До ART-010 у типов улик — значки из общего набора. */
+/** Запасные значки типов улик, если файла ART-010 для типа нет. */
 const TYPE_ICON: Record<string, IconName> = {
   bio_sample: 'beaker', document: 'folder', recording: 'radio', testimony: 'person', object: 'search', finance: 'chart', registry: 'book', location: 'pin',
 };
@@ -35,6 +35,16 @@ const KIND_WORD = { field: 'выезд', desk: 'кабинетная работ�
 const CASE_ART: Record<string, string> = { c1: 'case1_registry_office', c2: 'case2_clinic', c3: 'case3_lab' };
 const minutesLeft = (game: GameState, doneAt: number) => Math.max(0, doneAt - absMinute(game));
 const chanceWord = (p: number) => (p >= 0.65 ? 'шансы высокие' : p >= 0.4 ? 'шансы средние' : 'шансы низкие');
+/** ART-010: значок вида улики; при отсутствии файла — значок из общего набора. */
+function EvIcon({ type }: { type: string }) {
+  const url = evidenceIconUrl(type);
+  return url ? <img className="ev-icon" src={url} alt="" width={18} height={18} data-testid={`ev-icon-${type}`} /> : <Icon name={TYPE_ICON[type] ?? 'folder'} />;
+}
+/** Фон доски уже тёмный: затемнение слабее, чем у иллюстраций дел. */
+const boardBg = () => {
+  const url = artUrl('investigation_board_bg');
+  return url ? { backgroundImage: `linear-gradient(rgba(10,12,16,.25), rgba(10,12,16,.25)), url(${url})` } : undefined;
+};
 const bg = (key: string) => {
   const url = artUrl(key);
   return url ? { backgroundImage: `linear-gradient(rgba(10,12,16,.72), rgba(10,12,16,.72)), url(${url})`, backgroundSize: 'cover' } : undefined;
@@ -175,7 +185,7 @@ function Board({ game, f, d }: { game: GameState; f: CaseFile; d: CaseDef }) {
   return (
     <div className="board-wrap">
       <p className="hint">Связи строите вы: улика → версия и улика ↔ улика. Линия остаётся «предложенной», пока улики не проверены. Доска не говорит, какая версия верна.</p>
-      <div className="board" ref={boardRef} data-testid="board" style={bg('investigation_board_bg')} data-art="investigation_board_bg">
+      <div className="board" ref={boardRef} data-testid="board" style={boardBg()} data-art="investigation_board_bg">
         <svg className="board-lines" aria-hidden="true">
           {lines.map((l) => {
             const mx = (l.x1 + l.x2) / 2;
@@ -193,7 +203,7 @@ function Board({ game, f, d }: { game: GameState; f: CaseFile; d: CaseDef }) {
             const np = pairsOf(ev.id);
             return (
               <button key={ev.id} data-ev={ev.id} className={`evidence-card${sel === ev.id ? ' selected' : ''}`} aria-pressed={sel === ev.id} onClick={() => setSel(sel === ev.id ? null : ev.id)} data-testid={`ev-${ev.id}`}>
-                <span className="ev-type"><Icon name={TYPE_ICON[def.type] ?? 'folder'} /> {EVIDENCE_TYPES[def.type]}</span>
+                <span className="ev-type"><EvIcon type={def.type} /> {EVIDENCE_TYPES[def.type]}</span>
                 <b>{def.title}</b>
                 <span className="ev-tags">
                   <span className={`tag ${a.tone}`}>{task ? `в работе · ${minutesLeft(game, task.doneAt)} мин` : a.word}</span>
@@ -213,7 +223,7 @@ function Board({ game, f, d }: { game: GameState; f: CaseFile; d: CaseDef }) {
             const a = analysisView(x.ev!, x.def!);
             return (
               <button key={r} data-ev={r} className={`evidence-card pinned${sel === r ? ' selected' : ''}`} aria-pressed={sel === r} onClick={() => setSel(sel === r ? null : r)} data-testid={`ev-${r.replace(':', '-')}`}>
-                <span className="ev-type"><Icon name={TYPE_ICON[x.def!.type] ?? 'folder'} /> дело №{x.case!.number}</span>
+                <span className="ev-type"><EvIcon type={x.def!.type} /> дело №{x.case!.number}</span>
                 <b>{x.def!.title}</b>
                 <span className="ev-tags"><span className={`tag ${a.tone}`}>{a.word}</span></span>
               </button>

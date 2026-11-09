@@ -139,3 +139,25 @@
   background: var(--kit-crest) center / contain no-repeat;
 }
 @media (max-height: 560px) { .brand-glyph { width: 30px; height: 30px; } }
+
+/* ---------- ART-010: рамки карточек улик (9-slice, уголки 32 px файла; центр прозрачный) ---------- */
+:root {
+  --kit-evidence: url('../../assets/ui/evidence_card_9s.png');
+  --kit-evidence-selected: url('../../assets/ui/evidence_card_selected_9s.png');
+}
+.evidence-card { isolation: isolate; border-color: transparent; border-radius: 6px; background: #14171ce8; padding: 12px 14px; }
+.evidence-card::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  border-style: solid; border-width: 16px;
+  border-image: var(--kit-evidence) 32 / 16px / 0 stretch;
+}
+.evidence-card:hover { border-color: transparent; }
+.evidence-card:hover::before { filter: brightness(1.2); }
+.evidence-card.selected { border-color: transparent; box-shadow: none; background: #1d1416ee; }
+.evidence-card.selected::before { border-image-source: var(--kit-evidence-selected); }
+.evidence-card.pinned { border-color: transparent; }
+.evidence-card.pinned::before { opacity: .65; }
+.evidence-card .ev-icon { flex: none; width: 18px; height: 18px; }
+/* Фон доски: внутренний кадр арта занимает центр, содержимое отступает от орнамента по краям. */
+.board[data-art][style] { padding: clamp(14px, 4.5%, 56px) clamp(14px, 7%, 110px); border-radius: 8px; background-size: cover; background-position: center; }
+@media (min-width: 1400px) { .board[data-art][style] { padding-inline: 12.5%; } }

@@ -977,6 +977,246 @@
         "assets/characters/web/portrait_npc_c3_03.webp",
         "assets/characters/web/face_npc_c3_03.webp"
       ]
+    },
+    {
+      "id": "scene_med_organ_vault",
+      "file": "assets/events/scene_med_organ_vault.png",
+      "category": "events",
+      "role": "Хранилище донорских органов — Медицинский район",
+      "status": "review",
+      "width": 1920,
+      "height": 1080,
+      "alpha": false,
+      "source": "ART-015 GameMR | a_cinematic_highly_detailed_sci_fi_biopunk_orga.png",
+      "approvedBy": null,
+      "notes": "Отдельная генерация 1672×941; экспорт/увеличение до требуемого 1920×1080.",
+      "sha256": "2f6c92fa4145d36de11c0e407d16a3bd5d9c08820495987816d7b53b113bcd29",
+      "artQuality": "separate_native_image_upscaled_1672_to_1920",
+      "sceneMatchesBrief": true,
+      "bytes": 3443844,
+      "webCopies": [
+        "assets/events/scene_med_organ_vault.webp"
+      ]
+    },
+    {
+      "id": "scene_med_triage",
+      "file": "assets/events/scene_med_triage.png",
+      "category": "events",
+      "role": "Переполненный приёмный покой — Медицинский район",
+      "status": "review",
+      "width": 1920,
+      "height": 1080,
+      "alpha": false,
+      "source": "ART-015 GameMR | a_cinematic_detailed_sci_fi_biopunk_emergency_tri.png",
+      "approvedBy": null,
+      "notes": "Отдельная генерация 1672×941; экспорт/увеличение до требуемого 1920×1080.",
+      "sha256": "474a6a84a596cb96743fdbe153f6227d6465935468eba5cd2b33a76baa7589e1",
+      "artQuality": "separate_native_image_upscaled_1672_to_1920",
+      "sceneMatchesBrief": true,
+      "bytes": 3687880,
+      "webCopies": [
+        "assets/events/scene_med_triage.webp"
+      ]
+    },
+    {
+      "id": "scene_sci_specimen",
+      "file": "assets/events/scene_sci_specimen.png",
+      "category": "events",
+      "role": "Разбитый виварий — Научный квартал",
+      "status": "review",
+      "width": 1920,
+      "height": 1080,
+      "alpha": false,
+      "source": "ART-015 GameMR | a_cinematic_highly_detailed_sci_fi_biopunk_labora.png",
+      "approvedBy": null,
+      "notes": "Отдельная генерация 1672×941; экспорт/увеличение до требуемого 1920×1080.",
+      "sha256": "61ec117355dac770555db744547af6100feb6aaf3620fb8e49eceee37f81497c",
+      "artQuality": "separate_native_image_upscaled_1672_to_1920",
+      "sceneMatchesBrief": true,
+      "bytes": 3848087,
+      "webCopies": [
+        "assets/events/scene_sci_specimen.webp"
+      ]
+    },
+    {
+      "id": "scene_sci_breakin",
+      "file": "assets/events/scene_sci_breakin.png",
+      "category": "events",
+      "role": "Взломанная лаборатория — Научный квартал",
+      "status": "review",
+      "width": 1920,
+      "height": 1080,
+      "alpha": false,
+      "source": "ART-015 GameMR | a_cinematic_highly_detailed_dark_sci_fi_laborato.png",
+      "approvedBy": null,
+      "notes": "Отдельная генерация 1672×941; экспорт/увеличение до требуемого 1920×1080.",
+      "sha256": "242c1afaf3f72a58eb0cc907ed2cf977ef3e38ddd9c2e639e61275c4a9540b64",
+      "artQuality": "separate_native_image_upscaled_1672_to_1920",
+      "sceneMatchesBrief": true,
+      "bytes": 3220997,
+      "webCopies": [
+        "assets/events/scene_sci_breakin.webp"
+      ]
+    },
+    {
+      "id": "scene_adm_plaza",
+      "file": "assets/events/scene_adm_plaza.png",
+      "category": "events",
+      "role": "Толпа у здания суда — Административный центр",
+      "status": "review",
+      "width": 1920,
+      "height": 1080,
+      "alpha": false,
+      "source": "ART-015 GameMR | a_cinematic_highly_detailed_gritty_sci_fi_goth.png",
+      "approvedBy": null,
+      "notes": "Отдельная генерация 1672×941; экспорт/увеличение до требуемого 1920×1080.",
+      "sha256": "459a5f2537af39359b183a820971b8ac318d49e1d845441c83e691c5c92a3f5e",
+      "artQuality": "separate_native_image_upscaled_1672_to_1920",
+      "sceneMatchesBrief": true,
+      "bytes": 3462565,
+      "webCopies": [
+        "assets/events/scene_adm_plaza.webp"
+      ]
+    },
+    {
+      "id": "scene_adm_convoy",
+      "file": "assets/events/scene_adm_convoy.png",
+      "category": "events",
+      "role": "Нападение на кортеж — Административный центр",
+      "status": "review",
+      "width": 1920,
+      "height": 1080,
+      "alpha": false,
+      "source": "ART-015 GameMR | a_cinematic_highly_detailed_sci_fi_dystopian_city.png",
+      "approvedBy": null,
+      "notes": "Отдельная генерация 1672×941; экспорт/увеличение до требуемого 1920×1080.",
+      "sha256": "b44f536fa9fe9cbcaff1cdacadc87eefe88ea49dd8f2237406cfa52cca54bd89",
+      "artQuality": "separate_native_image_upscaled_1672_to_1920",
+      "sceneMatchesBrief": true,
+      "bytes": 3755742,
+      "webCopies": [
+        "assets/events/scene_adm_convoy.webp"
+      ]
+    },
+    {
+      "id": "scene_ind_bioreactor",
+      "file": "assets/events/scene_ind_bioreactor.png",
+      "category": "events",
+      "role": "Саботаж биореакторов — Промышленный сектор",
+      "status": "review",
+      "width": 1920,
+      "height": 1080,
+      "alpha": false,
+      "source": "ART-015 GameMR | a_highly_detailed_cinematic_compilation_concept_a.png",
+      "approvedBy": null,
+      "notes": "ЧЕРНОВОЙ АССЕТ: кадр извлечён из обзорного арт-листа и увеличен. Уступает отдельной генерации по детализации.",
+      "sha256": "d8c0075df4d400ce837f6a8cdfe84e4287f3ec676efab12148103f4e49c91363",
+      "artQuality": "cropped_from_montage_upscaled_to_1920",
+      "sceneMatchesBrief": true,
+      "bytes": 2144102,
+      "webCopies": [
+        "assets/events/scene_ind_bioreactor.webp"
+      ]
+    },
+    {
+      "id": "scene_ind_depot",
+      "file": "assets/events/scene_ind_depot.png",
+      "category": "events",
+      "role": "Транспортное депо — Промышленный сектор",
+      "status": "review",
+      "width": 1920,
+      "height": 1080,
+      "alpha": false,
+      "source": "ART-015 GameMR | a_highly_detailed_cinematic_compilation_concept_a.png",
+      "approvedBy": null,
+      "notes": "ЧЕРНОВОЙ АССЕТ: кадр извлечён из обзорного арт-листа и увеличен. Уступает отдельной генерации по детализации.",
+      "sha256": "4a6d4035940e7d5ada1281a2e709bab2b6b8fdab7ebb695f9460a5ece8e4bd05",
+      "artQuality": "cropped_from_montage_upscaled_to_1920",
+      "sceneMatchesBrief": true,
+      "bytes": 1970458,
+      "webCopies": [
+        "assets/events/scene_ind_depot.webp"
+      ]
+    },
+    {
+      "id": "scene_gar_dome_breach",
+      "file": "assets/events/scene_gar_dome_breach.png",
+      "category": "events",
+      "role": "Биокупол (пока без видимой трещины) — Северные сады",
+      "status": "review",
+      "width": 1920,
+      "height": 1080,
+      "alpha": false,
+      "source": "ART-015 GameMR | a_highly_detailed_cinematic_compilation_concept_a.png",
+      "approvedBy": null,
+      "notes": "ЧЕРНОВОЙ АССЕТ: кадр извлечён из обзорного арт-листа и увеличен. Уступает отдельной генерации по детализации. На биокуполе пока нет явно заметного пролома.",
+      "sha256": "ad47eb610733007d60a8b9dba981559b3337b2371d45ff6f2f7dc8adf3833963",
+      "artQuality": "cropped_from_montage_upscaled_to_1920",
+      "sceneMatchesBrief": false,
+      "bytes": 2814343,
+      "webCopies": [
+        "assets/events/scene_gar_dome_breach.webp"
+      ]
+    },
+    {
+      "id": "scene_gar_night_search",
+      "file": "assets/events/scene_gar_night_search.png",
+      "category": "events",
+      "role": "Ночной поиск в зарослях — Северные сады",
+      "status": "review",
+      "width": 1920,
+      "height": 1080,
+      "alpha": false,
+      "source": "ART-015 GameMR | a_high_detail_cinematic_concept_art_collage_made_o.png",
+      "approvedBy": null,
+      "notes": "ЧЕРНОВОЙ АССЕТ: кадр извлечён из обзорного арт-листа и увеличен. Уступает отдельной генерации по детализации.",
+      "sha256": "85f0adeb8d291bec0bb221cbba7397bddc40929f4ecfd1a01c7ee84a319cbc8f",
+      "artQuality": "cropped_from_montage_upscaled_to_1920",
+      "sceneMatchesBrief": true,
+      "bytes": 2252520,
+      "webCopies": [
+        "assets/events/scene_gar_night_search.webp"
+      ]
+    },
+    {
+      "id": "scene_res_block_clash",
+      "file": "assets/events/scene_res_block_clash.png",
+      "category": "events",
+      "role": "Жилой блок (пока без явной стычки) — Жилые кварталы",
+      "status": "review",
+      "width": 1920,
+      "height": 1080,
+      "alpha": false,
+      "source": "ART-015 GameMR | a_highly_detailed_cinematic_compilation_concept_a.png",
+      "approvedBy": null,
+      "notes": "ЧЕРНОВОЙ АССЕТ: кадр извлечён из обзорного арт-листа и увеличен. Уступает отдельной генерации по детализации. Стычка и баррикада недостаточно выражены.",
+      "sha256": "dbb9936606ac884c30501a2d8466c86c3e8e9fbc9c25c64eee21e2ddb24ef8ba",
+      "artQuality": "cropped_from_montage_upscaled_to_1920",
+      "sceneMatchesBrief": false,
+      "bytes": 2549673,
+      "webCopies": [
+        "assets/events/scene_res_block_clash.webp"
+      ]
+    },
+    {
+      "id": "scene_res_quarantine",
+      "file": "assets/events/scene_res_quarantine.png",
+      "category": "events",
+      "role": "Медицинский карантин (временная локация) — Жилые кварталы",
+      "status": "review",
+      "width": 1920,
+      "height": 1080,
+      "alpha": false,
+      "source": "ART-015 GameMR | a_highly_detailed_cinematic_compilation_concept_a.png",
+      "approvedBy": null,
+      "notes": "ЧЕРНОВОЙ АССЕТ: кадр извлечён из обзорного арт-листа и увеличен. Уступает отдельной генерации по детализации. Есть карантинная зона, но жилую башню необходимо перерисовать.",
+      "sha256": "c5adc6398fc42dcf9024e4f1687b4dc44c00b23a0b779bf17771b734f1d2a7a4",
+      "artQuality": "cropped_from_montage_upscaled_to_1920",
+      "sceneMatchesBrief": false,
+      "bytes": 2900060,
+      "webCopies": [
+        "assets/events/scene_res_quarantine.webp"
+      ]
     }
   ]
 }

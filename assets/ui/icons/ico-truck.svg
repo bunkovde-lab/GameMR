@@ -1,3 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-  <path d="M2 8 L4 6 H14 V17 H2 Z"/><path d="M14 10 H18 L22 14 V17 H14 Z M17 10 V14 H22"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 8h13l5 5v6H3ZM16 8v6h5M6 13h7"/><circle cx="7" cy="19" r="2"/><circle cx="17" cy="19" r="2"/></svg>

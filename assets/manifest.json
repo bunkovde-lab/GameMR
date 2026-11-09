@@ -1306,10 +1306,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "4fff9434b8d68c159c30443c4ee29256769964a56ba8483903cddd8665119878",
+      "sha256": "c15300b0d45fd6f682cc5152cc2422e5c6e714e8410cd095c2051a20fc4f1e68",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_USERS",
@@ -1320,10 +1320,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "df16f339839e83a574ecc78152f53d3f945a66bf5a6cb84b2276c796810531a2",
+      "sha256": "10ddfa222ac9dfda733b88e142dafb0ee44874eed9a107d708bbc6035595dc1d",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_SEARCH",
@@ -1334,10 +1334,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "7beb76a0e616922d9190b922ba8b13b4e7a59b74bf96a1c714da07821aa6ddfd",
+      "sha256": "9fa8a2422b7fb3a3c435e4cb0384ae3221e2b94cae0fd63b1add6f4b31e07142",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_BRIEFCASE",
@@ -1348,10 +1348,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "b27d99cc9d6c542d31ef55193aa46661b4f00fa60a435008b802088d53c9740b",
+      "sha256": "73d398f6bfc278179af0e7d825e6e40478d499cab04a68a91cb1a20d19fc144a",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_ARROW",
@@ -1362,10 +1362,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "82ea5da801743b270862bac6c602e88815da32b8a6a2511194a84d40a3783c45",
+      "sha256": "8450c46fd3e63e249fb645e733e2c3e5454f9f2796ba7ca403fd9b1c95f8043b",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_PAUSE",
@@ -1376,10 +1376,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "398a2e0a0f802900cd0b9cba3062cc87a0db1be6814d76b97bc4d1c7ed1671c5",
+      "sha256": "33a1cc835e07e5cb777c3ba71355d10dc887d51f632d6e698f0d78108ddebc33",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_PLAY",
@@ -1390,10 +1390,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "2fca7803f4e04458be79178db8573f706c71e0c79e9e5511d18357a6eeb26cd5",
+      "sha256": "c4dcbc8bb950ecbaac71810412a02fe521be7bc807307b059ef4f0a8a6ed19d1",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_SAVE",
@@ -1404,10 +1404,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "33ca682700c00bedd0acded36791c44a8463a7e0bf0ceb24a9f3e0fda41b672a",
+      "sha256": "c40b8a105835b907c2ef271c4702b3a04cc9a65410621afd125df525e7bb473c",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_UPLOAD",
@@ -1418,10 +1418,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "0097429a10adc5414359295d92c308d610db0813e76b5473e0552ac18767be53",
+      "sha256": "87b4d033d9dd94fea1f2bbd9c154e30aad711e88488e4a475e32f7158d4616d0",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_COG",
@@ -1432,10 +1432,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "00b84144685a0655f77fab40f392fee14d46ecc01346af42d09cc7c0b49d9c91",
+      "sha256": "e7a4e72c4864181de09c195d556c6035a0ece81bb5521646dac9aee8d8a1086f",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_CLOSE",
@@ -1446,10 +1446,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "43e503ddf87446ada489749c23eedb1f7d099ea6ad8bed111747aeff23004bd9",
+      "sha256": "c40d2b3459445913d597a452f5ef66171f8d23af1415c056275287cb85bfa278",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_CHECK",
@@ -1460,10 +1460,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "231588dc0bbaaa6415549a157e9acda3dfff963a17a6b4762067ea11fd11103b",
+      "sha256": "d1473a1f6d52256ce6871a8d9b5a4b960209f42db4994419a5dd77ba954ab041",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_PLUS",
@@ -1474,10 +1474,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "211ace1a823990e73a8aabedc7b85f57361df45d0aa980bef24a92e43c4d9299",
+      "sha256": "151086a27a5ba3e6cfedb065b8de9362c1cebd9be37b34bc0e9f51899a36d235",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_MINUS",
@@ -1488,10 +1488,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "94845d4db87555e9771477a5548cf6e22d92970b7b9e04b8f68169d205ac9d42",
+      "sha256": "704591c61de8ad5f0594df2a4519f3275aab6dc51123a7dc10bd8930c1579e75",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_LIST",
@@ -1502,10 +1502,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "e6f7baa6cdc10084c07bd7a20e55910a979bc7837e0217cf0ed85bfe747fb08e",
+      "sha256": "ef3c0fc182d57bb770b3ee5f964dbdb3649da9840cfecb2a1bf6de426218d2c8",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_LAYERS",
@@ -1516,10 +1516,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "607a1d0e8d811f6ba6279b3d876f8a745bcd0d750645d871b8f8619c73b39dfd",
+      "sha256": "7ff19cb068a2e25053e75a55397934db876ef61df9f1093300aea21c3a221c49",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_WARNING",
@@ -1530,10 +1530,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "688e89be688c64f727fff2a4c3be4b4c65339578851f95243d4f080f2b64d603",
+      "sha256": "47ccc209a6bfac78606a4baa24d808b25f06bfb99ae34e2d9290ebf924627750",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_SHIELD",
@@ -1544,10 +1544,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "a3c5689da8b3ce0c9826e324c6e3e99ea3ac383f336a1c099108a4e76cd7d1b2",
+      "sha256": "8f1404c629469a61267e4684e310a6bedd64391e2c394dc591c59edce934b00c",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_TRUCK",
@@ -1558,10 +1558,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "82b5c0f1bfdb767c4ae326dba7198cf4762729dfb2d0d1f5454c819fc6206b9e",
+      "sha256": "4f918351385ad56451be6002b388001da198bdc5fe851706cb326f23591af618",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_PIN",
@@ -1572,10 +1572,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "700ced8cb6a2cdc25c458992a0ae76242ed8a14acc61c86b3dae6fd49590f156",
+      "sha256": "8323c2da41fe4a16908d6418b0a357a7ffed65ad688839e5add2053174ac74e2",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_CROSSHAIR",
@@ -1586,10 +1586,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "73113166cd9b3a207508ea5e20cab9df7cbeae2170dc5795a2ff7014862683c4",
+      "sha256": "9f1b2a0e2448e9f94cb8de111a1595b88a8db8104aad9eaa79d2cd57423b15b1",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_BEAKER",
@@ -1600,10 +1600,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "2a3a5c8a10ab979635a00344a664e3ff1fd678e06573f84075df2202a4589d3d",
+      "sha256": "3ce3e2f89c14f92e1155ec5690ea86d8f5f2958937c99bc2914b05559f546e2e",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_MEDICAL",
@@ -1614,10 +1614,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "750dd19a1be9ed597710852e2a6dab4302cf86b39c40eaba992e331b7e95bd07",
+      "sha256": "57fe69e50cc53b56173b5d4154862cbe8ac4aeaa979921ad92309a441c9f2906",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_HEART",
@@ -1628,10 +1628,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "961461c685c6a7272b0d25a10cd4752c1cc6c850e6d0fd92f30ab560b46a327a",
+      "sha256": "34bc3888db128043ae196abb784bd42dbd4708b652d806c4a8b41e8a2b2b0fff",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_PERSON",
@@ -1642,10 +1642,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "b503077509cb3a019b1bfa5397da9ce9b8db807663d4d8712e5a1cf10709b230",
+      "sha256": "786b35f738460514723fca4d182495677f86ac3b5cb54c19a80fe554ebedb8bf",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_FOLDER",
@@ -1656,10 +1656,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "fc405739245fea675c76baa04d87bece383a4284067d556d73957012affa25bc",
+      "sha256": "75e14d996d6d8f384f7a3d79ac1da41eaaa2a47c5309dba17f81cda0d643f67e",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_BOOK",
@@ -1670,10 +1670,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "5e611e86a1822df9f16e17d577417707be6d18efb45aabc0c180928c23c54018",
+      "sha256": "606406ea75841a67c888e7b5d5f9fe01ae6fbdf70ccf3e9eae4d9b88a732e07c",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_CHART",
@@ -1684,10 +1684,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "b1eb145875475d8b3a15c6bfe9bbbbf02a7090fa7e6f8dbc0d1159c7ca564be3",
+      "sha256": "c2f9a13da8cdb83f51a9c9267ea23706e5f32f51e9f316375e520a7d3e74191e",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_RADIO",
@@ -1698,10 +1698,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "0662b90f1d35b1129b23852a00d4626fcbd13c2667aa1b5709cf60d48003038a",
+      "sha256": "071ac4679d26ae79e36d9f321a4ad3fde5f2dff60a31e86b9735b21e9d026382",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_SCALES",
@@ -1712,10 +1712,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "e5afcea72ba1c3b6b1d66477c93a1cf5e54d06aee6fbebacfabb8be2330b93ce",
+      "sha256": "717a06a428e8c5622e20fd36ac4bac033d976e29821e55231143f0d2887070b6",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_LOCK",
@@ -1726,10 +1726,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "43a4b74d8c8e9a76ba2e15945f3c4747b51e1ce7fa5e1c25a00f1aa7f819836e",
+      "sha256": "3d5847f2ca1a072672c46b5d6ba2aa2e6f69f1e75ec27cfb722f52f7f394f4c6",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_EYE",
@@ -1740,10 +1740,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "1f687008946a9e25587040f89b0ef3bd3e87dd6d4a2d6c1680ec7ad152f9d92e",
+      "sha256": "4ffd7e35ca6f8c7a2e5a65dd2a69ee66d22e398146f155c25c1d1fd6081d93c4",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_WRENCH",
@@ -1754,10 +1754,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "ae6905f4e8b19a8542e6581198108c9d86ea4804f7aaf6e821de65f24dcba4ad",
+      "sha256": "b34a02f574282bc8b874aea1ddfeaf2683e3053ac35b366112256f94ebf16bad",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_CLOCK",
@@ -1768,10 +1768,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "a1bf82d1e973385c3c50c88c47f6d84685e7b390504f5a15d933ef836c934c12",
+      "sha256": "7e1a542e114ef44c2694bb8c2c787f55a52d6e4080b1ffc2ff3947982602a9ef",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     },
     {
       "id": "ART007_ICO_MAIL",
@@ -1782,10 +1782,10 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "2c1a30eebd604192ced8516299121ad78293a79ea4975444d6b2961259507d5a",
+      "sha256": "af4741addb2031deebd416b7f05c002ac3203ff9ac0f5969abf5f6511feb3962",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
-      "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."
+      "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
     }
   ]
 }

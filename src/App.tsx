@@ -18,6 +18,7 @@ import { BriefingDialog, EndShiftConfirm, ShiftReportDialog } from './ui/PhaseDi
 import { SettingsDialog } from './ui/SettingsDialog';
 import { Toast } from './ui/Toast';
 import { useGameLoop } from './ui/useGameLoop';
+import { useMusicScene } from './ui/audio/useMusic';
 import { dispatch, getGame, useGame } from './store';
 import { pendingDecision } from './core/operations';
 
@@ -41,6 +42,8 @@ export function App() {
   const [dispatchFor, setDispatchFor] = useState<{ incidentId: string; squadId: string | null } | null>(null);
   const preview = useCallback((squadId: string | null) => uiDispatch({ type: 'PREVIEW_SQUAD', squadId }), []);
   useGameLoop();
+  // Музыка: тема меню — на брифинге, в отчёте о смене и в окне сохранений/настроек; на карте во время смены — фон игры.
+  useMusicScene(settingsOpen || game.phase === 'BRIEFING' || game.phase === 'SHIFT_REPORT' ? 'menu' : 'game');
 
   useEffect(() => {
     try { localStorage.setItem(LAYERS_KEY, JSON.stringify(ui.layers)); } catch { /* не критично */ }

@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react';
 import { reduce } from './core/reduce';
 import { createInitialState } from './core/state';
 import type { Command, GameState } from './core/types';
-import { loadFromSlot, saveToSlot } from './persistence/saveStore';
+import { EMPTY_SLOT, loadFromSlot, saveToSlot } from './persistence/saveStore';
 
 /**
  * Мост между ядром и React. Единственное место, где вызывается reduce().
@@ -53,9 +53,18 @@ export function replaceGame(game: GameState) {
   set({ game });
 }
 
+/** Итог запуска: восстановлено ли автосохранение (для пункта «Продолжить» главного меню). */
+export type BootResult = { restored: true } | { restored: false; empty: boolean; reason: string };
+let boot: BootResult = { restored: false, empty: true, reason: 'Слот пуст.' };
+
 export async function bootstrap() {
   const auto = await loadFromSlot('auto');
   if (auto.ok) replaceGame(auto.state);
+  boot = auto.ok ? { restored: true } : { restored: false, empty: auto.reason === EMPTY_SLOT, reason: auto.reason };
+}
+
+export function bootResult(): BootResult {
+  return boot;
 }
 
 export function useGame(): Snapshot {

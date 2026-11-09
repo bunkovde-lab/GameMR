@@ -1,4 +1,12 @@
-import { expect, test } from '@playwright/test';
+import { expect, test as base } from '@playwright/test';
+
+// Проверки начинают сразу с игры, минуя главное меню (оно проверяется в menu.spec.ts).
+const test = base.extend({
+  page: async ({ page }, provide) => {
+    await page.addInitScript(() => { (window as unknown as { __GAMEMR_SKIP_MENU__: boolean }).__GAMEMR_SKIP_MENU__ = true; });
+    await provide(page);
+  },
+});
 
 // W5: развилки особого события, отчёт операции, итоги в отчёте смены (ТЗ §2.2 DECISION_PAUSE, §6.1, §12).
 

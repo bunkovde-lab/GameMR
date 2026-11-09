@@ -8,7 +8,18 @@ import { MusicSettings } from './audio/MusicSettings';
 
 type SlotInfo = Awaited<ReturnType<typeof listSlots>>;
 
-export function SettingsDialog({ onClose }: { onClose: () => void }) {
+interface SavesProps {
+  /** Вызывается после успешной загрузки или импорта */
+  onLoaded: () => void;
+  /** Можно ли сохранять текущую игру (в главном меню без начатой кампании — нельзя) */
+  canSave?: boolean;
+  /** Показывать кнопку «Новая игра» (в главном меню для этого есть отдельный пункт) */
+  showNewGame?: boolean;
+  onNewGame?: () => void;
+}
+
+/** Слоты, экспорт и импорт. Общий для игрового окна «Сохранения» и вкладки настроек главного меню. */
+export function SavesPanel({ onLoaded, canSave = true, showNewGame = false, onNewGame }: SavesProps) {
   const [slots, setSlots] = useState<SlotInfo | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const refresh = () => listSlots().then(setSlots);
@@ -25,7 +36,7 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
   };
   const load = async (id: SlotId) => {
     const r = await loadFromSlot(id);
-    if (r.ok) { replaceGame(r.state); notify('good', 'Сохранение загружено.'); onClose(); }
+    if (r.ok) { replaceGame(r.state); notify('good', 'Сохранение загружено.'); onLoaded(); }
     else notify('bad', r.reason);
   };
   const doExport = () => {
@@ -38,12 +49,12 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
   };
   const doImport = async (file: File) => {
     const r = parseSave(await file.text());
-    if (r.ok) { replaceGame(r.state); notify('good', 'Сохранение импортировано.'); onClose(); }
+    if (r.ok) { replaceGame(r.state); notify('good', 'Сохранение импортировано.'); onLoaded(); }
     else notify('bad', r.reason);
   };
 
   return (
-    <Modal title="Сохранения" onClose={onClose} testId="settings">
+    <>
       <ul className="slot-list">
         {SLOTS.map((s) => {
           const info = slots?.[s.id];
@@ -53,21 +64,36 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
                 <b>{s.label}</b>
                 <small>{info ? `Смена ${info.shift} · ${new Date(info.savedAt).toLocaleString('ru-RU')}` : 'пусто'}</small>
               </span>
-              {s.id !== 'auto' && <button className="btn" onClick={() => save(s.id)}>Сохранить</button>}
+              {s.id !== 'auto' && canSave && <button className="btn" onClick={() => save(s.id)}>Сохранить</button>}
               <button className="btn" disabled={!info} onClick={() => load(s.id)}>Загрузить</button>
             </li>
           );
         })}
       </ul>
       <div className="modal-actions wrap">
-        <button className="btn" onClick={doExport}>Экспорт в файл</button>
+        {canSave && <button className="btn" onClick={doExport}>Экспорт в файл</button>}
         <button className="btn" onClick={() => fileRef.current?.click()}>Импорт из файла</button>
         <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => e.target.files?.[0] && doImport(e.target.files[0])} />
-        <button className="btn danger" onClick={() => { if (confirm('Начать новую игру? Несохранённый прогресс будет потерян.')) { replaceGame(createInitialState()); onClose(); } }}>
-          Новая игра
-        </button>
+        {showNewGame && (
+          <button className="btn danger" onClick={() => { if (confirm('Начать новую игру? Несохранённый прогресс будет потерян.')) { replaceGame(createInitialState()); onNewGame?.(); } }}>
+            Новая игра
+          </button>
+        )}
       </div>
+    </>
+  );
+}
+
+export function SettingsDialog({ onClose, onMainMenu }: { onClose: () => void; onMainMenu?: () => void }) {
+  return (
+    <Modal title="Сохранения" onClose={onClose} testId="settings">
+      <SavesPanel onLoaded={onClose} showNewGame onNewGame={onClose} />
       <MusicSettings />
+      {onMainMenu && (
+        <div className="modal-actions">
+          <button className="btn" onClick={onMainMenu} data-testid="to-main-menu">Главное меню</button>
+        </div>
+      )}
     </Modal>
   );
 }

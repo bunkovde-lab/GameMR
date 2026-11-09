@@ -1,0 +1,156 @@
+/* Главное меню M00-B «Наблюдательный рубеж». Стили только для .m00b — игровой интерфейс не затрагивается. */
+
+.m00b {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #030406;
+  color: var(--text);
+  font-family: var(--font-ui);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.m00b-stage { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.m00b-scene { position: absolute; transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1); will-change: transform; }
+.m00b-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.m00b-fx { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* Временная схема, пока чистый фон M00-B не импортирован: не арт, только ориентиры зон (окно, стол). */
+.m00b-bg-schematic {
+  background:
+    linear-gradient(180deg, transparent 0 74%, #0b0b0e 74% 100%) ,
+    linear-gradient(90deg, #07080b 0 33.5%, transparent 33.5% 98.5%, #07080b 98.5%),
+    linear-gradient(180deg, #0f1622 0 4%, #1a2433 4%, #121a26 40%, #0c1119 66%, #07080b 66%);
+}
+
+/* Затемнение левой зоны: логотип и кнопки читаются, панорама справа не перекрыта */
+.m00b-vignette {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(90deg, #020305d9 0%, #02030580 22%, #02030500 40%),
+    radial-gradient(ellipse at 50% 50%, transparent 55%, #000000a0 100%);
+}
+
+/* ——— левая колонка: логотип и меню ——— */
+
+.m00b-ui {
+  position: absolute;
+  left: max(16px, 4.2vw);
+  top: max(16px, 7vh);
+  bottom: max(16px, 6vh);
+  width: clamp(250px, 27vw, 520px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 4.5vh, 56px);
+  z-index: 2;
+}
+
+.m00b-logo { margin: 0; font-weight: 400; line-height: 1; }
+.m00b-logo img { display: block; width: 100%; height: auto; max-height: 26vh; object-fit: contain; object-position: left top; filter: drop-shadow(0 4px 18px #000c); }
+.m00b-logo-text { display: grid; gap: 0.35em; font-family: var(--font-title); color: #c9ccd1; text-shadow: 0 2px 14px #000; }
+.m00b-logo-text b { font-weight: 400; font-size: clamp(30px, 3.6vw, 66px); letter-spacing: 0.08em; background: linear-gradient(180deg, #e6e8ea, #8d939a); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.m00b-logo-text i { display: block; width: 62%; height: 2px; background: linear-gradient(90deg, #8a1e28, #c73a44 30%, transparent); }
+.m00b-logo-text small { font-size: clamp(13px, 1.25vw, 22px); letter-spacing: 0.32em; color: #a9aeb5; }
+
+.m00b-menu ul { list-style: none; margin: 0; padding: 0; display: grid; gap: clamp(6px, 1.3vh, 14px); width: clamp(240px, 22vw, 400px); }
+
+.m00b-btn {
+  --h: clamp(46px, 6.3vh, 64px);
+  position: relative;
+  display: grid;
+  grid-template-columns: calc(var(--h) * 0.62) 1fr;
+  grid-template-rows: 1fr auto;
+  align-items: center;
+  width: 100%;
+  min-height: var(--h);
+  padding: 4px 18px 4px 0;
+  border: 0;
+  border-radius: 5px;
+  background: var(--skin-normal) center / 100% 100% no-repeat, #0b111780;
+  color: #d9dadc;
+  font-family: var(--font-title);
+  font-size: clamp(16px, 1.32vw, 22px);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: color 0.18s, transform 0.12s, filter 0.18s;
+}
+.m00b-btn .m00b-label { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+.m00b-btn .m00b-note {
+  grid-column: 2; grid-row: 2; justify-self: end; align-self: end;
+  font-family: var(--font-ui); font-size: 11px; letter-spacing: 0.04em; text-transform: none; color: #8f9399;
+}
+.m00b-btn:has(.m00b-note) .m00b-label { grid-row: 1; align-self: end; }
+
+/* Ромб-указатель выбранного пункта (форма, не только цвет) */
+.m00b-diamond { grid-column: 1; grid-row: 1 / span 2; justify-self: center; width: 11px; height: 11px; transform: rotate(45deg) scale(0.4); border: 2px solid transparent; transition: transform 0.18s, border-color 0.18s, background 0.18s; }
+
+@media (hover: hover) {
+  .m00b-btn:not(:disabled):hover { background-image: var(--skin-hover); color: #f1e6dd; }
+  .m00b-btn:not(:disabled):hover .m00b-diamond { border-color: #c4565e; transform: rotate(45deg) scale(0.8); }
+}
+.m00b-btn.is-current:not(:disabled), .m00b-btn:focus-visible { background-image: var(--skin-selected); color: #fff1ea; }
+.m00b-btn.is-current:not(:disabled) .m00b-diamond, .m00b-btn:focus-visible .m00b-diamond { border-color: #d34b53; background: #e8b6ab; box-shadow: inset 0 0 0 2px #21171a; transform: rotate(45deg) scale(1); }
+.m00b-btn:focus { outline: none; }
+.m00b-btn:focus-visible { outline: 1px solid #e8b6ab88; outline-offset: 3px; }
+.m00b-btn:active:not(:disabled) { transform: translateY(1px); filter: brightness(0.88); }
+.m00b-btn:disabled { background-image: var(--skin-disabled); color: #6f7177; cursor: not-allowed; }
+.m00b-btn:disabled .m00b-diamond { border-color: transparent; }
+
+.m00b-missing {
+  position: absolute; right: 16px; bottom: 12px; z-index: 2; max-width: min(520px, 60vw); margin: 0;
+  padding: 6px 10px; border: 1px dashed #c9a46a80; border-radius: 6px; background: #0b0d10d0; color: #d8c49c; font-size: 12px;
+}
+
+/* ——— окна ——— */
+
+.m00b-modal { background: linear-gradient(180deg, #11141af5, #0a0c10f5); border-color: #5b4a3d; box-shadow: 0 24px 60px #000d; }
+.m00b-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.m00b-tabs .btn[aria-selected='true'] { border-color: #b7535e; color: #fff1ea; box-shadow: inset 3px 0 0 #c1414b; }
+.m00b-tabpanel { min-height: 140px; }
+.m00b-muted { color: var(--muted); font-size: 13px; }
+.m00b-checks { display: grid; gap: 12px; }
+.m00b-checks label { display: flex; gap: 12px; align-items: flex-start; min-height: var(--tap); cursor: pointer; }
+.m00b-checks input { width: 22px; height: 22px; margin-top: 2px; accent-color: #b7535e; flex: none; }
+.m00b-checks span { display: grid; gap: 2px; }
+.m00b-checks small { color: var(--muted); }
+.m00b-credits dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 12px 0; }
+.m00b-credits dt { color: var(--gold-light); }
+.m00b-credits dd { margin: 0; }
+.m00b-credits a { color: var(--gold-light); }
+
+.m00b-farewell {
+  position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; padding: 16px;
+  background: #020305e8; text-align: center; animation: m00b-fade 0.6s ease;
+}
+.m00b-farewell h2 { font-family: var(--font-title); font-weight: 400; font-size: clamp(26px, 3vw, 40px); letter-spacing: 0.1em; margin: 0 0 12px; color: #d9dadc; }
+.m00b-farewell p { color: var(--muted); max-width: 460px; margin: 0 auto 20px; }
+@keyframes m00b-fade { from { opacity: 0; } }
+
+/* ——— размеры ——— */
+
+@media (max-height: 560px) {
+  .m00b-ui { top: 12px; bottom: 12px; gap: 10px; width: clamp(220px, 34vw, 420px); }
+  .m00b-logo img { max-height: 22vh; }
+  .m00b-logo-text b { font-size: clamp(22px, 3.4vw, 36px); }
+  .m00b-btn { --h: 44px; font-size: 15px; }
+  .m00b-menu ul { gap: 5px; width: clamp(220px, 30vw, 340px); }
+  .m00b-credits dl { grid-template-columns: 1fr; }
+}
+
+/* Портрет: функциональная упрощённая компоновка — колонка по ширине, панорама остаётся фоном */
+@media (orientation: portrait) {
+  .m00b-ui { left: 16px; right: 16px; width: auto; top: 6vh; bottom: 4vh; justify-content: space-between; }
+  .m00b-logo img { max-width: 80vw; }
+  .m00b-menu ul { width: 100%; }
+  .m00b-vignette { background: linear-gradient(180deg, #020305cc 0%, #02030540 35%, #02030560 60%, #020305d9 100%); }
+}
+
+.m00b.reduce-motion .m00b-scene { transition: none; transform: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .m00b-scene, .m00b-btn, .m00b-diamond { transition: none; }
+  .m00b-farewell { animation: none; }
+}

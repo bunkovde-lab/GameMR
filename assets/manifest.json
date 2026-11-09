@@ -1005,6 +1005,48 @@
       "source": "ART-012_FOR_CHATGPT.md (Claude, 2026-11-09); ChatGPT ImageGen composite source, individual scene isolated and extended",
       "approvedBy": "Dmitry (2026-11-09)",
       "notes": "Первый Дом: аварийно изолированный биологический отсек, неантропоморфная культура в герметичном резервуаре, сотрудники в защитных костюмах. Создан отдельно от второго сюжета путём выделения половины исходного диптиха и мягкого продолжения фона сверху и снизу; центральный игровой кадр чёткий. Требует авторской приёмки; при полосе y=324..756 сюжет читается, запрошена визуальная проверка."
+    },
+    {
+      "id": "ART013_CASE1_REGISTRY_OFFICE",
+      "file": "assets/locations/case1_registry_office.png",
+      "category": "locations",
+      "role": "Архив реестра родословных Второго Дома",
+      "status": "review",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "sha256": "c6146cfafb8f55eb66d3d9a519fa3f39379f44d51e0f1bd244fc8591cb49405b",
+      "source": "Claude ART-013_FOR_CHATGPT.md (2026-11-09); ChatGPT generated triptych crop and soft vertical extension",
+      "approvedBy": null,
+      "notes": "Working art for W9 narrow case header. Sharp y300–600; top/bottom softly extended from source; full-screen reconstruction requires separate repaint/outpaint. Owner approval pending."
+    },
+    {
+      "id": "ART013_CASE2_CLINIC",
+      "file": "assets/locations/case2_clinic.png",
+      "category": "locations",
+      "role": "Подпольная операционная жилого блока",
+      "status": "review",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "sha256": "5cfad726668564f7c44b2cf052c3a9ae941ad2230e94707b5e56141ef3621ca1",
+      "source": "Claude ART-013_FOR_CHATGPT.md (2026-11-09); ChatGPT generated triptych crop and soft vertical extension",
+      "approvedBy": null,
+      "notes": "Working art for W9 narrow case header. Sharp y300–600; top/bottom softly extended from source; full-screen reconstruction requires separate repaint/outpaint. Owner approval pending."
+    },
+    {
+      "id": "ART013_CASE3_LAB",
+      "file": "assets/locations/case3_lab.png",
+      "category": "locations",
+      "role": "Лаборатория тканевых культур Первого Дома",
+      "status": "review",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "sha256": "f430939a9edc0766604d3b78fc8c100f53328aa34a8da107e7fd8b5005ed48f1",
+      "source": "Claude ART-013_FOR_CHATGPT.md (2026-11-09); ChatGPT generated triptych crop and soft vertical extension",
+      "approvedBy": null,
+      "notes": "Working art for W9 narrow case header. Sharp y300–600; top/bottom softly extended from source; full-screen reconstruction requires separate repaint/outpaint. Owner approval pending."
     }
   ]
 }

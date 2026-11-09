@@ -14,6 +14,15 @@ for (const [path, url] of Object.entries(files)) {
 }
 export const artUrl = (key: string): string | undefined => ART[key];
 
+/** ART-010: одноцветные значки видов улик (assets/ui/evidence/<тип>.svg). */
+const evFiles = import.meta.glob('../../assets/ui/evidence/*.svg', { eager: true, import: 'default' }) as Record<string, string>;
+const EV_ICON: Record<string, string> = {};
+for (const [path, url] of Object.entries(evFiles)) {
+  const m = /\/([^/]+)\.svg$/.exec(path);
+  if (m) EV_ICON[m[1]!] = url;
+}
+export const evidenceIconUrl = (type: string): string | undefined => EV_ICON[type];
+
 /** Иллюстрация с заглушкой. `label` описывает, что здесь будет: для читателя экрана и пока арта нет. */
 export function ArtSlot({ artKey, label, className = '', children }: { artKey: string; label: string; className?: string; children?: ReactNode }) {
   const url = artUrl(artKey);

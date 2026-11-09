@@ -136,3 +136,26 @@ test('ending: the end of shift 12 shows the campaign outcome before the shift re
   await page.getByTestId('ack-ending').click();
   await expect(e).toHaveCount(0);
 });
+
+test('ART-010: board background, evidence frames and type icons are the delivered files', async ({ page }, info) => {
+  await load(page, 'mid_c2');
+  await page.getByTestId('case-tab-c2').click();
+  const board = page.getByTestId('board');
+  await expect(board).toHaveAttribute('style', /investigation_board_bg/);
+  const icons = board.locator('img.ev-icon');
+  await expect(icons.first()).toBeVisible();
+  // Vite встраивает маленькие SVG как data:-адрес; проверяем, что картинка загрузилась и это именно SVG ART-010 (цвет #C9A46A).
+  await expect.poll(() => icons.evaluateAll((xs) => xs.every((x) => (x as HTMLImageElement).complete && (x as HTMLImageElement).naturalWidth > 0))).toBe(true);
+  const srcs = await icons.evaluateAll((xs) => xs.map((x) => decodeURIComponent((x as HTMLImageElement).src)));
+  for (const s of srcs) expect(s).toMatch(/C9A46A|\.svg/i);
+  const card = board.locator('.evidence-card').first();
+  const frame = () => card.evaluate((el) => getComputedStyle(el, '::before').borderImageSource);
+  expect(await frame()).toMatch(/evidence_card_9s/);
+  await page.getByText('Сохранение импортировано.').waitFor({ state: 'hidden' }).catch(() => {});
+  await board.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: `test-results/screens/art010-board-${info.project.name}.png` });
+  await card.click();
+  expect(await frame()).toMatch(/evidence_card_selected_9s/);
+  const box = (await card.boundingBox())!;
+  expect(box.height).toBeGreaterThanOrEqual(44);
+});

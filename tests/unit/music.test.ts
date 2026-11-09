@@ -8,13 +8,17 @@ class FakeAudio implements AudioLike {
   duration = 200;
   paused = true;
   ended = false;
+  muted = false;
+  /** Safari: элемент, однажды запущенный по действию игрока, дальше играет без него */
+  activated = false;
   private vol = 1;
   allow: () => boolean;
-  constructor(url: string, allow: () => boolean, private volumeWritable = true) { this.src = url; this.allow = allow; }
+  constructor(url: string, allow: () => boolean, private volumeWritable = true, private perElement = false) { this.src = url; this.allow = allow; }
   get volume() { return this.vol; }
   set volume(v: number) { if (this.volumeWritable) this.vol = v; }
   play() {
-    if (!this.allow()) return Promise.reject(Object.assign(new Error('blocked'), { name: 'NotAllowedError' }));
+    if (!this.activated && !this.allow()) return Promise.reject(Object.assign(new Error('blocked'), { name: 'NotAllowedError' }));
+    if (this.perElement) this.activated = true;
     this.paused = false;
     return Promise.resolve();
   }
@@ -22,7 +26,7 @@ class FakeAudio implements AudioLike {
   advance(dt: number) { if (!this.paused) this.currentTime = Math.min(this.duration, this.currentTime + dt); }
 }
 
-function setup(opts: { autoplay?: boolean; stored?: string; ios?: boolean } = {}) {
+function setup(opts: { autoplay?: boolean; stored?: string; ios?: boolean; safari?: boolean } = {}) {
   let gesture = !!opts.autoplay;
   const audios: FakeAudio[] = [];
   const store = new Map<string, string>();
@@ -36,7 +40,7 @@ function setup(opts: { autoplay?: boolean; stored?: string; ios?: boolean } = {}
     createGain: () => { const g = { gain: { value: 0 }, connect: () => g }; gains.push(g); return g; },
   };
   const engine = new MusicEngine({
-    createAudio: (url) => { const a = new FakeAudio(url, () => gesture, !opts.ios); if (url) audios.push(a); return a; },
+    createAudio: (url) => { const a = new FakeAudio(url, () => gesture, !opts.ios, !!opts.safari); if (url) audios.push(a); return a; },
     createContext: () => ctx as unknown as AudioContext,
     storage: { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => { store.set(k, v); } },
   });
@@ -48,7 +52,9 @@ function setup(opts: { autoplay?: boolean; stored?: string; ios?: boolean } = {}
     return [list[0]!, list[1]!] as const;
   };
   const flush = () => new Promise((r) => setTimeout(r, 0));
-  return { engine, audios, gains, store, run, byScene, flush, grant: () => { gesture = true; } };
+  /** Действие игрока: браузер разрешает звук только во время обработчика (как в Safari). */
+  const tap = () => { const was = gesture; gesture = true; engine.unlock(); gesture = was; };
+  return { engine, audios, gains, store, run, byScene, flush, tap, grant: () => { gesture = true; } };
 }
 
 describe('AUDIO v1: музыка меню и игры', () => {
@@ -165,5 +171,30 @@ describe('AUDIO v1: музыка меню и игры', () => {
     s.engine.setVolume(0);
     s.run(1);
     expect(Math.max(...s.gains.map((g) => g.gain.value))).toBe(0);
+  });
+
+  it('Safari/iPhone: фон игры включается после брифинга, хотя разрешение было дано только в момент нажатия', async () => {
+    const s = setup({ safari: true });
+    s.engine.setScene('menu');
+    await s.flush();
+    s.tap(); // первое касание на брифинге
+    await s.flush();
+    s.run(SCENE_FADE_S + 0.5);
+    await s.flush();
+    expect(s.byScene('menu_theme')[0].paused).toBe(false);
+    // «Начать смену»: сцена меняется уже после обработчика нажатия (в эффекте React)
+    s.engine.setScene('game');
+    await s.flush();
+    s.run(SCENE_FADE_S + 0.5);
+    await s.flush();
+    const game = s.byScene('gameplay_ambient')[0];
+    expect(game.paused).toBe(false);
+    expect(game.muted).toBe(false);
+    expect(s.engine.getSnapshot().audible).toBe('game');
+    expect(s.engine.needsGesture()).toBe(false);
+    // повтор: вторая копия трека тоже запускается без нового нажатия
+    s.run(200);
+    await s.flush();
+    expect(s.byScene('gameplay_ambient')[1].paused).toBe(false);
   });
 });

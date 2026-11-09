@@ -25,6 +25,7 @@ export interface AudioLike {
   readonly paused: boolean;
   readonly ended: boolean;
   volume: number;
+  muted: boolean;
   play(): Promise<void> | void;
   pause(): void;
 }
@@ -51,6 +52,10 @@ interface Voice {
   /** Скорость изменения level в секунду */
   rate: number;
   started: boolean;
+  /** Элемент уже хотя бы раз запускался по действию игрока (Safari/iOS разрешают звук каждому элементу отдельно) */
+  primed: boolean;
+  /** Браузер отказал в запуске — ждём следующего действия игрока */
+  blocked: boolean;
 }
 
 interface Track { scene: MusicScene; voices: [Voice, Voice]; current: 0 | 1; handedOver: boolean }
@@ -103,7 +108,7 @@ export class MusicEngine {
       // Пробуем автозапуск один раз: если браузер разрешает (например, сайт уже знаком ему), музыка начнётся сразу,
       // иначе play() откажет и музыка включится с первого действия игрока.
       this.autoplayTried = true;
-      this.unlock();
+      this.unlock(false);
       return;
     }
     this.emit();
@@ -125,14 +130,27 @@ export class MusicEngine {
     this.emit();
   }
 
-  /** Вызывается из обработчика первого действия игрока (клик, касание, клавиша). */
-  unlock() {
-    if (this.unlocked && this.confirmed) { void this.ctx?.resume?.().catch(() => {}); return; }
-    // Повторный вызов до подтверждения — это уже настоящее действие игрока: запускаем звук ещё раз внутри него.
+  /**
+   * Вызывается из обработчика действия игрока (клик, касание, клавиша); fromGesture=false — попытка автозапуска.
+   * Safari и iPhone разрешают звук каждому <audio> отдельно и только внутри действия игрока, поэтому здесь
+   * «прогреваются» все элементы обеих сцен — иначе фон игры, включаемый позже, браузер молча заблокирует.
+   */
+  unlock(fromGesture = true) {
     this.unlocked = true;
     this.prepareWebAudio();
+    if (fromGesture) {
+      for (const t of this.tracks.values()) for (const v of t.voices) v.blocked = false;
+      this.prime();
+    }
     if (this.scene) this.startScene(this.scene);
     this.emit();
+  }
+
+  /** Нужны ли ещё действия игрока, чтобы браузер разрешил весь звук. */
+  needsGesture(): boolean {
+    if (!this.confirmed) return true;
+    for (const t of this.tracks.values()) for (const v of t.voices) if (!v.primed || v.blocked) return true;
+    return false;
   }
 
   setHidden(hidden: boolean) {
@@ -160,7 +178,7 @@ export class MusicEngine {
         this.apply(v);
         const silent = (v.level === 0 && v.target === 0) || (this.master === 0 && this.settings.muted);
         if (silent && !v.el.paused) v.el.pause();
-        if (!silent && v.started && v.el.paused && !v.el.ended && this.unlocked) this.play(v);
+        if (!silent && v.started && !v.blocked && v.el.paused && !v.el.ended && this.unlocked) this.play(v);
       }
     }
     const before = this.snapshot.audible;
@@ -194,6 +212,31 @@ export class MusicEngine {
     this.wake();
   }
 
+  private prime() {
+    this.track('menu');
+    this.track('game');
+    for (const t of this.tracks.values()) {
+      for (const v of t.voices) {
+        if (v.primed || !v.el.paused) continue;
+        const el = v.el;
+        el.muted = true;
+        try {
+          const p = el.play();
+          const done = (ok: boolean) => {
+            if (!(v.started && v.target > 0 && !this.hidden)) {
+              el.pause();
+              if (!v.started) el.currentTime = 0;
+            }
+            el.muted = false;
+            if (ok && !v.primed) { v.primed = true; this.emit(); }
+          };
+          if (p && typeof p.then === 'function') p.then(() => done(true), () => done(false));
+          else done(true);
+        } catch { el.muted = false; }
+      }
+    }
+  }
+
   private checkLoop(t: Track) {
     const cur = t.voices[t.current];
     const d = cur.el.duration;
@@ -222,7 +265,7 @@ export class MusicEngine {
       const mk = (): Voice => {
         const el = this.env.createAudio(TRACK_URL[scene]);
         el.preload = 'auto';
-        return { el, gain: this.connect(el), level: 0, target: 0, rate: 1, started: false };
+        return { el, gain: this.connect(el), level: 0, target: 0, rate: 1, started: false, primed: false, blocked: false };
       };
       t = { scene, voices: [mk(), mk()], current: 0, handedOver: false };
       this.tracks.set(scene, t);
@@ -241,6 +284,12 @@ export class MusicEngine {
       try { this.ctx = this.env.createContext(); } catch { this.ctx = null; }
       if (!this.ctx) this.useWebAudio = false;
       else {
+        // iPhone: звук через Web Audio по умолчанию глушится переключателем «Без звука»; обычный <audio> — нет.
+        // Делаем поведение одинаковым: музыка подчиняется громкости телефона, как видео.
+        try {
+          const session = (navigator as unknown as { audioSession?: { type: string } }).audioSession;
+          if (session) session.type = 'playback';
+        } catch { /* нет в этом браузере */ }
         void this.ctx.resume?.().catch(() => {});
         for (const t of this.tracks.values()) for (const v of t.voices) v.gain ??= this.connect(v.el);
       }
@@ -284,10 +333,18 @@ export class MusicEngine {
       const p = v.el.play();
       if (p && typeof p.then === 'function') {
         p.then(
-          () => { if (!this.confirmed) { this.confirmed = true; this.emit(); } },
+          () => {
+            v.primed = true;
+            if (!this.confirmed) this.confirmed = true;
+            this.emit();
+          },
           (e: unknown) => {
             // Браузер не дал запустить звук — ждём следующего действия игрока.
-            if ((e as { name?: string })?.name === 'NotAllowedError' && !this.confirmed) { this.unlocked = false; this.emit(); }
+            if ((e as { name?: string })?.name === 'NotAllowedError') {
+              v.blocked = true;
+              if (!this.confirmed) this.unlocked = false;
+              this.emit();
+            }
           },
         );
       }
@@ -376,17 +433,26 @@ export function getMusic(): MusicEngine {
   };
 
   const gesture = () => engine.unlock();
-  const GESTURES = ['pointerdown', 'keydown', 'touchend'] as const;
-  for (const ev of GESTURES) window.addEventListener(ev, gesture, true);
-  // Слушаем действия игрока, пока браузер не подтвердит, что звук запущен.
-  engine.subscribe(() => {
-    if (!engine.getSnapshot().waitingForGesture) for (const ev of GESTURES) window.removeEventListener(ev, gesture, true);
-  });
+  // pointerdown/touchstart в Safari не считаются разрешающим действием — слушаем отпускание, клик и клавиши.
+  const GESTURES = ['pointerup', 'touchend', 'click', 'keydown'] as const;
+  let listening = false;
+  const sync = () => {
+    const need = engine.needsGesture();
+    if (need === listening) return;
+    listening = need;
+    for (const ev of GESTURES) {
+      if (need) window.addEventListener(ev, gesture, true);
+      else window.removeEventListener(ev, gesture, true);
+    }
+  };
+  sync();
+  // Слушаем действия игрока, пока браузер не разрешит звук всем трекам.
+  engine.subscribe(sync);
   document.addEventListener('visibilitychange', () => engine.setHidden(document.visibilityState === 'hidden'));
   (window as unknown as { __gamemrMusic?: MusicEngine }).__gamemrMusic = engine;
   return engine;
 }
 
 function silentAudio(): AudioLike {
-  return { src: '', preload: 'none', currentTime: 0, duration: NaN, paused: true, ended: false, volume: 1, play: () => {}, pause: () => {} };
+  return { src: '', preload: 'none', currentTime: 0, duration: NaN, paused: true, ended: false, volume: 1, muted: false, play: () => {}, pause: () => {} };
 }

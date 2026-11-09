@@ -21,9 +21,12 @@ async function openIncident(page: Page, id: string) {
   await expect(page.getByTestId('incident-card')).toBeVisible();
 }
 
+/** Точка привязки метки: у щита ART-003/004 это его нижний кончик, у кружка — центр. */
 async function centerOf(page: Page, testId: string) {
-  const b = (await page.getByTestId(testId).boundingBox())!;
-  return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
+  const el = page.getByTestId(testId);
+  const b = (await el.boundingBox())!;
+  const shield = await el.evaluate((e) => e.classList.contains('shield') && !e.classList.contains('squad'));
+  return { x: b.x + b.width / 2, y: b.y + b.height * (shield ? 0.97 : 0.5) };
 }
 
 test('MAP-001/003: approved art is loaded at native size and markers are enabled', async ({ page }) => {
@@ -149,4 +152,31 @@ test('W3 screenshots', async ({ page }, info) => {
   await page.getByTestId('dispatch-axon').hover();
   await page.waitForTimeout(200);
   await page.screenshot({ path: `test-results/screens/w3-${info.project.name}.png` });
+});
+
+test('ART-003/004: map markers are the approved shields; list and legend use the small icons', async ({ page }, info) => {
+  const errors = await start(page);
+  const inc = page.getByTestId('marker-incident-missing');
+  await expect(inc).toHaveClass(/shield/);
+  await expect.poll(() => inc.locator('img').evaluate((i: HTMLImageElement) => i.naturalWidth)).toBe(128);
+  // Кончик щита (низ по центру) — на точке вызова: нажатие возле кончика открывает тот же вызов.
+  const b = (await inc.boundingBox())!;
+  await page.mouse.click(b.x + b.width / 2, b.y + b.height * 0.9);
+  await expect(page.getByTestId('incident-card')).toBeVisible();
+  await page.getByTestId('layer-patrols').click();
+  const squad = page.getByTestId('marker-squad-axon');
+  await expect(squad).toHaveClass(/shield/);
+  await expect.poll(() => squad.locator('img').evaluate((i: HTMLImageElement) => i.naturalWidth)).toBe(128);
+  // Сенсорная область не меньше 44 px по обеим сторонам.
+  for (const el of [inc, squad]) {
+    const b = (await el.boundingBox())!;
+    expect(Math.min(b.width, b.height)).toBeGreaterThanOrEqual(44);
+  }
+  // Значки 24×24 в легенде слоёв и в списке вызовов.
+  await expect(page.getByTestId('layer-events').getByTestId('mk-icon-marker_cluster')).toBeVisible();
+  await expect(page.getByTestId('layer-patrols').getByTestId('mk-icon-marker_squad_transport')).toBeVisible();
+  if (!(await page.getByTestId('left-panel').isVisible())) await page.getByRole('button', { name: /Вызовы/ }).click();
+  await expect(page.getByTestId('incident-missing').getByTestId('mk-icon-marker_incident_search')).toBeVisible();
+  await page.screenshot({ path: `test-results/screens/art034-${info.project.name}.png` });
+  expect(errors).toEqual([]);
 });

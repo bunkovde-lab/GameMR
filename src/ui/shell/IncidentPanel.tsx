@@ -2,6 +2,8 @@ import { isOpen } from '../../core/selectors';
 import type { GameState } from '../../core/types';
 import { dispatch } from '../../store';
 import { Icon } from '../Icon';
+import { MarkerIcon } from '../art';
+import { INCIDENT_MARKER } from '../map/entities';
 import { INCIDENT_STATE_LABEL, SEVERITY_LABEL } from '../labels';
 
 interface Props { game: GameState; selectedId: string | null; onSelect: (id: string) => void; onCollapse: () => void }
@@ -29,7 +31,10 @@ export function IncidentPanel({ game, selectedId, onSelect, onCollapse }: Props)
             return (
               <li key={inc.id} className={`incident sev-${inc.severity} st-${inc.state}${selectedId === inc.id ? ' selected' : ''}`} data-testid={`incident-${inc.id}`}>
                 <div className="incident-head">
-                  <button className="incident-title" onClick={() => onSelect(inc.id)} aria-pressed={selectedId === inc.id}>{inc.title}</button>
+                  <button className="incident-title" onClick={() => onSelect(inc.id)} aria-pressed={selectedId === inc.id}>
+                    {INCIDENT_MARKER[inc.templateId] && <MarkerIcon markerKey={INCIDENT_MARKER[inc.templateId]!} />}
+                    {inc.title}
+                  </button>
                   <span className="deadline">
                     {inc.state === 'escalated' ? 'ухудшение' : left > 0 && ['new', 'acknowledged'].includes(inc.state) ? `${left} мин` : ''}
                   </span>

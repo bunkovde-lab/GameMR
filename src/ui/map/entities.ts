@@ -3,7 +3,7 @@ import { nodePosition, spawnPosition, type Point } from '../../core/map/mapConfi
 import type { GameState, Incident, Squad } from '../../core/types';
 import type { IconName } from '../Icon';
 
-/** Иконка типа вызова. Временная (placeholder) до поставки ART-003. */
+/** Запасная иконка типа вызова (если файла значка ART-003/004 нет). */
 export const INCIDENT_ICON: Record<string, IconName> = {
   medriot: 'warning',
   bioleak: 'beaker',
@@ -11,6 +11,17 @@ export const INCIDENT_ICON: Record<string, IconName> = {
   missing: 'search',
   illegal: 'medical',
 };
+
+/** ART-003/004: значок карты по типу вызова (assets/ui/markers/<ключ>.png|svg). */
+export const INCIDENT_MARKER: Record<string, string> = {
+  medriot: 'marker_incident_riot',
+  bioleak: 'marker_incident_bio',
+  raid: 'marker_incident_armed',
+  missing: 'marker_incident_search',
+  illegal: 'marker_incident_illegal_mod',
+};
+export const SQUAD_MARKER = 'marker_squad_transport';
+export const CLUSTER_MARKER = 'marker_cluster';
 
 export const incidentPoint = (inc: Incident): Point | undefined => spawnPosition(inc.spawnId);
 

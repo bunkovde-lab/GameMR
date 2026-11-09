@@ -127,6 +127,16 @@ svg.icon {
   .nav .label { display: none; }
   .stats .stat:nth-child(n + 3) { display: none; }
 }
+/* W10: телефон в портретном положении — в верхней строке остаются время, скорость, касса и меню. */
+@media (max-width: 600px) {
+  .hud { gap: 6px; padding: 0 4px; }
+  .brand { display: none; }
+  .clock { padding-left: 0; border-left: 0; }
+  .clock b { font-size: 19px; }
+  .speed { gap: 2px; }
+  .stats .stat:nth-child(n + 2) { display: none; }
+  .stat { padding: 0 4px; }
+}
 @media (max-height: 560px) {
   .squads .panel-header { display: none; }
   .clock b { font-size: 19px; }
@@ -170,8 +180,8 @@ svg.icon {
 .tone-grey .status { color: var(--dim); }
 .squad.tone-red { border-color: #7a3a3a; }
 
-.overlay { position: fixed; inset: 0; z-index: 20; background: #05080dcc; display: grid; place-items: center; padding: 12px; }
-.modal { width: min(560px, 100%); max-height: calc(100dvh - 24px); display: flex; flex-direction: column; background: var(--surface); }
+.overlay { position: fixed; inset: 0; z-index: 20; background: #05080dcc; display: grid; place-items: center; grid-template-columns: minmax(0, 1fr); padding: 12px; }
+.modal { width: min(560px, 100%); min-width: 0; justify-self: center; max-height: calc(100dvh - 24px); display: flex; flex-direction: column; background: var(--surface); }
 .modal-body { padding: 14px 16px; overflow-y: auto; }
 .modal-sub { display: block; font-size: 12px; color: var(--muted); font-weight: 400; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
@@ -244,6 +254,15 @@ svg.icon {
   box-shadow: 0 2px 10px #000c;
 }
 .marker svg.icon { width: 22px; height: 22px; }
+/* W10 (MAP-05): кластер вызовов и линии от сдвинутой метки к истинной точке. */
+.marker.cluster { border-radius: 50%; font-size: 17px; border-width: 2px; }
+.marker.cluster.sev-medium { border-color: var(--cyan); }
+.marker.cluster.sev-high { border-color: var(--amber); background: #3a2a12f0; }
+.marker.cluster.sev-critical { border-color: var(--red); background: #4a1a20f0; }
+.map-screen > .marker-leaders { position: absolute; inset: 0; width: 100%; height: 100%; transform: none; pointer-events: none; overflow: visible; }
+.marker-leaders line { stroke: var(--gold-light); stroke-width: 2.5; filter: drop-shadow(0 0 2px #000); }
+.marker-leaders circle { fill: var(--gold-light); stroke: #000; stroke-width: 1.5; }
+.cluster-collapse { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 3; }
 .marker.incident.sev-low, .marker.incident.sev-medium { border-color: var(--cyan); }
 .marker.incident.sev-high { border-color: var(--amber); background: #3a2a12f0; }
 .marker.incident.sev-critical { border-color: var(--red); background: #4a1a20f0; }

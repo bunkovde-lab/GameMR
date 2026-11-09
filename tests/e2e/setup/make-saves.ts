@@ -59,3 +59,9 @@ s12.shift = 12;
 const end = reduce(s12, { type: 'END_SHIFT' });
 if (!end.ok) throw new Error(end.reason);
 save('ending', end.state);
+
+// 5. W10: три вызова в одной точке — кластер на карте.
+const sc = fresh();
+const base = sc.incidents.find((i) => i.templateId === 'missing')!;
+for (const n of [1, 2]) sc.incidents.push({ ...structuredClone(base), id: `${base.id}-dup${n}`, title: `${base.title} (${n + 1})` });
+save('cluster', sc);

@@ -53,7 +53,7 @@ test('actions: closed House records need a permit; the request costs a fee and w
   await load(page, 'case_c1');
   await page.getByTestId('case-mode-actions').click();
   await expect(page.getByTestId('action-start-a_list')).toBeDisabled();
-  await expect(page.getByTestId('permit-a_list')).toContainText('Второй Дом');
+  await expect(page.getByTestId('permit-a_list')).toContainText('Дом Вельт');
   await page.getByTestId('permit-req-a_list').click();
   await expect(page.getByTestId('permit-a_list')).toContainText('рассматривается');
   await expect(page.getByTestId('action-a_search')).toContainText('✗ «Маршрут контейнера»');

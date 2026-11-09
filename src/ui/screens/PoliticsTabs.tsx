@@ -126,7 +126,7 @@ export function PoliticsTab({ game }: { game: GameState }) {
   const events = game.log.filter((e) => /^(deal_|audit_|permit_|emergency_)/.test(e.type)).slice(-8).reverse();
   return (
     <div className="career" data-testid="dir-politics">
-      <p className="hint">Шесть Домов — разные институты с внутренними течениями. Коалиции пересекают Дома. Названия Домов и течений рабочие (OPEN-04), до сверки с политической библией.</p>
+      <p className="hint">Шесть Домов — разные институты с внутренними течениями. Коалиции пересекают Дома. Названия Домов утверждены по лору; названия течений рабочие (OPEN-04).</p>
       <h4 className="section-title">Коалиции</h4>
       <div className="coalitions" data-testid="coalitions">
         {COALITIONS.map((c) => {
@@ -154,7 +154,7 @@ export function PoliticsTab({ game }: { game: GameState }) {
           return (
             <article key={h.id} className="sq-card" data-testid={`house-${h.id}`}>
               <header><b>{h.label}</b><small className={st >= 10 ? 'good' : st <= -10 ? 'bad' : undefined}>{sign(st)} · {standingWord(st)}</small></header>
-              <small className="muted">Ведает: {h.controls}. Название рабочее.</small>
+              <small className="muted">Ведает: {h.controls}.</small>
               <ul className="plain-list currents">
                 {h.currents.map((c) => <li key={c.label}>{c.label} · {COALITIONS.find((x) => x.id === c.coalition)!.label} · {c.share}%</li>)}
               </ul>

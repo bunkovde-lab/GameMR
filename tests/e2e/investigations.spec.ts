@@ -228,3 +228,28 @@ for (const [fx, id, key] of [['case_c1', 'c1', 'case1_registry_office'], ['mid_c
     }
   });
 }
+
+test('ART-014: campaign title art on the campaign tab', async ({ page }, info) => {
+  await load(page, 'mid_c2');
+  await page.getByTestId('case-tab-campaign').click();
+  const t = page.getByTestId('art-campaign_title');
+  await expect(t).toHaveClass(/has-art/);
+  expect((await t.boundingBox())!.height).toBeGreaterThanOrEqual(info.project.name === 'phone-844' ? 90 : 150);
+  await page.getByText('Сохранение импортировано.').waitFor({ state: 'hidden' }).catch(() => {});
+  await page.screenshot({ path: `test-results/screens/art014-title-${info.project.name}.png` });
+});
+
+for (const id of ['order', 'cost', 'collapse'] as const) {
+  test(`ART-014: ending ${id} shows its art band`, async ({ page }, info) => {
+    await load(page, `ending_${id}`, false);
+    const band = page.getByTestId('ending').locator(`[data-art="ending_${id}"]`);
+    await expect(band).toHaveClass(/has-art/);
+    expect((await band.boundingBox())!.height).toBeGreaterThanOrEqual(info.project.name === 'phone-844' ? 90 : 180);
+    await page.screenshot({ path: `test-results/screens/art014-ending-${id}-${info.project.name}.png` });
+    if (info.project.name === 'pc-1920') {
+      await page.setViewportSize({ width: 390, height: 844 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      await page.screenshot({ path: `test-results/screens/art014-ending-${id}-portrait.png` });
+    }
+  });
+}

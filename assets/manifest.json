@@ -1309,7 +1309,10 @@
       "sha256": "ff088809c30086eb6770b5c85dde0d34ee3733dbe500c25752f0086749ccb1c3",
       "source": "ART-003-004_MAP_MARKERS_FOR_CHATGPT.md; docs/art/APPROVED_MAP_MARKERS_V2.md; art_refs/map_markers_approved_v2.png",
       "approvedBy": null,
-      "notes": "Six approved v2 shield designs extracted from small row for PNG; cluster blank shield is new review. SVG simplified consistent shield."
+      "notes": "Six approved v2 shield designs extracted from small row for PNG; cluster blank shield is new review. SVG simplified consistent shield.",
+      "webCopies": [
+        "assets/ui/markers/web/marker_incident_riot.webp"
+      ]
     },
     {
       "id": "ART003004_MARKER_INCIDENT_RIOT_SVG",
@@ -1337,7 +1340,10 @@
       "sha256": "c8ef0c41ebed1641e2d45881fb773ff79320f8f8e19d920ade1239801e46d9fe",
       "source": "ART-003-004_MAP_MARKERS_FOR_CHATGPT.md; docs/art/APPROVED_MAP_MARKERS_V2.md; art_refs/map_markers_approved_v2.png",
       "approvedBy": null,
-      "notes": "Six approved v2 shield designs extracted from small row for PNG; cluster blank shield is new review. SVG simplified consistent shield."
+      "notes": "Six approved v2 shield designs extracted from small row for PNG; cluster blank shield is new review. SVG simplified consistent shield.",
+      "webCopies": [
+        "assets/ui/markers/web/marker_incident_bio.webp"
+      ]
     },
     {
       "id": "ART003004_MARKER_INCIDENT_BIO_SVG",
@@ -1365,7 +1371,10 @@
       "sha256": "ebaa42e0e95b6fcb9d7c6590c1d47bb8f6e22265c818f3c56076804da8c204c5",
       "source": "ART-003-004_MAP_MARKERS_FOR_CHATGPT.md; docs/art/APPROVED_MAP_MARKERS_V2.md; art_refs/map_markers_approved_v2.png",
       "approvedBy": null,
-      "notes": "Six approved v2 shield designs extracted from small row for PNG; cluster blank shield is new review. SVG simplified consistent shield."
+      "notes": "Six approved v2 shield designs extracted from small row for PNG; cluster blank shield is new review. SVG simplified consistent shield.",
+      "webCopies": [
+        "assets/ui/markers/web/marker_incident_armed.webp"
+      ]
     },
     {
       "id": "ART003004_MARKER_INCIDENT_ARMED_SVG",
@@ -1393,7 +1402,10 @@
       "sha256": "a308b58d9224639b67c902a63602ece0dfc335a946130506017159004c8d71c4",
       "source": "ART-003-004_MAP_MARKERS_FOR_CHATGPT.md; docs/art/APPROVED_MAP_MARKERS_V2.md; art_refs/map_markers_approved_v2.png",
       "approvedBy": null,
-      "notes": "Six approved v2 shield designs extracted from small row for PNG; cluster blank shield is new review. SVG simplified consistent shield."
+      "notes": "Six approved v2 shield designs extracted from small row for PNG; cluster blank shield is new review. SVG simplified consistent shield.",
+      "webCopies": [
+        "assets/ui/markers/web/marker_incident_search.webp"
+      ]
     },
     {
       "id": "ART003004_MARKER_INCIDENT_SEARCH_SVG",
@@ -1421,7 +1433,10 @@
       "sha256": "441f4dcbd59b1681e30f79a44b75d71fc438e099ef1b0952c2f586f53eb4e07a",
       "source": "ART-003-004_MAP_MARKERS_FOR_CHATGPT.md; docs/art/APPROVED_MAP_MARKERS_V2.md; art_refs/map_markers_approved_v2.png",
       "approvedBy": null,
-      "notes": "Six approved v2 shield designs extracted from small row for PNG; cluster blank shield is new review. SVG simplified consistent shield."
+      "notes": "Six approved v2 shield designs extracted from small row for PNG; cluster blank shield is new review. SVG simplified consistent shield.",
+      "webCopies": [
+        "assets/ui/markers/web/marker_incident_illegal_mod.webp"
+      ]
     },
     {
       "id": "ART003004_MARKER_INCIDENT_ILLEGAL_MOD_SVG",
@@ -1449,7 +1464,10 @@
       "sha256": "1bb2f755699146697c7e2e801b447c50001630b2a8db31cd4b50843736ec690c",
       "source": "ART-003-004_MAP_MARKERS_FOR_CHATGPT.md; docs/art/APPROVED_MAP_MARKERS_V2.md; art_refs/map_markers_approved_v2.png",
       "approvedBy": null,
-      "notes": "Six approved v2 shield designs extracted from small row for PNG; cluster blank shield is new review. SVG simplified consistent shield."
+      "notes": "Six approved v2 shield designs extracted from small row for PNG; cluster blank shield is new review. SVG simplified consistent shield.",
+      "webCopies": [
+        "assets/ui/markers/web/marker_squad_transport.webp"
+      ]
     },
     {
       "id": "ART003004_MARKER_SQUAD_TRANSPORT_SVG",
@@ -1477,7 +1495,10 @@
       "sha256": "0b63da369c2d61f604429b377bbf1606e0b8e62944a5144b7b6140482c31b353",
       "source": "ART-003-004_MAP_MARKERS_FOR_CHATGPT.md; docs/art/APPROVED_MAP_MARKERS_V2.md; art_refs/map_markers_approved_v2.png",
       "approvedBy": null,
-      "notes": "Six approved v2 shield designs extracted from small row for PNG; cluster blank shield is new review. SVG simplified consistent shield."
+      "notes": "Six approved v2 shield designs extracted from small row for PNG; cluster blank shield is new review. SVG simplified consistent shield.",
+      "webCopies": [
+        "assets/ui/markers/web/marker_cluster.webp"
+      ]
     },
     {
       "id": "ART003004_MARKER_CLUSTER_SVG",

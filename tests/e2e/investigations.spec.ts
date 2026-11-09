@@ -178,3 +178,33 @@ test('ART-011: interrogation room background and faces of known persons; unknown
   await page.getByText('Сохранение импортировано.').waitFor({ state: 'hidden' }).catch(() => {});
   await page.screenshot({ path: `test-results/screens/art011-interviews-${info.project.name}.png` });
 });
+
+for (const op of ['op1', 'op2'] as const) {
+  test(`ART-012: key art of ${op} fills the campaign thumbnail and the operation band`, async ({ page }, info) => {
+    await load(page, op === 'op1' ? 'mid_c2' : 'op2_window');
+    await page.getByTestId('case-tab-campaign').click();
+    const thumb = page.locator(`[data-testid="op-${op}"] [data-art="${op}_key"]`);
+    await expect(thumb).toHaveClass(/has-art/);
+    await page.getByText('Сохранение импортировано.').waitFor({ state: 'hidden' }).catch(() => {});
+    await thumb.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `test-results/screens/art012-${op}-campaign-${info.project.name}.png` });
+    await page.getByTestId(`op-start-${op}`).click();
+    const band = page.getByTestId('special-op').locator('.op-art');
+    await expect(band).toHaveClass(/has-art/);
+    await expect(band).toHaveAttribute('style', new RegExp(`${op}_key`));
+    const box = (await band.boundingBox())!;
+    // Полоса: на широком экране ≥ 180 px, на телефоне ≥ 90 px; картинка ложится по центру кадра (y 324–756 исходника).
+    expect(box.height).toBeGreaterThanOrEqual(info.project.name === 'phone-844' ? 90 : 180);
+    expect(await band.evaluate((el) => getComputedStyle(el).backgroundPositionY)).toBe('50%');
+    await band.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `test-results/screens/art012-${op}-band-${info.project.name}.png` });
+    if (info.project.name === 'pc-1920') {
+      // Телефон вертикально: полоса не уже 90 px и без горизонтальной прокрутки.
+      await page.setViewportSize({ width: 390, height: 844 });
+      await band.scrollIntoViewIfNeeded();
+      expect((await band.boundingBox())!.height).toBeGreaterThanOrEqual(90);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      await page.screenshot({ path: `test-results/screens/art012-${op}-band-portrait.png` });
+    }
+  });
+}

@@ -744,3 +744,11 @@ td.bad { color: var(--bad); }
   .person-picker.grouped .btn.group-toggle small { margin-left: 0; }
   .person-picker.grouped .pick-group-body { display: flex; border-top: 0; border-left: 1px solid var(--stroke2); }
 }
+
+/* AUDIO v1: блок «Музыка» в окне настроек */
+.music-settings { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--stroke2); display: grid; gap: 8px; }
+.music-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.music-row .btn { min-width: 120px; }
+.music-volume { flex: 1; min-width: 180px; display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+.music-volume input[type='range'] { width: 100%; min-height: var(--tap); accent-color: var(--gold); touch-action: pan-x; }
+.music-hint { color: var(--muted); }

@@ -519,6 +519,14 @@ td.bad { color: var(--bad); }
 .fin-bars .bar { width: 22px; min-height: 2px; border-radius: 4px 4px 0 0; }
 .fin-bars .bar:hover { filter: brightness(1.25); }
 .facility { gap: 6px; }
+/* ART-016: полоса помещения сверху карточки и миниатюра предмета исследования. */
+.facility .fac-art {
+  height: 110px; margin: -2px -2px 2px; border-radius: 6px; background: #141922 center / cover no-repeat;
+  box-shadow: inset 0 0 0 1px #c9a46a55, inset 0 -30px 30px -20px #0b1118cc;
+}
+.node-list .with-thumb { display: flex; gap: 10px; align-items: center; }
+.node-list .with-thumb > span { display: grid; gap: 2px; min-width: 0; }
+.res-thumb { flex: none; width: 56px; height: 56px; border-radius: 6px; object-fit: cover; box-shadow: 0 0 0 1px #c9a46a66; }
 .fac-now { margin: 0; }
 .facility .btn { justify-self: start; }
 .start-form { display: grid; gap: 8px; padding: 8px; border: 1px dashed var(--stroke2); border-radius: 8px; }

@@ -9,6 +9,7 @@ import {
 import { formatRe } from '../../core/selectors';
 import type { GameState, ResearchProtocol } from '../../core/types';
 import { dispatch } from '../../store';
+import { artUrl } from '../art';
 
 const STATUS: Record<string, string> = {
   locked: 'закрыт', available: 'доступен', queued: 'ждёт ячейку', active: 'идёт', blocked_inputs: 'стоит: нет ресурсов',
@@ -47,7 +48,10 @@ function ProjectRow({ game, d }: { game: GameState; d: ProjectDef }) {
   const canStart = v.status === 'available' || v.status === 'failed';
   return (
     <li className={v.status === 'completed' ? 'learned' : ''} data-testid={`project-${d.id}`}>
-      <span><b>{d.label}</b><small>{d.result}</small></span>
+      <span className={artUrl(`research_${d.id}`) ? 'with-thumb' : undefined}>
+        {artUrl(`research_${d.id}`) && <img className="res-thumb" src={artUrl(`research_${d.id}`)} alt="" width={56} height={56} data-testid={`res-art-${d.id}`} />}
+        <span><b>{d.label}</b><small>{d.result}</small></span>
+      </span>
       <small className={`pstatus st-${v.status}`}>{STATUS[v.status]}{st && st.status !== 'completed' && st.status !== 'failed' ? ` · этап ${st.stagesDone} из ${st.stagesTotal} · ведёт ${game.staff.find((p) => p.id === st.researcherId)?.name}` : ''}</small>
       {v.reason && <small className="why">{v.reason}</small>}
       {canStart && !open && (

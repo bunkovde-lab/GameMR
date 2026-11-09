@@ -5,7 +5,11 @@ import type { ReactNode } from 'react';
  * («op1_key», «ending_order», «case1_registry_office»…); как только файл появится в assets/, он подхватится
  * сборкой без изменений кода. Пока файла нет — нейтральная заглушка с подписью, интерактивные элементы всегда рисует код.
  */
-const files = import.meta.glob('../../assets/{backgrounds,events,locations}/*.{webp,png,jpg}', { eager: true, import: 'default' }) as Record<string, string>;
+const files = {
+  ...import.meta.glob('../../assets/{backgrounds,events,locations}/*.{webp,png,jpg}', { eager: true, import: 'default' }),
+  // ART-016: только игровые webp-копии Дирекции (оригиналы PNG в сборку не попадают).
+  ...import.meta.glob('../../assets/{facilities,research}/web/*.webp', { eager: true, import: 'default' }),
+} as Record<string, string>;
 const ART: Record<string, string> = {};
 for (const [path, url] of Object.entries(files)) {
   const m = /\/([^/]+)\.(webp|png|jpg)$/.exec(path);

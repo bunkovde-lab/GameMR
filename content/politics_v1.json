@@ -37,11 +37,12 @@
   "permits": {
     "judicial": { "legalBasis": "Достаточные основания по делу: сообщение о преступлении и проверка на месте.", "requirements": ["Вызов зарегистрирован", "Указаны цель и объём действий"], "reviewMinutes": 40, "fee": 0.5, "base": 0.65, "trustBonus": 0.1, "trustMin": 60, "openBonus": 0.1, "violationPenalty": 0.2, "validShifts": 2 },
     "interagency": { "legalBasis": "Объект находится в ведении Дома; нужен его допуск.", "requirements": ["Вызов зарегистрирован", "Согласие Дома-владельца"], "reviewMinutes": 60, "fee": 0, "base": 0.3, "standingFactor": 0.01, "min": 0.05, "max": 0.95, "validShifts": 2 },
-    "emergency": { "legalBasis": "Немедленная угроза жизни или распространения; решение принято руководителем.", "requirements": ["Запись ответственного", "Проверка в начале следующей смены"], "auditBase": 0.45, "bySeverity": { "critical": -0.2, "high": -0.1, "medium": 0 }, "hardBonus": -0.1, "openPenalty": 0.1, "perViolation": 0.15, "outcome": { "success": -0.15, "partial": 0, "failure": 0.15 }, "fine": 4, "min": 0.05, "max": 0.9 }
+    "emergency": { "legalBasis": "Немедленная угроза жизни или распространения; решение принято руководителем.", "requirements": ["Запись ответственного", "Проверка в начале следующей смены"], "auditBase": 0.45, "bySeverity": { "critical": -0.2, "high": -0.1, "medium": 0, "low": 0.05 }, "hardBonus": -0.1, "openPenalty": 0.1, "perViolation": 0.15, "outcome": { "success": -0.15, "partial": 0, "failure": 0.15 }, "fine": 4, "min": 0.05, "max": 0.9 }
   },
   "legalRequirements": [
     { "templateId": "illegal", "tactics": ["arrest", "suppression"], "permit": "judicial", "why": "Подпольная операционная в жилом блоке: обыск и арест в жилье — только по ордеру." },
     { "templateId": "missing", "tactics": ["arrest"], "permit": "judicial", "why": "Задержание сотрудника реестра требует судебной санкции." },
+    { "templateId": "empty_flat", "tactics": ["arrest", "suppression"], "permit": "judicial", "why": "Квартира без жильца: силовой обыск жилья — только по судебному основанию." },
     { "templateId": "bioleak", "tactics": ["arrest"], "permit": "interagency", "houseId": "h1", "why": "Лаборатория тканевых культур в ведении Первого Дома: задержание персонала и изъятие внутри — с его допуском. Карантинное оцепление снаружи допускается штатно." }
   ],
   "violationWindowShifts": 3,

@@ -3,6 +3,8 @@ import { createInitialState } from '../../../src/core/state';
 import { reduce } from '../../../src/core/reduce';
 import { caseDef, caseFile, openCaseFromReport } from '../../../src/core/investigations';
 import { toSaveFile } from '../../../src/persistence/saveFormat';
+import { spawnStoryIncident } from '../../../src/core/campaign';
+import { pendingDecision } from '../../../src/core/operations';
 import type { CaseFile, GameState, OperationReport } from '../../../src/core/types';
 
 /** Сохранения для e2e: состояние собирается настоящим ядром (Playwright сам не грузит JSON-контент как модули). */
@@ -77,3 +79,25 @@ const s10 = fresh();
 s10.shift = 10;
 open(s10, 'c3');
 save('op2_window', s10);
+
+// 7. W10: новые происшествия сценария — сложное со сценой («Судебная лестница»), отряд уже ждёт приказа на развилке,
+//    и рядовое с последствиями опоздания («Третий поток сортировки»).
+{
+  let w = fresh();
+  w.incidents = w.incidents.filter((i) => i.templateId === 'missing');
+  spawnStoryIncident(w, 'court_stairs', () => {});
+  spawnStoryIncident(w, 'triage', () => {});
+  w.paused = false;
+  const court = w.incidents.find((i) => i.templateId === 'court_stairs')!;
+  const r = reduce(w, { type: 'DISPATCH_SQUAD', squadId: 'axon', incidentId: court.id });
+  if (!r.ok) throw new Error(r.reason);
+  w = r.state;
+  for (let k = 0; k < 40 && !pendingDecision(w); k++) {
+    const t = reduce(w, { type: 'TICK', minutes: 1 });
+    if (!t.ok) throw new Error(t.reason);
+    w = t.state;
+  }
+  if (!pendingDecision(w)) throw new Error('W10 fixture: no decision');
+  w.paused = true;
+  save('w10_events', w);
+}

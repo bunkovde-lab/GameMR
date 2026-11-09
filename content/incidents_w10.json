@@ -1,0 +1,1220 @@
+{
+ "_status": "PROVISIONAL — сценарий W10_EVENTS_v1 (согласован Дмитрием 2026-11-09). Сроки, сложность и пригодность тактик — проверочные гипотезы до балансного прогона; «hidden» — состояние Core, игроку не показывается.",
+ "templates": [
+  {
+   "id": "medriot",
+   "num": 1,
+   "deadlineType": "escalate",
+   "lateText": "пациенты разрывают медицинский контур и увеличивают число заложников.",
+   "hidden": "Владелец клиники приказал отложить освобождение послеоперационных больных ради испытания новой схемы приживаемости; толпа смешала реальных пострадавших и оплаченных провокаторов.",
+   "aftermath": "Люди: возможно освобождение персонала с ранениями как у пациентов, так и у Стражей. Город: доверие к клиникам снижается при необоснованном штурме. Право: протокол применения силы влияет на проверку дирекции.",
+   "scene": "scene_med_triage",
+   "coreFlags": [
+    "medriot_patients_preserved",
+    "medriot_medical_records_secured"
+   ]
+  },
+  {
+   "id": "cold_seal",
+   "num": 2,
+   "title": "Пломба без владельца",
+   "districtId": "medical",
+   "incidentClass": "routine",
+   "severity": "low",
+   "deadlineMinutes": 40,
+   "deadlineType": "expire",
+   "lateText": "пломба уйдёт в переработку.",
+   "difficulty": 8,
+   "requirements": [
+    "analysis",
+    "control",
+    "resilience"
+   ],
+   "requiredRoles": [
+    "biocriminalist"
+   ],
+   "intel": 1,
+   "tags": [
+    "bio"
+   ],
+   "known": "На разгрузке донорской службы найдена капсула с целой пломбой, но отсутствующим номером владельца в открытом учёте.",
+   "hidden": "Капсулу переписали через подрядчика Шестого Дома; сама ткань законно донорская, а маршрут изменён ради скрытия отсрочки другого лица.",
+   "aftermath": "Люди: доставка задерживается, если капсулу изъять целиком. Дело: заверенный серийный след можно сопоставить с C2-E08; при уничтожении образца останется транспортная копия.",
+   "scene": null,
+   "coreFlags": [
+    "c2_transfer_seal_found"
+   ],
+   "tacticFit": {
+    "recon": 2,
+    "arrest": -1,
+    "suppression": -2,
+    "quarantine": -2
+   },
+   "story": {
+    "shift": 6,
+    "caseId": "c2"
+   }
+  },
+  {
+   "id": "organ_vault",
+   "num": 3,
+   "title": "Капсулы без получателей",
+   "districtId": "medical",
+   "incidentClass": "complex",
+   "severity": "medium",
+   "deadlineMinutes": 18,
+   "deadlineType": "branch",
+   "lateText": "жизненно важная трансплантация без разрешения.",
+   "difficulty": 14,
+   "requirements": [
+    "analysis",
+    "authority",
+    "resilience"
+   ],
+   "requiredRoles": [
+    "biocriminalist"
+   ],
+   "intel": 1,
+   "tags": [
+    "bio"
+   ],
+   "known": "В закрытом хранилище обнаружены готовые к отправке органы с двумя несовместимыми карточками назначения. Операционное окно скоро закроется.",
+   "hidden": "Одна карточка относится к пациенту, действительно ожидающему лечения; другая — маскирует подменённого донора, связывая Шестой и Пятый Дома.",
+   "aftermath": "Люди: промедление может погубить реципиента. Дело: фото двух пломб и контрольная проба дополняют C3-E07. Политика: раскрытие без защиты пациентов превращает расследование в общественный скандал.",
+   "scene": "scene_med_organ_vault",
+   "coreFlags": [
+    "c3_organ_chain_secured",
+    "medical_recipients_at_risk"
+   ],
+   "tacticFit": {
+    "recon": 1,
+    "arrest": 0,
+    "suppression": -2,
+    "quarantine": -1
+   },
+   "story": {
+    "shift": 10,
+    "caseId": "c3"
+   }
+  },
+  {
+   "id": "triage",
+   "num": 4,
+   "title": "Третий поток сортировки",
+   "districtId": "medical",
+   "incidentClass": "routine",
+   "severity": "medium",
+   "deadlineMinutes": 22,
+   "deadlineType": "escalate",
+   "lateText": "начнётся давка на экстренном входе.",
+   "difficulty": 11,
+   "requirements": [
+    "reaction",
+    "control",
+    "resilience"
+   ],
+   "requiredRoles": [
+    "guard"
+   ],
+   "intel": 1,
+   "tags": [
+    "riot"
+   ],
+   "known": "Автоматическая система сортировки отправляет тяжёлых пациентов к закрытому шлюзу, пока служебный вход перегружен родственниками.",
+   "hidden": "Причина — неверный маршрут после обновления сортировщика, а не диверсия; дежурный хотел скрыть собственное нарушение протокола.",
+   "aftermath": "Люди: при успехе сохранены жизни, но смена Стражей получает усталость. Город: репутация больницы растёт от открытого исправления, падает при сокрытии.",
+   "scene": null,
+   "coreFlags": [],
+   "tacticFit": {
+    "recon": 1,
+    "arrest": 1,
+    "suppression": -2,
+    "quarantine": -1
+   }
+  },
+  {
+   "id": "graft",
+   "num": 5,
+   "title": "Генетический отказ трансплантата",
+   "districtId": "medical",
+   "incidentClass": "routine",
+   "severity": "medium",
+   "deadlineMinutes": 36,
+   "deadlineType": "branch",
+   "lateText": "повторная госпитализация с угрозой соседним пациентам.",
+   "difficulty": 11,
+   "requirements": [
+    "analysis",
+    "resilience",
+    "control"
+   ],
+   "requiredRoles": [
+    "biocriminalist"
+   ],
+   "intel": 1,
+   "tags": [
+    "bio"
+   ],
+   "known": "У пациента после операции проявилась нестандартная реакция интегрированного органа. Врачи требуют срочной экспертизы партии.",
+   "hidden": "Орган технологически исправен, но реципиент скрывал ранее установленную модификацию; это не доказательство обязательной «подписки» зрелых кровных.",
+   "aftermath": "Люди: точная диагностика спасает пациента. Кадры: работа на высокой биоопасности даёт усталость/контактный риск. Город: экспертиза уменьшает будущие ошибки комплектации.",
+   "scene": null,
+   "coreFlags": [],
+   "tacticFit": {
+    "recon": 1,
+    "arrest": -1,
+    "suppression": -2,
+    "quarantine": 1
+   }
+  },
+  {
+   "id": "stairs_blood",
+   "num": 6,
+   "title": "Кровь на лестничном марше",
+   "districtId": "medical",
+   "incidentClass": "routine",
+   "severity": "low",
+   "deadlineMinutes": 58,
+   "deadlineType": "expire",
+   "lateText": "очевидец покинет район.",
+   "difficulty": 8,
+   "requirements": [
+    "analysis",
+    "authority",
+    "reaction"
+   ],
+   "requiredRoles": [
+    "investigator"
+   ],
+   "intel": 1,
+   "tags": [
+    "trace"
+   ],
+   "known": "Санитар сообщает о следах человеческой крови на служебной лестнице больницы. Камера видела человека без формы.",
+   "hidden": "Раненый служащий пытался уйти от незаконных частных коллекторов и не хочет становиться свидетелем; связь с клиническим оборудованием ложна.",
+   "aftermath": "Люди: найденный свидетель может получить защиту. Право: незаконное удержание пострадавшего создаёт жалобу. Кадры: следователь тратит рабочее время на помощь.",
+   "scene": null,
+   "coreFlags": [],
+   "tacticFit": {
+    "recon": 2,
+    "arrest": -1,
+    "suppression": -2,
+    "quarantine": -2
+   }
+  },
+  {
+   "id": "bioleak",
+   "num": 7,
+   "deadlineType": "escalate",
+   "lateText": "культура выходит за лабораторный контур.",
+   "hidden": "Разгерметизация связана с попыткой скрытой утилизации материала из подменённых донорских записей. Часть аварии — непреднамеренный биологический отклик на вмешательство.",
+   "aftermath": "Люди: выбор между риском для лаборантов и города. Право: карантин снаружи штатный; изъятия внутри требуют доступа или узкой чрезвычайной необходимости. Дело: найденная партия связана с C3-E02/C3-E07.",
+   "scene": "scene_sci_breakin",
+   "coreFlags": [
+    "c3_containment_protocol",
+    "c3_first_sample_found"
+   ],
+   "story": {
+    "shift": 9,
+    "caseId": "c3"
+   }
+  },
+  {
+   "id": "specimen",
+   "num": 8,
+   "title": "Клетка, которую никто не открывал",
+   "districtId": "science",
+   "incidentClass": "complex",
+   "severity": "high",
+   "deadlineMinutes": 32,
+   "deadlineType": "branch",
+   "lateText": "поиск биологического объекта в вентиляционных шахтах.",
+   "difficulty": 14,
+   "requirements": [
+    "analysis",
+    "reaction",
+    "resilience"
+   ],
+   "requiredRoles": [
+    "lovchiy"
+   ],
+   "intel": 1,
+   "tags": [
+    "bio"
+   ],
+   "known": "Виварий экспериментальных организмов разгромлен изнутри. Замок не повреждён, сотрудник охраны утверждает, что ничего не видел.",
+   "hidden": "Существо приобрело способность обходить стандартные сенсоры тепла, но бежало из-за неправильно выстроенного циклического освещения, а не сознательного нападения.",
+   "aftermath": "Люди: ловчие могут получить ранения, даже найдя объект. Город: своевременное перекрытие шахт предотвращает угрозу в соседнем районе. Наука: ценный образец может быть уничтожен или сохранён.",
+   "scene": "scene_sci_specimen",
+   "coreFlags": [
+    "science_specimen_contained"
+   ],
+   "tacticFit": {
+    "recon": 1,
+    "arrest": -1,
+    "suppression": -2,
+    "quarantine": 1
+   }
+  },
+  {
+   "id": "spectrometer",
+   "num": 9,
+   "title": "Слепой спектрометр",
+   "districtId": "science",
+   "incidentClass": "routine",
+   "severity": "low",
+   "deadlineMinutes": 58,
+   "deadlineType": "expire",
+   "lateText": "калибровочный цикл сотрёт временные данные.",
+   "difficulty": 8,
+   "requirements": [
+    "analysis",
+    "control",
+    "reaction"
+   ],
+   "requiredRoles": [
+    "analyst"
+   ],
+   "intel": 1,
+   "tags": [
+    "trace"
+   ],
+   "known": "Пост контроля химических проб несколько часов показывает одинаковые значения для всех производств.",
+   "hidden": "Сотрудник подменил неисправный датчик виртуальным датчиком из обучающей среды, чтобы избежать остановки.",
+   "aftermath": "Город: корректная остановка спасёт будущие анализы; ошибка приведёт к ложным карантинам. Кадры: аналитик получает технологическую компетенцию.",
+   "scene": null,
+   "coreFlags": [],
+   "tacticFit": {
+    "recon": 2,
+    "arrest": -1,
+    "suppression": -2,
+    "quarantine": -2
+   }
+  },
+  {
+   "id": "courier_box",
+   "num": 10,
+   "title": "Контейнер из жилого блока",
+   "districtId": "science",
+   "incidentClass": "routine",
+   "severity": "medium",
+   "deadlineMinutes": 36,
+   "deadlineType": "expire",
+   "lateText": "контейнер смешают со штатными пробами.",
+   "difficulty": 11,
+   "requirements": [
+    "analysis",
+    "authority",
+    "resilience"
+   ],
+   "requiredRoles": [
+    "biocriminalist"
+   ],
+   "intel": 1,
+   "tags": [
+    "bio"
+   ],
+   "known": "На приёмке лаборатории обнаружен незаявленный контейнер из жилого сектора, оформленный как пустой транспортный модуль.",
+   "hidden": "Внутри следы хирургической биометрической маскирующей ткани, связанные с нелегальной операционной; перевозчик не знает назначения.",
+   "aftermath": "Дело: C2-E08 становится достижимым и без успешной операции 1. Люди: опечатывание задерживает анализы пациентов. Право: правильно оформленный протокол сохраняет допустимость.",
+   "scene": null,
+   "coreFlags": [
+    "c2_alt_sample_route"
+   ],
+   "tacticFit": {
+    "recon": 2,
+    "arrest": -1,
+    "suppression": -2,
+    "quarantine": 0
+   },
+   "story": {
+    "shift": 7,
+    "caseId": "c2"
+   }
+  },
+  {
+   "id": "incubator",
+   "num": 11,
+   "title": "Пустой инкубатор",
+   "districtId": "science",
+   "incidentClass": "routine",
+   "severity": "low",
+   "deadlineMinutes": 40,
+   "deadlineType": "expire",
+   "lateText": "устройство продадут через вторичную логистику.",
+   "difficulty": 8,
+   "requirements": [
+    "analysis",
+    "reaction",
+    "authority"
+   ],
+   "requiredRoles": [
+    "investigator"
+   ],
+   "intel": 1,
+   "tags": [
+    "trace"
+   ],
+   "known": "Из закрытого хранилища исчез инкубатор, при этом энергопотребление корпуса не изменилось.",
+   "hidden": "Прибор вывел официальный подрядчик для нелегальной коммерческой инкубации, а датчик смонтировали на фиктивную нагрузку.",
+   "aftermath": "Город: возврат ценного оборудования восстанавливает лабораторную мощность. Право: без санкции на частный склад расследование займёт больше времени.",
+   "scene": null,
+   "coreFlags": [],
+   "tacticFit": {
+    "recon": 2,
+    "arrest": 0,
+    "suppression": -2,
+    "quarantine": -2
+   }
+  },
+  {
+   "id": "foreign_memory",
+   "num": 12,
+   "title": "Свидетель с чужой памятью",
+   "districtId": "science",
+   "incidentClass": "routine",
+   "severity": "medium",
+   "deadlineMinutes": 55,
+   "deadlineType": "escalate",
+   "lateText": "перепрошивка диагностической записи уничтожит источник.",
+   "difficulty": 11,
+   "requirements": [
+    "analysis",
+    "authority",
+    "reaction"
+   ],
+   "requiredRoles": [
+    "investigator"
+   ],
+   "intel": 1,
+   "tags": [
+    "trace"
+   ],
+   "known": "Техник уверяет, что помнит свою смерть на производственном стенде и требует закрыть соседнюю лабораторию.",
+   "hidden": "В эксперименте по восстановлению памяти ему незаконно передали фрагменты чужого свидетельства, но в описанных им деталях есть реальное нарушение.",
+   "aftermath": "Люди: пострадавший нуждается в помощи. Право: незаконно извлечённую память нельзя принимать за полноценное показание. Наука: контроль проекта усиливается.",
+   "scene": null,
+   "coreFlags": [],
+   "tacticFit": {
+    "recon": 1,
+    "arrest": -1,
+    "suppression": -2,
+    "quarantine": -1
+   }
+  },
+  {
+   "id": "missing",
+   "num": 13,
+   "deadlineType": "branch",
+   "lateText": "архивные записи очищены.",
+   "hidden": "Кер обнаружил подмену исполненных обязанностей по жребию, унес копию архива и скрывается из страха за семью.",
+   "aftermath": "Дело: открывает W9 C1 «Вычеркнутый» и минимум альтернативный след к делу 2. Город: публичное объявление розыска может спугнуть свидетеля. Право: доступ ко Второму Дому требует основания.",
+   "scene": null,
+   "coreFlags": [
+    "c1_missing_registered"
+   ],
+   "story": {
+    "shift": 1,
+    "caseId": "c1"
+   }
+  },
+  {
+   "id": "court_stairs",
+   "num": 14,
+   "title": "Судебная лестница",
+   "districtId": "admin",
+   "incidentClass": "complex",
+   "severity": "medium",
+   "deadlineMinutes": 22,
+   "deadlineType": "escalate",
+   "lateText": "суд прекращает приём срочных санкций.",
+   "difficulty": 11,
+   "requirements": [
+    "control",
+    "authority",
+    "resilience"
+   ],
+   "requiredRoles": [
+    "guard"
+   ],
+   "intel": 1,
+   "tags": [
+    "riot"
+   ],
+   "known": "Перед Судом продолжения собрались родственники, уверенные, что одна и та же семья «выигрывает жребий» второй раз. Судьи требуют восстановить вход, пока истекает срок срочных ходатайств.",
+   "hidden": "Свидетель из числа протестующих действительно видел изменённое время явки; часть толпы использует протест для давления на другого истца.",
+   "aftermath": "Люди: мирный коридор уменьшает травмы. Дело: защищённое свидетельство уточняет C1-E03. Политика: Второй Дом давит, а «Открытый контур» оценивает работу дирекции.",
+   "scene": "scene_adm_plaza",
+   "coreFlags": [
+    "c1_court_witness_found"
+   ],
+   "tacticFit": {
+    "recon": 1,
+    "arrest": 0,
+    "suppression": -2,
+    "quarantine": -1
+   },
+   "story": {
+    "shift": 3,
+    "caseId": "c1"
+   }
+  },
+  {
+   "id": "court_seal",
+   "num": 15,
+   "title": "Печать отложенного решения",
+   "districtId": "admin",
+   "incidentClass": "routine",
+   "severity": "low",
+   "deadlineMinutes": 55,
+   "deadlineType": "expire",
+   "lateText": "истечёт срок действия ходатайства.",
+   "difficulty": 11,
+   "requirements": [
+    "analysis",
+    "authority",
+    "reaction"
+   ],
+   "requiredRoles": [
+    "investigator"
+   ],
+   "intel": 1,
+   "tags": [
+    "trace"
+   ],
+   "known": "Судебное разрешение на обыск подписано, но в системе значится «ожидает передачи». Дежурный секретарь не отвечает на звонки.",
+   "hidden": "Технически решение выдано вовремя, но сотрудник намеренно отложил отправку по просьбе ведомства, рассчитывая выиграть время для уничтожения документов.",
+   "aftermath": "Право: законная санкция может прийти позднее; в случае доказанной задержки откроется служебная проверка. Дело: след C1-E08 либо возможность сохранить архив.",
+   "scene": null,
+   "coreFlags": [],
+   "tacticFit": {
+    "recon": 2,
+    "arrest": 0,
+    "suppression": -2,
+    "quarantine": -2
+   }
+  },
+  {
+   "id": "convoy",
+   "num": 16,
+   "title": "Кортеж без маршрута",
+   "districtId": "admin",
+   "incidentClass": "complex",
+   "severity": "high",
+   "deadlineMinutes": 18,
+   "deadlineType": "escalate",
+   "lateText": "неизвестные откроют огонь или вывезут человека.",
+   "difficulty": 14,
+   "requirements": [
+    "reaction",
+    "control",
+    "analysis"
+   ],
+   "requiredRoles": [
+    "lovchiy"
+   ],
+   "intel": 1,
+   "tags": [
+    "assault"
+   ],
+   "known": "На государственной магистрали остановлен кортеж с выключенными маяками. Охрана перекрыла перекрёсток и отказывается назвать пассажира.",
+   "hidden": "В кортеж перевозят свидетеля для закрытого заседания, а один охранник нанят конкурирующей стороной; нападение ещё не совершено.",
+   "aftermath": "Люди: осторожное сопровождение спасает свидетеля; успех при ранении сотрудника возможен. Право: незаконное вскрытие охраняемого транспорта приведёт к спору с Домом.",
+   "scene": "scene_adm_convoy",
+   "coreFlags": [
+    "admin_convoy_witness_safe"
+   ],
+   "tacticFit": {
+    "recon": 1,
+    "arrest": 0,
+    "suppression": -1,
+    "quarantine": -2
+   }
+  },
+  {
+   "id": "two_protocols",
+   "num": 17,
+   "title": "Две версии протокола",
+   "districtId": "admin",
+   "incidentClass": "routine",
+   "severity": "low",
+   "deadlineMinutes": 58,
+   "deadlineType": "expire",
+   "lateText": "старую версию запишут поверх.",
+   "difficulty": 8,
+   "requirements": [
+    "analysis",
+    "control",
+    "reaction"
+   ],
+   "requiredRoles": [
+    "analyst"
+   ],
+   "intel": 1,
+   "tags": [
+    "trace"
+   ],
+   "known": "Секретарь принес два протокола одного заседания междомовой комиссии. Тексты отличаются лишь пунктом об ответственности за склад.",
+   "hidden": "Один протокол подписан для архивирования, а вторым заказчик пытался задним числом изменить условия страхования.",
+   "aftermath": "Право: подлинный протокол укрепляет доверие к службе. Город: выявление порочной закупки предотвращает будущие убытки.",
+   "scene": null,
+   "coreFlags": [],
+   "tacticFit": {
+    "recon": 2,
+    "arrest": -2,
+    "suppression": -2,
+    "quarantine": -2
+   }
+  },
+  {
+   "id": "foreign_badge",
+   "num": 18,
+   "title": "Значок чужого ведомства",
+   "districtId": "admin",
+   "incidentClass": "routine",
+   "severity": "medium",
+   "deadlineMinutes": 36,
+   "deadlineType": "expire",
+   "lateText": "нарушитель получит доступ к закрытому коридору.",
+   "difficulty": 11,
+   "requirements": [
+    "analysis",
+    "authority",
+    "reaction"
+   ],
+   "requiredRoles": [
+    "investigator"
+   ],
+   "intel": 1,
+   "tags": [
+    "trace"
+   ],
+   "known": "На досмотре административного здания служащий показал знак ведомства, чей номер не проходит проверку, и потребовал пропуск без досмотра.",
+   "hidden": "Знак скопирован с устаревшего пропуска, но предъявитель — мелкий мошенник, а не агент Палаты Зеркал.",
+   "aftermath": "Право: верная квалификация сохраняет межведомственные отношения. Люди: непропущенный нарушитель не доберётся до архивной служащей.",
+   "scene": null,
+   "coreFlags": [],
+   "tacticFit": {
+    "recon": 2,
+    "arrest": -1,
+    "suppression": -2,
+    "quarantine": -2
+   }
+  },
+  {
+   "id": "raid",
+   "num": 19,
+   "deadlineType": "escalate",
+   "lateText": "похищенные реагенты покинут промышленный сектор.",
+   "hidden": "Нападавшие наняты для возврата похищенной ранее партии, не знают, что часть ёмкостей промышленно токсична; один пытается сдать остальных.",
+   "aftermath": "Люди: даже полный оперативный успех может дать тяжёлую травму Стражу. Город: повреждение ёмкостей создаёт отдельную техноэкологическую угрозу. Дело: целый контейнер обеспечивает след заказчика.",
+   "scene": "scene_ind_depot",
+   "coreFlags": [
+    "industry_raid_container_preserved"
+   ]
+  },
+  {
+   "id": "floor_hum",
+   "num": 20,
+   "title": "Гул под станочным полом",
+   "districtId": "industry",
+   "incidentClass": "routine",
+   "severity": "medium",
+   "deadlineMinutes": 36,
+   "deadlineType": "escalate",
+   "lateText": "линия остановится с травмами рабочих.",
+   "difficulty": 11,
+   "requirements": [
+    "analysis",
+    "resilience",
+    "control"
+   ],
+   "requiredRoles": [
+    "biocriminalist"
+   ],
+   "intel": 1,
+   "tags": [
+    "bio"
+   ],
+   "known": "Рабочие слышат ритмичный стук под защитным настилом фабрики. Датчики вибрации показывают норму.",
+   "hidden": "В поглощённом слое изоляции выросла тканевая культура, реагирующая на электромагнитный ритм станка; не самостоятельный разум.",
+   "aftermath": "Люди: ликвидация культуры оставляет рабочих без смены, промедление приводит к ампутациям. Город: своевременный ремонт защищает завод.",
+   "scene": null,
+   "coreFlags": [],
+   "tacticFit": {
+    "recon": 1,
+    "arrest": -1,
+    "suppression": -2,
+    "quarantine": 1
+   }
+  },
+  {
+   "id": "red_circuit",
+   "num": 21,
+   "title": "Остановка красного контура",
+   "districtId": "industry",
+   "incidentClass": "complex",
+   "severity": "high",
+   "deadlineMinutes": 18,
+   "deadlineType": "branch",
+   "lateText": "аварийный выброс реагента в жилой транспортный коридор.",
+   "difficulty": 14,
+   "requirements": [
+    "analysis",
+    "control",
+    "resilience"
+   ],
+   "requiredRoles": [
+    "biocriminalist"
+   ],
+   "intel": 1,
+   "tags": [
+    "bio"
+   ],
+   "known": "В цехе Четвёртого Дома биореактор отключён вручную; аварийные клапаны не могут выбрать безопасный режим.",
+   "hidden": "В реакторе перерабатывали отходы лабораторной партии Первого Дома. Часть автоматики отключили, пытаясь удалить записи об исходных образцах.",
+   "aftermath": "Люди: сохранение рабочих требует остановки цеха. Город: возможно загрязнение коммуникаций. Дело: законно отобранные пробы связывают C3-E06 и подозрительные заказы.",
+   "scene": "scene_ind_bioreactor",
+   "coreFlags": [
+    "c3_reactor_receipts_available"
+   ],
+   "tacticFit": {
+    "recon": 0,
+    "arrest": -1,
+    "suppression": -2,
+    "quarantine": 2
+   },
+   "story": {
+    "shift": 11,
+    "caseId": "c3"
+   }
+  },
+  {
+   "id": "strike",
+   "num": 22,
+   "title": "Забастовка у конвейера",
+   "districtId": "industry",
+   "incidentClass": "routine",
+   "severity": "low",
+   "deadlineMinutes": 58,
+   "deadlineType": "escalate",
+   "lateText": "блокировка транспортного узла.",
+   "difficulty": 8,
+   "requirements": [
+    "control",
+    "authority",
+    "resilience"
+   ],
+   "requiredRoles": [
+    "guard"
+   ],
+   "intel": 1,
+   "tags": [
+    "riot"
+   ],
+   "known": "Рабочие перекрыли внутренний выезд завода, требуя объяснить исчезновение части сменной премии.",
+   "hidden": "Премия действительно не перечислена из-за конфликта ведомственных казначейств, организаторы не вооружены.",
+   "aftermath": "Люди: мирное урегулирование сохраняет рабочих и транспорт. Политика: грубый разгон усиливает влияние жёсткого лагеря и портит доверие.",
+   "scene": null,
+   "coreFlags": [],
+   "tacticFit": {
+    "recon": 1,
+    "arrest": 0,
+    "suppression": -2,
+    "quarantine": -2
+   }
+  },
+  {
+   "id": "false_shift",
+   "num": 23,
+   "title": "Ложная третья смена",
+   "districtId": "industry",
+   "incidentClass": "complex",
+   "severity": "medium",
+   "deadlineMinutes": 36,
+   "deadlineType": "expire",
+   "lateText": "груз уйдёт по законному маршруту с фиктивными путевыми листами.",
+   "difficulty": 11,
+   "requirements": [
+    "analysis",
+    "reaction",
+    "authority"
+   ],
+   "requiredRoles": [
+    "investigator"
+   ],
+   "intel": 1,
+   "tags": [
+    "trace"
+   ],
+   "known": "Транспортное депо регистрирует дополнительную смену погрузки, хотя табели пусты. Сторож говорит, что видел глухие фуры.",
+   "hidden": "Часть грузов принадлежит законному подрядчику, а в одной машине скрывается похищенный медико-биологический прибор; водитель не знает о замене.",
+   "aftermath": "Люди: законная проверка защищает невиновных водителей, но позволяет уйти заказчику. Право: неверный обыск обнуляет ценность найденного груза.",
+   "scene": "scene_ind_depot",
+   "coreFlags": [
+    "industry_false_shift_exposed"
+   ],
+   "tacticFit": {
+    "recon": 2,
+    "arrest": -1,
+    "suppression": -2,
+    "quarantine": -2
+   }
+  },
+  {
+   "id": "collector",
+   "num": 24,
+   "title": "Старый голос в коллекторе",
+   "districtId": "industry",
+   "incidentClass": "routine",
+   "severity": "medium",
+   "deadlineMinutes": 36,
+   "deadlineType": "escalate",
+   "lateText": "двое ремонтников будут отрезаны.",
+   "difficulty": 11,
+   "requirements": [
+    "reaction",
+    "resilience",
+    "control"
+   ],
+   "requiredRoles": [
+    "guard"
+   ],
+   "intel": 1,
+   "tags": [
+    "riot"
+   ],
+   "known": "Из канализационного коллектора по служебной сети слышен голос инженера, погибшего год назад. Ремонтники отказываются спускаться.",
+   "hidden": "Запись воспроизводит неисправный сервисный узел, но он стал ловушкой из-за обрушения старой арматуры; никаких призраков в сюжете этой державы не утверждаем.",
+   "aftermath": "Люди: удачное спасение снижает травмы; поздний заход может ранить Стража. Город: ремонт восстанавливает ветвь коммуникаций.",
+   "scene": null,
+   "coreFlags": [],
+   "tacticFit": {
+    "recon": 1,
+    "arrest": -1,
+    "suppression": -2,
+    "quarantine": 0
+   }
+  },
+  {
+   "id": "dome_breach",
+   "num": 25,
+   "title": "Разрыв зелёного купола",
+   "districtId": "gardens",
+   "incidentClass": "complex",
+   "severity": "high",
+   "deadlineMinutes": 18,
+   "deadlineType": "escalate",
+   "lateText": "споры попадут в пешеходную сеть.",
+   "difficulty": 14,
+   "requirements": [
+    "analysis",
+    "control",
+    "resilience"
+   ],
+   "requiredRoles": [
+    "biocriminalist"
+   ],
+   "intel": 1,
+   "tags": [
+    "bio"
+   ],
+   "known": "В Северных садах над гидропонным кварталом появилась длинная трещина. Внутрь поступает наружный воздух, на шлюзах толпятся работники.",
+   "hidden": "Охранный купол не просто повреждён штормом: его старый биологический герметик потреблял инфраструктуру и дал трещину после попытки экономии.",
+   "aftermath": "Люди: эвакуация спасает жителей, но выставляет медиков под контакт с микрофлорой. Город: выбор ремонта или немедленной вырубки влияет на урожай.",
+   "scene": "scene_gar_dome_breach",
+   "coreFlags": [
+    "gardens_dome_safe"
+   ],
+   "tacticFit": {
+    "recon": 0,
+    "arrest": -1,
+    "suppression": -2,
+    "quarantine": 2
+   }
+  },
+  {
+   "id": "garden_turn",
+   "num": 26,
+   "title": "Сад, который отвернулся",
+   "districtId": "gardens",
+   "incidentClass": "routine",
+   "severity": "low",
+   "deadlineMinutes": 58,
+   "deadlineType": "expire",
+   "lateText": "растения завершат дневной цикл.",
+   "difficulty": 8,
+   "requirements": [
+    "analysis",
+    "resilience",
+    "control"
+   ],
+   "requiredRoles": [
+    "analyst"
+   ],
+   "intel": 1,
+   "tags": [
+    "trace"
+   ],
+   "known": "В оранжерее все плодовые стебли синхронно повернулись от источника света, а сотрудники боятся заходить.",
+   "hidden": "В новых биоорганизмах повышена чувствительность к невидимому спектру служебного облучателя, человеческого разума в них нет.",
+   "aftermath": "Город: исправление спектра сохраняет урожай. Люди: паника увеличит прогулы, если применить грубое оцепление.",
+   "scene": null,
+   "coreFlags": [],
+   "tacticFit": {
+    "recon": 2,
+    "arrest": -1,
+    "suppression": -2,
+    "quarantine": -1
+   }
+  },
+  {
+   "id": "spores",
+   "num": 27,
+   "title": "Споры в вентиляционной решётке",
+   "districtId": "gardens",
+   "incidentClass": "routine",
+   "severity": "medium",
+   "deadlineMinutes": 36,
+   "deadlineType": "branch",
+   "lateText": "загрязнение жилой оранжереи.",
+   "difficulty": 11,
+   "requirements": [
+    "analysis",
+    "control",
+    "resilience"
+   ],
+   "requiredRoles": [
+    "biocriminalist"
+   ],
+   "intel": 1,
+   "tags": [
+    "bio"
+   ],
+   "known": "При плановой замене фильтра техник находит чёрные споры на решётке общего канала.",
+   "hidden": "Споры завезены законной партией компоста, но перевозчик пропустил биофильтр; не диверсия.",
+   "aftermath": "Люди: работников можно безопасно вывести; город: локальный карантин уменьшает заражение пищевых культур.",
+   "scene": null,
+   "coreFlags": [],
+   "tacticFit": {
+    "recon": 1,
+    "arrest": -1,
+    "suppression": -2,
+    "quarantine": 1
+   }
+  },
+  {
+   "id": "barefoot",
+   "num": 28,
+   "title": "Следы без обуви",
+   "districtId": "gardens",
+   "incidentClass": "complex",
+   "severity": "medium",
+   "deadlineMinutes": 36,
+   "deadlineType": "expire",
+   "lateText": "дождь смоет следы и участники уйдут в заповедную секцию.",
+   "difficulty": 11,
+   "requirements": [
+    "reaction",
+    "analysis",
+    "resilience"
+   ],
+   "requiredRoles": [
+    "lovchiy"
+   ],
+   "intel": 1,
+   "tags": [
+    "trace"
+   ],
+   "known": "Группа озеленителей не вернулась после обслуживания северного периметра. На влажной земле — следы, не похожие на обычные ботинки.",
+   "hidden": "Работники нарушили маршрут ради нелегального сбора редкого фермента, а следы оставил выращенный ими тяговый организм; он не агрессивен, пока его не загоняют.",
+   "aftermath": "Люди: можно вернуть работников и избежать травм. Город: изъятие фермента ведёт к конфликту с поставщиком. Право: поспешная стрельба по существу повредит доказательствам.",
+   "scene": "scene_gar_night_search",
+   "coreFlags": [
+    "gardens_missing_workers_found"
+   ],
+   "tacticFit": {
+    "recon": 2,
+    "arrest": 0,
+    "suppression": -2,
+    "quarantine": -1
+   }
+  },
+  {
+   "id": "green_water",
+   "num": 29,
+   "title": "Питьевая вода зеленеет",
+   "districtId": "gardens",
+   "incidentClass": "routine",
+   "severity": "medium",
+   "deadlineMinutes": 22,
+   "deadlineType": "escalate",
+   "lateText": "водозабор закрывается на сутки.",
+   "difficulty": 11,
+   "requirements": [
+    "analysis",
+    "authority",
+    "resilience"
+   ],
+   "requiredRoles": [
+    "biocriminalist"
+   ],
+   "intel": 1,
+   "tags": [
+    "bio"
+   ],
+   "known": "В нескольких тепличных столовых вода приобрела зеленоватый оттенок. Анализы муниципальной службы противоречат друг другу.",
+   "hidden": "Часть пищевого стабилизатора попала в трубу и изменила цвет без непосредственной токсичности; виновник скрывает халатность.",
+   "aftermath": "Люди: правильное информирование предотвращает панику. Город: можно сохранить водоснабжение без необоснованного отключения.",
+   "scene": null,
+   "coreFlags": [],
+   "tacticFit": {
+    "recon": 1,
+    "arrest": -1,
+    "suppression": -2,
+    "quarantine": 1
+   }
+  },
+  {
+   "id": "false_call",
+   "num": 30,
+   "title": "Ложный зов зверя",
+   "districtId": "gardens",
+   "incidentClass": "routine",
+   "severity": "low",
+   "deadlineMinutes": 58,
+   "deadlineType": "expire",
+   "lateText": "источник прекратит передачу сигнала.",
+   "difficulty": 8,
+   "requirements": [
+    "reaction",
+    "analysis",
+    "resilience"
+   ],
+   "requiredRoles": [
+    "lovchiy"
+   ],
+   "intel": 1,
+   "tags": [
+    "trace"
+   ],
+   "known": "Садовый патруль слышит ночью зов запрещённого хищного вида и просит боевую группу.",
+   "hidden": "Зов транслирует устройство браконьеров, отвлекающих охрану от вывоза биоматериала.",
+   "aftermath": "Право: обнаруженный передатчик позволяет расследовать кражу без обвинения невинного вида. Город: своевременная охрана сохраняет редкие культуры.",
+   "scene": null,
+   "coreFlags": [],
+   "tacticFit": {
+    "recon": 2,
+    "arrest": -1,
+    "suppression": -2,
+    "quarantine": -1
+   }
+  },
+  {
+   "id": "illegal",
+   "num": 31,
+   "deadlineType": "expire",
+   "lateText": "подпольная клиника эвакуирует пациентов и уничтожит журнал.",
+   "hidden": "Часть пациентов — люди, на которых незаконно переложили обязанность донорства; врач одновременно помогает и наживается.",
+   "aftermath": "Люди: спасение пациентов открывает свидетелей. Право: ошибочный обыск уничтожит допустимость найденной документации. Дело: запускает W9 C2 «Замена плоти».",
+   "scene": null,
+   "coreFlags": [
+    "c2_illegal_clinic_registered"
+   ],
+   "story": {
+    "shift": 5,
+    "caseId": "c2"
+   }
+  },
+  {
+   "id": "stair_quarantine",
+   "num": 32,
+   "title": "Карантин на лестничной клетке",
+   "districtId": "residential",
+   "incidentClass": "complex",
+   "severity": "high",
+   "deadlineMinutes": 18,
+   "deadlineType": "escalate",
+   "lateText": "жильцы силой откроют опасный шлюз.",
+   "difficulty": 14,
+   "requirements": [
+    "control",
+    "authority",
+    "resilience"
+   ],
+   "requiredRoles": [
+    "guard"
+   ],
+   "intel": 1,
+   "tags": [
+    "bio"
+   ],
+   "known": "Жилая башня самостоятельно заблокировала два этажа после ложного сигнала биосенсора. Жители внутри требуют открыть двери, пока состояние пожилого жильца ухудшается.",
+   "hidden": "Сигнал частично ложен, но один контейнер с материалом из Первого Дома действительно потерял герметичность при доставке; персонал прав не полностью.",
+   "aftermath": "Люди: эвакуация нуждающегося в помощи ценой риска; город: точный карантин сохраняет доверие. Дело: серийный номер транспортной накладной связан с C3-E06.",
+   "scene": "scene_res_quarantine",
+   "coreFlags": [
+    "c3_residential_transport_witness"
+   ],
+   "tacticFit": {
+    "recon": 0,
+    "arrest": -1,
+    "suppression": -2,
+    "quarantine": 2
+   },
+   "story": {
+    "shift": 12,
+    "caseId": "c3"
+   }
+  },
+  {
+   "id": "empty_flat",
+   "num": 33,
+   "title": "Квартира без жильца",
+   "districtId": "residential",
+   "incidentClass": "routine",
+   "severity": "low",
+   "deadlineMinutes": 58,
+   "deadlineType": "expire",
+   "lateText": "квартиру займёт новый арендатор.",
+   "difficulty": 8,
+   "requirements": [
+    "analysis",
+    "authority",
+    "reaction"
+   ],
+   "requiredRoles": [
+    "investigator"
+   ],
+   "intel": 1,
+   "tags": [
+    "trace"
+   ],
+   "known": "Жильцы дома утверждают, что сосед жил здесь три года, но домовая сеть никогда не регистрировала его присутствия.",
+   "hidden": "Жилец пользовался чужими легальными маршрутами доставки после потери официального статуса в реестре, не связан с тайной цивилизацией.",
+   "aftermath": "Люди: установление личности позволяет восстановить документы. Право: незаконный обыск нарушит права третьих лиц.",
+   "scene": null,
+   "coreFlags": [],
+   "tacticFit": {
+    "recon": 2,
+    "arrest": 0,
+    "suppression": -2,
+    "quarantine": -2
+   }
+  },
+  {
+   "id": "doctor_barricade",
+   "num": 34,
+   "title": "Баррикада против врача",
+   "districtId": "residential",
+   "incidentClass": "complex",
+   "severity": "medium",
+   "deadlineMinutes": 22,
+   "deadlineType": "escalate",
+   "lateText": "жители силой захватят медицинский транспорт.",
+   "difficulty": 11,
+   "requirements": [
+    "control",
+    "authority",
+    "reaction"
+   ],
+   "requiredRoles": [
+    "guard"
+   ],
+   "intel": 1,
+   "tags": [
+    "riot"
+   ],
+   "known": "Во дворе жилого блока соседи не выпускают врача, которого обвиняют в отборе крови у невиновного родственника. Подоспевшая охрана служит частному дому.",
+   "hidden": "Врач не принимал решения о жребии, но подписал одну подложную отсрочку под давлением. Толпа знает лишь часть правды.",
+   "aftermath": "Люди: спасение врача может спровоцировать травмы в толпе. Политика: противостояние со службой Шестого Дома. Дело: свидетельство дополняет C2-E05, но не автоматически доказывает виновность.",
+   "scene": "scene_res_block_clash",
+   "coreFlags": [
+    "c2_resident_witness_protected"
+   ],
+   "tacticFit": {
+    "recon": 1,
+    "arrest": 0,
+    "suppression": -1,
+    "quarantine": -2
+   },
+   "story": {
+    "shift": 8,
+    "caseId": "c2"
+   }
+  },
+  {
+   "id": "no_guardian",
+   "num": 35,
+   "title": "Лист без опекуна",
+   "districtId": "residential",
+   "incidentClass": "routine",
+   "severity": "medium",
+   "deadlineMinutes": 36,
+   "deadlineType": "escalate",
+   "lateText": "ребёнка передадут сомнительному опекуну.",
+   "difficulty": 11,
+   "requirements": [
+    "analysis",
+    "authority",
+    "reaction"
+   ],
+   "requiredRoles": [
+    "investigator"
+   ],
+   "intel": 1,
+   "tags": [
+    "trace"
+   ],
+   "known": "У подростка в семейном квартале есть действительная генеалогическая запись, но ни один указанный опекун не отвечает.",
+   "hidden": "Семья разошлась по разным юрисдикциям Домов после спора о наследовании; ребёнок не связан с незаконным донорским жребием.",
+   "aftermath": "Люди: безопасность несовершеннолетнего первична. Город: добросовестное обращение укрепляет доверие. Право: действия Дирекции должны быть ограничены компетенцией.",
+   "scene": null,
+   "coreFlags": [],
+   "tacticFit": {
+    "recon": 2,
+    "arrest": -1,
+    "suppression": -2,
+    "quarantine": -2
+   }
+  },
+  {
+   "id": "water_seize",
+   "num": 36,
+   "title": "Захват очистного узла",
+   "districtId": "residential",
+   "incidentClass": "special",
+   "severity": "high",
+   "deadlineMinutes": 18,
+   "deadlineType": "escalate",
+   "lateText": "водоснабжение жилых башен станет опасным.",
+   "difficulty": 14,
+   "requirements": [
+    "reaction",
+    "analysis",
+    "control"
+   ],
+   "requiredRoles": [
+    "guard",
+    "lovchiy"
+   ],
+   "intel": 0,
+   "tags": [
+    "assault"
+   ],
+   "known": "Неизвестные заняли надземный очистной узел между жилыми башнями. Охрана сообщает о заложнике и изменённом маршруте водоснабжения.",
+   "hidden": "Захватчики — разорившиеся подрядчики, которые хотят публичной проверки контракта; один из них отдельно задумал загрязнить резервуар, чтобы гарантировать выкуп.",
+   "aftermath": "Люди: заложник и жители могут пострадать даже при успешном задержании. Город: чистота воды, доверие и бюджет ремонта. Право: переговоры не означают иммунитета для виновных.",
+   "scene": "scene_res_block_clash",
+   "coreFlags": [
+    "residential_water_grid_safe"
+   ],
+   "tacticFit": {
+    "recon": 1,
+    "arrest": 0,
+    "suppression": -1,
+    "quarantine": 1
+   }
+  }
+ ]
+}

@@ -86,13 +86,13 @@ describe('ART-011 допросная и фигуранты', async () => {
   });
 });
 
-/** ART-015: 12 сцен событий W10 на приёмке. Хеши совпадают, у каждой есть игровая webp-копия того же кадра. */
+/** ART-015: 12 сцен событий W10, утверждены Дмитрием 2026-11-09. Хеши совпадают, у каждой есть игровая webp-копия того же кадра. */
 describe('ART-015 сцены W10', () => {
   const scenes = manifest.assets.filter((a) => a.id.startsWith('scene_'));
-  it('12 сцен 1920×1080, статус review, хеши совпадают, webp рядом', () => {
+  it('12 сцен 1920×1080, утверждены, хеши совпадают, webp рядом', () => {
     expect(scenes).toHaveLength(12);
     for (const a of scenes) {
-      expect(a.status).toBe('review');
+      expect(a.status).toBe('approved');
       expect([a.width, a.height]).toEqual([1920, 1080]);
       expect(createHash('sha256').update(readFileSync(a.file)).digest('hex')).toBe(a.sha256);
       expect(existsSync(a.file.replace(/\.png$/, '.webp'))).toBe(true);

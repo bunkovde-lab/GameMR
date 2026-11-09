@@ -42,7 +42,9 @@ test('AUDIO v1: MP3 из сборки реально воспроизводит�
   await page.mouse.click(5, 5);
   // Проверяем, что элемент <audio> реально воспроизводит (время трека идёт).
   const played = () => page.evaluate(() => {
-    const m = (window as unknown as { __gamemrMusic: { tracks: Map<string, { voices: { el: HTMLAudioElement }[] }> } }).__gamemrMusic;
+    const m = (window as unknown as { __gamemrMusic?: { tracks?: Map<string, { voices: { el: HTMLAudioElement }[] }> } }).__gamemrMusic;
+    // Музыкальный модуль создаётся после первого жеста; до этого просто ждём, а не падаем.
+    if (!m?.tracks) return false;
     const els = [...m.tracks.values()].flatMap((t) => t.voices.map((v) => v.el));
     return els.some((e) => e.currentTime > 0.5 && e.duration > 200 && !e.error);
   });

@@ -46,3 +46,22 @@ describe('ART-008 UI-kit PNG', () => {
     for (const a of kit.filter((x) => x.status === 'review')) expect(css).not.toContain(a.file.split('/').pop()!);
   });
 });
+
+/** ART-009: 12 кандидатов на найм — по одному на имя из пула; лицо сохраняется после найма (привязка по имени). */
+describe('ART-009 портреты кандидатов', async () => {
+  const rules = (await import('../../content/staff_v1.json')).default as { names: string[] };
+  const cands = manifest.assets.filter((a) => a.id.startsWith('ART009_CANDIDATE_C'));
+
+  it('12 файлов на 12 имён пула, утверждены, хеши совпадают, игровые копии есть', () => {
+    expect(cands).toHaveLength(12);
+    rules.names.forEach((name, i) => {
+      const n = String(i + 1).padStart(2, '0');
+      const a = cands.find((x) => x.id === `ART009_CANDIDATE_C${n}`)!;
+      expect(a.role).toContain(name);
+      expect(a.status).toBe('approved');
+      expect(createHash('sha256').update(readFileSync(a.file)).digest('hex')).toBe(a.sha256);
+      expect(existsSync(`assets/characters/web/portrait_c${n}.webp`)).toBe(true);
+      expect(existsSync(`assets/characters/web/face_c${n}.webp`)).toBe(true);
+    });
+  });
+});

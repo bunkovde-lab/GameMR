@@ -59,6 +59,12 @@ s12.shift = 12;
 const end = reduce(s12, { type: 'END_SHIFT' });
 if (!end.ok) throw new Error(end.reason);
 save('ending', end.state);
+// ART-014: те же сохранения с другим итогом — только чтобы увидеть арт каждого финала.
+for (const id of ['order', 'cost', 'collapse'] as const) {
+  const v = structuredClone(end.state);
+  v.campaign.ending = id;
+  save(`ending_${id}`, v);
+}
 
 // 5. W10: три вызова в одной точке — кластер на карте.
 const sc = fresh();

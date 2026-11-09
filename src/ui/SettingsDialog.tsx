@@ -4,6 +4,7 @@ import { parseSave } from '../persistence/saveFormat';
 import { SLOTS, exportJson, listSlots, loadFromSlot, saveToSlot, type SlotId } from '../persistence/saveStore';
 import { getGame, notify, replaceGame } from '../store';
 import { Modal } from './Modal';
+import { MusicSettings } from './audio/MusicSettings';
 import { loadEffectsLevel, saveEffectsLevel, type EffectsLevel } from './map/cityLife';
 
 const EFFECTS: { id: EffectsLevel; label: string }[] = [
@@ -66,6 +67,15 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
           );
         })}
       </ul>
+      <div className="modal-actions wrap">
+        <button className="btn" onClick={doExport}>Экспорт в файл</button>
+        <button className="btn" onClick={() => fileRef.current?.click()}>Импорт из файла</button>
+        <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => e.target.files?.[0] && doImport(e.target.files[0])} />
+        <button className="btn danger" onClick={() => { if (confirm('Начать новую игру? Несохранённый прогресс будет потерян.')) { replaceGame(createInitialState()); onClose(); } }}>
+          Новая игра
+        </button>
+      </div>
+      <MusicSettings />
       <h3 className="section-title">Эффекты карты</h3>
       <p className="muted">Машины, погода, дым и огонь на карте. На слабом телефоне выберите «Упрощённые».</p>
       <div className="modal-actions wrap" role="group" aria-label="Эффекты карты">
@@ -74,14 +84,6 @@ export function SettingsDialog({ onClose }: { onClose: () => void }) {
             {e.label}
           </button>
         ))}
-      </div>
-      <div className="modal-actions wrap">
-        <button className="btn" onClick={doExport}>Экспорт в файл</button>
-        <button className="btn" onClick={() => fileRef.current?.click()}>Импорт из файла</button>
-        <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => e.target.files?.[0] && doImport(e.target.files[0])} />
-        <button className="btn danger" onClick={() => { if (confirm('Начать новую игру? Несохранённый прогресс будет потерян.')) { replaceGame(createInitialState()); onClose(); } }}>
-          Новая игра
-        </button>
       </div>
     </Modal>
   );

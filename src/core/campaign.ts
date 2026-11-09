@@ -2,6 +2,7 @@ import campaignFile from '../../content/campaign_v1.json';
 import { INCIDENT_TEMPLATES } from './content';
 import { hasFlag, setFlag } from './flags';
 import { applyEffect, caseDef, caseFile, caseStrong, concludeCase, evidenceDef, resolveRef, type Effect } from './investigations';
+import { storyTemplatesFor } from './events';
 import { nextInt } from './rng';
 import { SPECIAL_OPS, opState } from './specialOps';
 import type { GameState, Incident } from './types';
@@ -33,7 +34,7 @@ export function spawnStoryIncident(s: GameState, templateId: string, log: Log): 
   [spawn, s.rng] = nextInt(s.rng, 3);
   const inc: Incident = {
     id: `inc-${s.nextIds.incident++}`, templateId: t.id, title: t.title, districtId: t.districtId, spawnId: `${t.districtId}:spawn:0${spawn + 1}`,
-    severity: t.severity, state: 'new', deadlineType: 'escalate', deadlineMinute: 60 + t.deadlineMinutes, createdShift: s.shift,
+    severity: t.severity, state: 'new', deadlineType: t.deadlineType ?? 'escalate', deadlineMinute: 60 + t.deadlineMinutes, createdShift: s.shift,
   };
   s.incidents.push(inc);
   log('incident_created', `Новый вызов: ${inc.title}.`);
@@ -46,6 +47,8 @@ export function beginStoryShift(s: GameState, log: Log) {
   if (!n) return;
   log('story', `${CAMPAIGN.title}, смена ${n.shift}: «${n.title}».`);
   if (n.spawn) spawnStoryIncident(s, n.spawn, log);
+  // W10: сюжетные происшествия своей смены (сценарий W10_EVENTS_v1) приходят по расписанию, а не из случайного пула.
+  for (const t of storyTemplatesFor(s.shift, n.spawn ? [n.spawn] : [])) spawnStoryIncident(s, t.id, log);
 }
 
 export function storyChoiceBlocker(s: GameState, shift: number, optionId: string): string | null {

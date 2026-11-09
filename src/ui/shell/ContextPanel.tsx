@@ -2,6 +2,7 @@ import { dispatchBlocker } from '../../core/reduce';
 import { DISPATCH_RULES, forecastWord, incidentProfile, tacticById } from '../../core/dispatch';
 import { buildRoute, etaMinutes } from '../../core/map/graph';
 import { districtById } from '../../core/map/mapConfig';
+import { houseText, lateKind, publicAftermath, templateOf } from '../../core/events';
 import { isOpen } from '../../core/selectors';
 import type { GameState } from '../../core/types';
 import { dispatch } from '../../store';
@@ -50,7 +51,21 @@ function IncidentCard({ game, id, onPreview, onSelect, onOpenDispatch }: { game:
       <p className="muted">
         {district.name} · <span className={`sev-text sev-${inc.severity}`}>{SEVERITY_LABEL[inc.severity]}</span> · <span data-testid="card-class">{DISPATCH_RULES.classes[prof.incidentClass].label}</span>
       </p>
-      {prof.known && <p className="known">{prof.known}</p>}
+      {prof.known && <p className="known">{houseText(prof.known)}</p>}
+      {(() => {
+        // W10: что будет при опоздании и что на кону (без скрытой правды и без строк о деле).
+        const t = templateOf(inc);
+        const stakes = publicAftermath(t);
+        const late = t?.lateText;
+        if (!late && !stakes.length) return null;
+        const word = { escalate: 'Если опоздать, обострится', expire: 'Если опоздать, исчезнет', branch: 'Если опоздать, станет другим событием' }[lateKind(inc)];
+        return (
+          <div className="stakes" data-testid="card-stakes">
+            {late && isOpen(inc) && <p className="late"><b>{word}:</b> {houseText(late)}</p>}
+            {stakes.length > 0 && <ul className="plain-list">{stakes.map((x) => <li key={x}>{x}</li>)}</ul>}
+          </div>
+        );
+      })()}
       <dl className="kv">
         <dt>Состояние</dt><dd data-testid="card-state">{INCIDENT_STATE_LABEL[inc.state]}</dd>
         {['new', 'acknowledged'].includes(inc.state) && (<><dt>До ухудшения</dt><dd>{Math.max(0, left)} мин</dd></>)}

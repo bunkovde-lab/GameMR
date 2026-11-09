@@ -711,6 +711,12 @@ td.bad { color: var(--bad); }
 .candidate-head { display: flex; gap: 12px; align-items: center; justify-content: flex-start !important; }
 .candidate .portrait.lg { width: 96px; height: 120px; flex: 0 0 auto; }
 
+/* W10: карточка вызова — что будет при опоздании и что на кону; находки в отчёте. */
+.stakes { display: grid; gap: 4px; margin: 4px 0 8px; font-size: 13px; color: var(--muted); }
+.stakes .late b { color: var(--amber); font-weight: 600; }
+.findings { margin: 6px 0 10px; padding: 8px 12px; border-left: 2px solid var(--gold); background: #c9a46a12; }
+.sev-text.sev-low { color: var(--cyan); }
+
 /* ---------- Кадры: группировка по составам (сводка и личные вкладки) ---------- */
 .staff-table.grouped { border-collapse: separate; border-spacing: 0; }
 .staff-table.grouped thead th { border-bottom: 0; padding-bottom: 6px; }
@@ -754,3 +760,11 @@ td.bad { color: var(--bad); }
   .person-picker.grouped .btn.group-toggle small { margin-left: 0; }
   .person-picker.grouped .pick-group-body { display: flex; border-top: 0; border-left: 1px solid var(--stroke2); }
 }
+
+/* AUDIO v1: блок «Музыка» в окне настроек */
+.music-settings { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--stroke2); display: grid; gap: 8px; }
+.music-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.music-row .btn { min-width: 120px; }
+.music-volume { flex: 1; min-width: 180px; display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+.music-volume input[type='range'] { width: 100%; min-height: var(--tap); accent-color: var(--gold); touch-action: pan-x; }
+.music-hint { color: var(--muted); }

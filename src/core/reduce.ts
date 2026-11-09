@@ -1,4 +1,5 @@
-import { BALANCE, DISPATCH_COST, INCIDENT_TEMPLATES, toCents } from './content';
+import { BALANCE, DISPATCH_COST, toCents } from './content';
+import { setFlag } from './flags';
 import { bestCommander, defaultDraft, equipmentType, forecastTerms, planDispatch, recommendedTactic, riskLevel, tacticById, type DispatchDraft } from './dispatch';
 import { applyOption, beginScene, finishReturn, pendingDecision, tickScene } from './operations';
 import { HEALTH_LOG } from './healthText';
@@ -22,6 +23,7 @@ import {
   concludeCase, decideCasePermits, evidenceDef, expertiseBlocker, hasPair, interrogationBlocker, linkBlocker, makeCasePermit, openCaseFromReport,
   pairBlocker, personDef, requestExpertise, startAction, startAnalysis, startInterrogation, METHOD_LABEL,
 } from './investigations';
+import { RANDOM_POOL, lateKind, outcomeFlags, templateOf } from './events';
 import { applyStoryChoice, beginStoryShift, finishCampaign, settleStoryShift, storyChoiceBlocker } from './campaign';
 import { activeOp, advanceOps, chooseOpOption, opDef, optionBlocker, startOp, startOpBlocker } from './specialOps';
 import { buildRoute, shortestPath } from './map/graph';
@@ -709,15 +711,24 @@ function advanceMinute(s: GameState) {
   decideCasePermits(s, (t, x) => log(s, t, x));
   advanceInvestigations(s, (type, text, ids) => log(s, type, text, ids));
   for (const inc of s.incidents) {
-    if (inc.deadlineType === 'escalate' && (inc.state === 'new' || inc.state === 'acknowledged') && s.minute >= inc.deadlineMinute) {
-      inc.state = 'escalated';
+    if ((inc.state === 'new' || inc.state === 'acknowledged') && s.minute >= inc.deadlineMinute) {
+      // W10: опоздание по сценарию — обострение, исчезновение (вызов закрыт, следы потеряны) или новое событие.
+      const kind = lateKind(inc);
+      const late = templateOf(inc)?.lateText;
       const d = s.districts.find((x) => x.id === inc.districtId);
       if (d) {
         d.safety = Math.max(0, d.safety - BALANCE.district.escalationSafetyPenalty);
         d.civilianTrust = Math.max(0, d.civilianTrust - BALANCE.district.escalationTrustPenalty);
-        d.threat += 1;
+        if (kind !== 'expire') d.threat += 1;
       }
-      log(s, 'incident_escalated', `Ситуация ухудшилась: ${inc.title}.`);
+      for (const f of outcomeFlags(templateOf(inc), 'failure')) setFlag(s, f);
+      if (kind === 'expire') {
+        inc.state = 'expired';
+        log(s, 'incident_expired', `Не успели: ${inc.title}${late ? ` — ${late}` : '.'}`);
+      } else {
+        inc.state = 'escalated';
+        log(s, 'incident_escalated', `Ситуация ухудшилась: ${inc.title}${late ? ` — ${late}` : '.'}`);
+      }
     }
   }
   if (s.minute >= BALANCE.shift.lengthMinutes) {
@@ -730,10 +741,10 @@ function advanceMinute(s: GameState) {
 function spawnIncidents(s: GameState, count: number) {
   for (let k = 0; k < count; k++) {
     let idx: number, spawn: number, jitter: number;
-    [idx, s.rng] = nextInt(s.rng, INCIDENT_TEMPLATES.length);
+    [idx, s.rng] = nextInt(s.rng, RANDOM_POOL.length);
     [spawn, s.rng] = nextInt(s.rng, 3);
     [jitter, s.rng] = nextInt(s.rng, 30);
-    const t = INCIDENT_TEMPLATES[idx]!;
+    const t = RANDOM_POOL[idx]!;
     const inc: Incident = {
       id: `inc-${s.nextIds.incident++}`,
       templateId: t.id,
@@ -742,7 +753,7 @@ function spawnIncidents(s: GameState, count: number) {
       spawnId: `${t.districtId}:spawn:0${spawn + 1}`,
       severity: t.severity,
       state: 'new',
-      deadlineType: 'escalate',
+      deadlineType: t.deadlineType ?? 'escalate',
       deadlineMinute: 60 + t.deadlineMinutes + jitter + earlyWarning(s),
       createdShift: s.shift,
     };

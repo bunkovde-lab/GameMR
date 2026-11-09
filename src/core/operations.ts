@@ -4,6 +4,7 @@ import { SQUADS_DEMO } from './content';
 import { DISPATCH_RULES, equipmentType, incidentProfile, tacticById } from './dispatch';
 import { buildRoute } from './map/graph';
 import { districtById } from './map/mapConfig';
+import { applyEventOutcome } from './events';
 import { nextFloat } from './rng';
 import type {
   GameState, HealthState, Incident, OperationReport, Outcome, Squad, SquadOperation, Staff,
@@ -177,6 +178,7 @@ export function resolveOperation(s: GameState, sq: Squad, inc: Incident): Operat
   const evidenceScore = op.evidence + (tacticById(op.tactic).evidence === 'сохраняются' ? 0 : -1);
   const evidence = evidenceScore > 0 ? 'done' : evidenceScore === 0 ? 'partial' : 'failed';
   inc.state = outcome === 'success' ? 'resolved_success' : outcome === 'partial' ? 'resolved_partial' : 'failed';
+  const findings = applyEventOutcome(s, inc, outcome);
 
   const report: OperationReport = {
     id: s.nextIds.report++,
@@ -200,6 +202,7 @@ export function resolveOperation(s: GameState, sq: Squad, inc: Incident): Operat
     fatigue: OPS.fatiguePerOperation,
     equipment,
     district: { safety: eff.safety, trust: trustDelta },
+    ...(findings.length ? { findings } : {}),
     seen: false,
   };
   s.operationReports.push(report);

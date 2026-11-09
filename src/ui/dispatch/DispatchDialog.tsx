@@ -1,3 +1,4 @@
+import { houseText } from '../../core/events';
 import { useEffect, useMemo, useState } from 'react';
 import { DISPATCH_COST, ROLE_LABEL } from '../../core/content';
 import {
@@ -103,7 +104,7 @@ export function DispatchDialog({ game, incidentId, initialSquadId, onClose, onPr
       }
     >
       <div className="dispatch-brief">
-        <p className="muted">{prof.known}</p>
+        <p className="muted">{houseText(prof.known)}</p>
         <dl className="chips">
           <div><dt>Класс</dt><dd data-testid="incident-class" title={cls.hint}>{cls.label}</dd></div>
           <div><dt>Нужны роли</dt><dd>{prof.requiredRoles.map((r) => ROLE_LABEL[r]).join(', ') || '—'}</dd></div>

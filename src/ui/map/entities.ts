@@ -1,25 +1,27 @@
+import { INCIDENT_TEMPLATES } from '../../core/content';
 import { positionOnRoute } from '../../core/map/graph';
 import { nodePosition, spawnPosition, type Point } from '../../core/map/mapConfig';
 import type { GameState, Incident, Squad } from '../../core/types';
 import type { IconName } from '../Icon';
 
+/** ART-003/004: значок карты по типу вызова (assets/ui/markers/<ключ>.png|svg). W10: новые события — по типу угрозы. */
+const BY_TAG: Record<string, string> = { riot: 'marker_incident_riot', bio: 'marker_incident_bio', assault: 'marker_incident_armed', trace: 'marker_incident_search' };
+const SPECIAL: Record<string, string> = { illegal: 'marker_incident_illegal_mod', foreign_memory: 'marker_incident_illegal_mod', graft: 'marker_incident_illegal_mod' };
+export const INCIDENT_MARKER: Record<string, string> = Object.fromEntries(
+  INCIDENT_TEMPLATES.map((t) => {
+    const tags = (t as unknown as { tags?: string[] }).tags ?? [];
+    return [t.id, SPECIAL[t.id] ?? BY_TAG[tags[0] ?? ''] ?? 'marker_incident_search'];
+  }),
+);
 /** Запасная иконка типа вызова (если файла значка ART-003/004 нет). */
-export const INCIDENT_ICON: Record<string, IconName> = {
-  medriot: 'warning',
-  bioleak: 'beaker',
-  raid: 'crosshair',
-  missing: 'search',
-  illegal: 'medical',
+const ICON_BY_MARKER: Record<string, IconName> = {
+  marker_incident_riot: 'warning', marker_incident_bio: 'beaker', marker_incident_armed: 'crosshair',
+  marker_incident_search: 'search', marker_incident_illegal_mod: 'medical',
 };
+export const INCIDENT_ICON: Record<string, IconName> = Object.fromEntries(
+  Object.entries(INCIDENT_MARKER).map(([id, m]) => [id, ICON_BY_MARKER[m] ?? 'warning']),
+);
 
-/** ART-003/004: значок карты по типу вызова (assets/ui/markers/<ключ>.png|svg). */
-export const INCIDENT_MARKER: Record<string, string> = {
-  medriot: 'marker_incident_riot',
-  bioleak: 'marker_incident_bio',
-  raid: 'marker_incident_armed',
-  missing: 'marker_incident_search',
-  illegal: 'marker_incident_illegal_mod',
-};
 export const SQUAD_MARKER = 'marker_squad_transport';
 export const CLUSTER_MARKER = 'marker_cluster';
 

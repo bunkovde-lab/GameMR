@@ -1516,7 +1516,7 @@
       "width": 24,
       "height": 24,
       "alpha": true,
-      "sha256": "ced6388175a26daae09c2bf313ca44ec5d664a8115e281ad1282dd9d3952032c",
+      "sha256": "607a1d0e8d811f6ba6279b3d876f8a745bcd0d750645d871b8f8619c73b39dfd",
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": null,
       "notes": "ART-007: ручной вектор, 24×24; форму и цвет линии задаёт код, без локальных CSS/цветов. Замена временного спрайта выполняется Claude после художественной приёмки."

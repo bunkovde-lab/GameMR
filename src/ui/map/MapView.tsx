@@ -8,7 +8,8 @@ import { Icon } from '../Icon';
 import { SQUAD_STATUS } from '../labels';
 import type { LayerId, Selection } from '../uiState';
 import { DEFAULT_SAFE, clampCamera, ensureVisible, transform, worldToScreen, zoomAt, type Camera, type Viewport, W, H } from './camera';
-import { INCIDENT_ICON, incidentPoint, squadPoint } from './entities';
+import { MarkerIcon, markerArtUrl } from '../art';
+import { CLUSTER_MARKER, INCIDENT_ICON, INCIDENT_MARKER, SQUAD_MARKER, incidentPoint, squadPoint } from './entities';
 import { layoutMarkers } from './markerLayout';
 
 interface Props {
@@ -22,9 +23,9 @@ interface Props {
   onOpenLeftPanel: () => void;
 }
 
-const LAYER_BUTTONS: { id: LayerId; label: string; icon: 'warning' | 'truck' | 'map' | 'shield' | 'pin' }[] = [
-  { id: 'events', label: 'События', icon: 'warning' },
-  { id: 'patrols', label: 'Патрули', icon: 'truck' },
+const LAYER_BUTTONS: { id: LayerId; label: string; icon: 'warning' | 'truck' | 'map' | 'shield' | 'pin'; marker?: string }[] = [
+  { id: 'events', label: 'События', icon: 'warning', marker: CLUSTER_MARKER },
+  { id: 'patrols', label: 'Патрули', icon: 'truck', marker: SQUAD_MARKER },
   { id: 'districts', label: 'Районы', icon: 'map' },
   { id: 'risks', label: 'Угрозы', icon: 'shield' },
   { id: 'infrastructure', label: 'Объекты', icon: 'pin' },
@@ -296,29 +297,31 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
                 {lay.markers.map((m) => {
                   const inc = byId.get(m.id)!;
                   const selected = selection?.kind === 'incident' && selection.id === inc.id;
+                  const art = markerArtUrl(INCIDENT_MARKER[inc.templateId] ?? '');
                   return (
                     <button
                       key={inc.id}
-                      className={`marker incident sev-${inc.severity} st-${inc.state}${selected ? ' selected' : ''}`}
+                      className={`marker incident sev-${inc.severity} st-${inc.state}${selected ? ' selected' : ''}${art ? ' shield' : ''}`}
                       style={{ left: m.x, top: m.y }}
                       onClick={() => onSelect({ kind: 'incident', id: inc.id })}
                       aria-label={`Вызов: ${inc.title}`}
                       aria-pressed={selected}
                       data-testid={`marker-incident-${inc.id}`}
                     >
-                      <Icon name={INCIDENT_ICON[inc.templateId] ?? 'warning'} />
+                      {art ? <img src={art} alt="" draggable={false} /> : <Icon name={INCIDENT_ICON[inc.templateId] ?? 'warning'} />}
                     </button>
                   );
                 })}
                 {lay.clusters.map((c) => (
                   <button
                     key={c.key}
-                    className={`marker cluster sev-${c.top}`}
+                    className={`marker cluster sev-${c.top}${markerArtUrl(CLUSTER_MARKER) ? ' shield' : ''}`}
                     style={{ left: c.x, top: c.y }}
                     onClick={() => setExpandedCluster(c.key)}
                     aria-label={`Вызовов рядом: ${c.ids.length}. Развернуть`}
                     data-testid="marker-cluster"
                   >
+                    {markerArtUrl(CLUSTER_MARKER) && <img src={markerArtUrl(CLUSTER_MARKER)} alt="" draggable={false} />}
                     <b>{c.ids.length}</b>
                   </button>
                 ))}
@@ -334,14 +337,14 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
             return (
               <button
                 key={q.id}
-                className={`marker squad tone-${st.tone}${selected ? ' selected' : ''}`}
+                className={`marker squad tone-${st.tone}${selected ? ' selected' : ''}${markerArtUrl(SQUAD_MARKER) ? ' shield' : ''}`}
                 style={{ left: x + 30 + off, top: y - 22 }}
                 onClick={() => onSelect({ kind: 'squad', id: q.id })}
                 aria-label={`Отряд «${q.name}»: ${st.label}`}
                 aria-pressed={selected}
                 data-testid={`marker-squad-${q.id}`}
               >
-                <Icon name="truck" />
+                {markerArtUrl(SQUAD_MARKER) ? <img src={markerArtUrl(SQUAD_MARKER)} alt="" draggable={false} /> : <Icon name="truck" />}
               </button>
             );
           })}
@@ -368,7 +371,7 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
       <div className="layer-tools" role="group" aria-label="Слои карты">
         {LAYER_BUTTONS.map((l) => (
           <button key={l.id} className="btn" aria-pressed={layers[l.id]} onClick={() => onToggleLayer(l.id)} data-testid={`layer-${l.id}`} title={l.label}>
-            <Icon name={l.icon} /> <span className="label">{l.label}</span>
+            {l.marker && markerArtUrl(l.marker) ? <MarkerIcon markerKey={l.marker} /> : <Icon name={l.icon} />} <span className="label">{l.label}</span>
           </button>
         ))}
       </div>

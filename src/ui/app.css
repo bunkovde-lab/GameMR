@@ -278,6 +278,37 @@ svg.icon {
 .marker.selected { box-shadow: 0 0 0 3px #0b1118, 0 0 0 6px #ff8a78, 0 2px 12px #000; z-index: 1; }
 @keyframes pulse { 50% { box-shadow: 0 0 0 7px #ff5a5233, 0 2px 10px #000c; } }
 
+/* ART-003/004: щиты карты вместо временных кружков. Кончик щита стоит в точке вызова;
+   серьёзность, состояние и выбор — подсветкой кодом, а не в самом файле значка. */
+.marker.shield, .marker.incident.shield, .marker.cluster.shield, .marker.squad.shield {
+  --glow: #6fc7d2; --mk-h: 56px; width: calc(var(--mk-h) * 0.8); height: var(--mk-h); border: 0; border-radius: 0; background: none; box-shadow: none;
+  transform: translate(-50%, -97%); filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 4px var(--glow)) drop-shadow(0 3px 5px #000);
+}
+@media (min-width: 1400px) { .marker.shield { --mk-h: 64px; } }
+.marker.shield > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; }
+.marker.shield::after { content: ''; position: absolute; inset: -4px -1px; } /* запас для пальца ≥ 44×60 */
+.marker.shield.sev-high { --glow: var(--amber); }
+.marker.shield.sev-critical { --glow: var(--red); filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 5px var(--glow)) drop-shadow(0 0 2px var(--glow)) drop-shadow(0 3px 5px #000); }
+.marker.incident.shield.st-en_route, .marker.incident.shield.st-on_scene { opacity: 0.85; }
+.marker.incident.shield.st-escalated { animation: shield-pulse 1.4s ease-in-out infinite; }
+@keyframes shield-pulse { 50% { filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 10px var(--glow)) drop-shadow(0 3px 5px #000); } }
+.marker.cluster.shield > b {
+  position: relative; margin-top: -6px; font: 700 18px/1 Georgia, serif; color: #f4e7c8; text-shadow: 0 1px 2px #000, 0 0 6px #000;
+}
+/* Отряд: щит транспорта рядом с точкой, цвет подсветки = статус отряда. */
+.marker.squad.shield { --mk-h: 56px; transform: translate(-50%, -50%); }
+.marker.squad.shield.tone-green { --glow: var(--green); }
+.marker.squad.shield.tone-cyan { --glow: var(--cyan); }
+.marker.squad.shield.tone-amber { --glow: var(--amber); }
+.marker.squad.shield.tone-red { --glow: var(--bad); }
+.marker.squad.shield.tone-grey { --glow: var(--dim); opacity: 0.8; }
+.marker.shield.selected, .marker.incident.shield.selected, .marker.squad.shield.selected {
+  box-shadow: none; z-index: 1;
+  filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 2px #fff) drop-shadow(0 0 8px #ff8a78) drop-shadow(0 3px 5px #000);
+}
+.mk-icon { display: inline-block; flex: none; vertical-align: -3px; background: currentColor; mask-size: contain; mask-repeat: no-repeat; mask-position: center; -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; }
+.incident-title .mk-icon { margin-right: 6px; color: var(--gold-light); }
+
 .map-warning {
   position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 2; max-width: min(560px, 90%);
   padding: 10px 14px; border-radius: 10px; background: #3a1418f2; border: 1px solid var(--bad);
@@ -321,7 +352,7 @@ svg.icon {
   .zoom-tools { flex-direction: row; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .marker.incident.st-escalated { animation: none; }
+  .marker.incident.st-escalated, .marker.incident.shield.st-escalated { animation: none; }
   .district-hit { transition: none; }
 }
 

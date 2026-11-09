@@ -99,3 +99,25 @@ describe('ART-015 сцены W10', () => {
     }
   });
 });
+
+/** ART-003/004: 7 щитов карты (PNG 256×320 с альфой) и 7 значков SVG 24×24; у каждого типа вызова есть свой значок. */
+describe('ART-003/004 значки карты', () => {
+  const marks = manifest.assets.filter((a) => a.id.startsWith('ART003004_'));
+  it('14 файлов, хеши совпадают, у PNG есть webp-копия, все типы вызовов покрыты', async () => {
+    expect(marks).toHaveLength(14);
+    for (const a of marks) {
+      expect(createHash('sha256').update(readFileSync(a.file)).digest('hex')).toBe(a.sha256);
+      if (a.file.endsWith('.png')) {
+        expect([a.width, a.height, a.alpha]).toEqual([256, 320, true]);
+        expect((a as { webCopies?: string[] }).webCopies?.every((w) => existsSync(w))).toBe(true);
+      }
+    }
+    const { INCIDENT_MARKER, SQUAD_MARKER, CLUSTER_MARKER } = await import('../../src/ui/map/entities');
+    const { INCIDENT_TEMPLATES } = await import('../../src/core/content');
+    for (const t of INCIDENT_TEMPLATES) expect(INCIDENT_MARKER[t.id], t.id).toBeTruthy();
+    for (const k of [...Object.values(INCIDENT_MARKER), SQUAD_MARKER, CLUSTER_MARKER]) {
+      expect(marks.some((a) => a.file === `assets/ui/markers/${k}.png`), k).toBe(true);
+      expect(marks.some((a) => a.file === `assets/ui/markers/${k}.svg`), k).toBe(true);
+    }
+  });
+});

@@ -23,6 +23,23 @@ for (const [path, url] of Object.entries(evFiles)) {
 }
 export const evidenceIconUrl = (type: string): string | undefined => EV_ICON[type];
 
+/** ART-003/004: щиты карты (webp-копии 128×160) и одноцветные значки 24×24 для списка и легенды. */
+const mkFiles = import.meta.glob('../../assets/ui/markers/web/*.webp', { eager: true, import: 'default' }) as Record<string, string>;
+const mkIcons = import.meta.glob('../../assets/ui/markers/*.svg', { eager: true, import: 'default' }) as Record<string, string>;
+const MARKER: Record<string, string> = {};
+const MARKER_ICON: Record<string, string> = {};
+for (const [path, url] of Object.entries(mkFiles)) { const m = /\/(marker_[^/]+)\.webp$/.exec(path); if (m) MARKER[m[1]!] = url; }
+for (const [path, url] of Object.entries(mkIcons)) { const m = /\/(marker_[^/]+)\.svg$/.exec(path); if (m) MARKER_ICON[m[1]!] = url; }
+export const markerArtUrl = (key: string): string | undefined => MARKER[key];
+export const markerIconUrl = (key: string): string | undefined => MARKER_ICON[key];
+
+/** Одноцветный значок 24×24 через маску: цвет берётся из currentColor, как у встроенных иконок. */
+export function MarkerIcon({ markerKey, size = 18 }: { markerKey: string; size?: number }) {
+  const url = markerIconUrl(markerKey);
+  if (!url) return null;
+  return <span className="mk-icon" aria-hidden="true" style={{ width: size, height: size, maskImage: `url("${url}")`, WebkitMaskImage: `url("${url}")` }} data-testid={`mk-icon-${markerKey}`} />;
+}
+
 /** Иллюстрация с заглушкой. `label` описывает, что здесь будет: для читателя экрана и пока арта нет. */
 export function ArtSlot({ artKey, label, className = '', children }: { artKey: string; label: string; className?: string; children?: ReactNode }) {
   const url = artUrl(artKey);

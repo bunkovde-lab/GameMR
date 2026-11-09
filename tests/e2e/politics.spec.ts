@@ -47,6 +47,13 @@ test('politics: six Houses, three coalitions, a deal with full terms changes acc
   await page.getByTestId('dir-tab-politics').click();
   await expect(page.locator('[data-testid^="house-"]')).toHaveCount(6);
   await expect(page.locator('[data-testid^="coalition-"]')).toHaveCount(3);
+  // ART-017: у каждого Дома свой герб, картинка реально загружена.
+  for (const h of ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) {
+    const crest = page.getByTestId(`house-${h}`).getByTestId(`crest-${h}`);
+    await expect(crest).toBeVisible();
+    expect(await crest.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth)).toBe(256);
+  }
+  await expect(page.getByTestId('offer-lab_access').getByTestId('crest-h1')).toBeVisible();
   const offer = page.getByTestId('offer-lab_access');
   for (const t of ['Выгода', 'Политическая цена', 'Срок', 'Условия', 'Проверка', 'При нарушении']) await expect(offer).toContainText(t);
   await page.screenshot({ path: `test-results/screens/w8-politics-${info.project.name}.png` });

@@ -6,6 +6,7 @@ import {
 import { clockLabel, isOpen } from '../../core/selectors';
 import type { GameState, Permit, PermitStatus } from '../../core/types';
 import { dispatch } from '../../store';
+import { HouseCrest } from '../art';
 
 /** W8: Дирекция — Полномочия (UI-19) и Политика Домов (UI-20). Все значения выводятся из ядра. */
 
@@ -114,10 +115,13 @@ function Terms({ def }: { def: DealDef }) {
       <dt>Срок</dt><dd>{def.durationShifts} смен.</dd>
       <dt>Условия</dt><dd>{def.conditions.map((c) => c.text).join(' ')}</dd>
       <dt>Проверка</dt><dd>{def.verification}</dd>
-      <dt>При нарушении</dt><dd>{def.breachText}{def.reprisal ? ` Позже: ${def.reprisal.text.toLowerCase()}` : ''}</dd>
+      <dt>При нарушении</dt><dd>{def.breachText}{def.reprisal ? ` Позже: ${lowerFirst(def.reprisal.text)}` : ''}</dd>
     </dl>
   );
 }
+
+/** Строчная первая буква для вставки в середину фразы; имена Домов и названия в кавычках не трогаем. */
+const lowerFirst = (s: string): string => (/^(Дом[а-я]* [А-Я]|«)/.test(s) ? s : s.charAt(0).toLowerCase() + s.slice(1));
 
 export function PoliticsTab({ game }: { game: GameState }) {
   const P = game.politics;
@@ -152,7 +156,8 @@ export function PoliticsTab({ game }: { game: GameState }) {
           const st = P.standing[h.id] ?? 0;
           const deal = active.find((d) => dealDef(d.templateId)?.houseId === h.id);
           return (
-            <article key={h.id} className="sq-card" data-testid={`house-${h.id}`}>
+            <article key={h.id} className="sq-card house-card" data-testid={`house-${h.id}`}>
+              <HouseCrest houseId={h.id} size={96} label={h.label} />
               <header><b>{h.label}</b><small className={st >= 10 ? 'good' : st <= -10 ? 'bad' : undefined}>{sign(st)} · {standingWord(st)}</small></header>
               <small className="muted">Ведает: {h.controls}.</small>
               <ul className="plain-list currents">
@@ -172,7 +177,7 @@ export function PoliticsTab({ game }: { game: GameState }) {
             const dup = active.some((d) => d.templateId === o.templateId);
             return (
               <article key={o.id} className="sq-card deal" data-testid={`offer-${o.templateId}`}>
-                <header><b>{def.title}</b><small>{houseById(def.houseId)!.label} · до конца смены {o.expiresShift}</small></header>
+                <header><b>{def.title}</b><small className="with-crest"><HouseCrest houseId={def.houseId} size={28} />{houseById(def.houseId)!.label} · до конца смены {o.expiresShift}</small></header>
                 <Terms def={def} />
                 <div className="row-actions wrap">
                   <button className="btn primary" disabled={dup} onClick={() => dispatch({ type: 'ACCEPT_DEAL', offerId: o.id })} data-testid={`accept-${o.templateId}`}>Принять договор</button>
@@ -191,9 +196,9 @@ export function PoliticsTab({ game }: { game: GameState }) {
             const def = dealDef(d.templateId)!;
             return (
               <article key={d.id} className="sq-card deal" data-testid={`deal-${d.templateId}`}>
-                <header><b>{def.title}</b><small>{houseById(def.houseId)!.label} · смены {d.acceptedShift}–{d.endShift}</small></header>
+                <header><b>{def.title}</b><small className="with-crest"><HouseCrest houseId={def.houseId} size={28} />{houseById(def.houseId)!.label} · смены {d.acceptedShift}–{d.endShift}</small></header>
                 <Terms def={def} />
-                <button className="btn danger" onClick={() => dispatch({ type: 'BREAK_DEAL', dealId: d.id })} data-testid={`break-${d.templateId}`}>Расторгнуть: {def.breachText.toLowerCase()}</button>
+                <button className="btn danger" onClick={() => dispatch({ type: 'BREAK_DEAL', dealId: d.id })} data-testid={`break-${d.templateId}`}>Расторгнуть: {lowerFirst(def.breachText)}</button>
               </article>
             );
           })}

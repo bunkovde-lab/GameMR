@@ -10,7 +10,7 @@ import { POLITICS, houseById } from '../../core/politics';
 import { formatRe } from '../../core/selectors';
 import type { CaseFile, GameState, InterrogationMethod, StaffRole } from '../../core/types';
 import { dispatch } from '../../store';
-import { artUrl, evidenceIconUrl } from '../art';
+import { HouseCrest, artUrl, evidenceIconUrl } from '../art';
 import { Icon, type IconName } from '../Icon';
 import { Portrait } from '../Portrait';
 import { CampaignPanel } from './CampaignPanel';
@@ -87,7 +87,7 @@ function CaseView({ game, f }: { game: GameState; f: CaseFile }) {
       <header className={`case-head${loc ? ' with-art' : ''}`} style={loc ? { backgroundImage: `linear-gradient(90deg, rgba(10,12,16,.92) 40%, rgba(10,12,16,.4)), url(${loc})` } : undefined} data-art={CASE_ART[f.id]}>
         <p>{d.summary}</p>
         <small className="muted">
-          Открыто в смену {f.openedShift} · объект в ведении: {houseById(d.houseId)?.label} · улик: {f.evidence.length} · <b data-testid="case-status">{caseStatusWord(f)}</b>
+          Открыто в смену {f.openedShift} · объект в ведении: <span className="with-crest"><HouseCrest houseId={d.houseId} size={24} />{houseById(d.houseId)?.label}</span> · улик: {f.evidence.length} · <b data-testid="case-status">{caseStatusWord(f)}</b>
         </small>
       </header>
       <div className="tabs case-tabs" role="tablist" aria-label="Режимы дела">
@@ -415,6 +415,7 @@ function ActionCard({ game, f, d, id }: { game: GameState; f: CaseFile; d: CaseD
       {a.permit && !done && (
         <div className="permit-row" data-testid={`permit-${a.id}`}>
           <small>
+            {a.permit === 'interagency' && a.houseId && <HouseCrest houseId={a.houseId} size={24} />}
             Основание — {permitName}:{' '}
             <b className={permit === 'granted' ? 'good' : permit === 'missing' ? 'why' : ''}>
               {permit === 'granted' ? 'есть' : permit === 'pending' ? 'запрос рассматривается' : denied ? `нет (отказов: ${denied})` : 'нет'}

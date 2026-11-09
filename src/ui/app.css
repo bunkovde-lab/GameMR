@@ -695,6 +695,12 @@ td.bad { color: var(--bad); }
 .candidate-head { display: flex; gap: 12px; align-items: center; justify-content: flex-start !important; }
 .candidate .portrait.lg { width: 96px; height: 120px; flex: 0 0 auto; }
 
+/* W10: карточка вызова — что будет при опоздании и что на кону; находки в отчёте. */
+.stakes { display: grid; gap: 4px; margin: 4px 0 8px; font-size: 13px; color: var(--muted); }
+.stakes .late b { color: var(--amber); font-weight: 600; }
+.findings { margin: 6px 0 10px; padding: 8px 12px; border-left: 2px solid var(--gold); background: #c9a46a12; }
+.sev-text.sev-low { color: var(--cyan); }
+
 /* ---------- Кадры: группировка по составам (сводка и личные вкладки) ---------- */
 .staff-table.grouped { border-collapse: separate; border-spacing: 0; }
 .staff-table.grouped thead th { border-bottom: 0; padding-bottom: 6px; }

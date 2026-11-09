@@ -14,13 +14,13 @@ import { treatmentForecast } from '../../src/core/staff';
 import { citySafety, cityTrust, isOpen } from '../../src/core/selectors';
 import type { Command, GameState } from '../../src/core/types';
 
-const SEV = { critical: 3, high: 2, medium: 1 } as const;
+const SEV = { critical: 3, high: 2, medium: 1, low: 0 } as const;
 
 export type Policy = 'idle' | 'dispatch' | 'full';
 export interface RunResult {
   policy: Policy; seed: number; shiftsPlayed: number; balance: number; minBalance: number; unpaid: number;
   safety: number; trust: number; dead: number; injured: number; staffAlive: number;
-  operations: { success: number; partial: number; failure: number }; openIncidents: number; escalated: number;
+  operations: { success: number; partial: number; failure: number }; openIncidents: number; escalated: number; expired: number;
   ending: string | null; casesOpened: number; opsDone: number; opsFailed: number; violations: number; rejected: number;
 }
 
@@ -104,7 +104,7 @@ export function simulate(seed: number, policy: Policy): RunResult {
     injured: s.staff.filter((p) => ['light_injury', 'serious_injury', 'critical'].includes(p.health)).length,
     staffAlive: s.staff.filter((p) => p.health !== 'dead').length,
     operations: { success: ops.filter((r) => r.outcome === 'success').length, partial: ops.filter((r) => r.outcome === 'partial').length, failure: ops.filter((r) => r.outcome === 'failure').length },
-    openIncidents: s.incidents.filter(isOpen).length, escalated: s.incidents.filter((i) => i.state === 'escalated').length,
+    openIncidents: s.incidents.filter(isOpen).length, escalated: s.incidents.filter((i) => i.state === 'escalated').length, expired: s.incidents.filter((i) => i.state === 'expired').length,
     ending: s.campaign.ending, casesOpened: s.investigations.cases.length,
     opsDone: s.campaign.ops.filter((o) => o.report && o.report.outcome !== 'failure').length,
     opsFailed: s.campaign.ops.filter((o) => o.report?.outcome === 'failure').length,
@@ -135,7 +135,7 @@ export function summarize(results: RunResult[]) {
       safety: num((x) => x.safety), trust: num((x) => x.trust),
       dead: num((x) => x.dead), anyDeath: share((x) => x.dead > 0), injuredAtEnd: num((x) => x.injured),
       opsSuccess: num((x) => x.operations.success), opsPartial: num((x) => x.operations.partial), opsFailure: num((x) => x.operations.failure),
-      openIncidentsAtEnd: num((x) => x.openIncidents), escalatedAtEnd: num((x) => x.escalated),
+      openIncidentsAtEnd: num((x) => x.openIncidents), escalatedAtEnd: num((x) => x.escalated), expiredAtEnd: num((x) => x.expired ?? 0),
       casesOpened: num((x) => x.casesOpened), specialOpsDone: num((x) => x.opsDone), violations: num((x) => x.violations),
     };
   }

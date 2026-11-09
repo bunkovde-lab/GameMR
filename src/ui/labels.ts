@@ -1,6 +1,6 @@
 import type { IncidentState, Severity, SquadStatus } from '../core/types';
 
-export const SEVERITY_LABEL: Record<Severity, string> = { critical: 'Критично', high: 'Высокий риск', medium: 'Средний риск' };
+export const SEVERITY_LABEL: Record<Severity, string> = { critical: 'Критично', high: 'Высокий риск', medium: 'Средний риск', low: 'Низкий риск' };
 
 export const INCIDENT_STATE_LABEL: Record<IncidentState, string> = {
   new: 'Новый',

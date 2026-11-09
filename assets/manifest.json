@@ -2071,6 +2071,30 @@
       "source": "ART-007_UI_ICONS_FOR_CHATGPT.md (Claude, 2026-11-09); approved GameMR ART-008 UI Kit v2",
       "approvedBy": "Dmitry (2026-11-09)",
       "notes": "ART-007: UI outline source manually authored; no inline stroke/fill; CSS provides currentColor, 1.9px stroke. REVIEW until owner approval. See docs/art/ART007_ICONS_README.md."
+    },
+    {
+      "id": "AUDIO_MENU_THEME",
+      "file": "assets/audio/menu_theme.mp3",
+      "category": "audio",
+      "role": "Главное меню GameMR — утверждения ждёт техническая интеграция",
+      "status": "review",
+      "alpha": false,
+      "sha256": "d31932e407fc342c03afb149f08d32ec0b4d579585ee550c71fc47bea213a608",
+      "source": "Пользователь загрузил 2026-11-09 «Меню музыка.mp3»; веб-копия MP3 96 кбит/с stereo",
+      "approvedBy": null,
+      "notes": "219.6 сек. Веб-оптимизированная версия оригинального трека. Не является бесшовным лупом без предварительной проверки стыка."
+    },
+    {
+      "id": "AUDIO_GAMEPLAY_AMBIENT",
+      "file": "assets/audio/gameplay_ambient.mp3",
+      "category": "audio",
+      "role": "Фоновая музыка карты и управления Дирекцией",
+      "status": "review",
+      "alpha": false,
+      "sha256": "accfe6dd890402d0eac48a67316644c5b3849a5f37d9244f9200038311ff7543",
+      "source": "Пользователь загрузил 2026-11-09 «Фон к игре.mp3»; веб-копия MP3 96 кбит/с stereo",
+      "approvedBy": null,
+      "notes": "204.8 сек. Веб-оптимизированная версия оригинального трека. Применить регулируемую громкость/паузы и проверить цикл."
     }
   ]
 }

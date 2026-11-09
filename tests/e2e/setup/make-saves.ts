@@ -65,3 +65,9 @@ const sc = fresh();
 const base = sc.incidents.find((i) => i.templateId === 'missing')!;
 for (const n of [1, 2]) sc.incidents.push({ ...structuredClone(base), id: `${base.id}-dup${n}`, title: `${base.title} (${n + 1})` });
 save('cluster', sc);
+
+// 6. ART-012: смена 10, дело №447 открыто — окно «Красной герметизации».
+const s10 = fresh();
+s10.shift = 10;
+open(s10, 'c3');
+save('op2_window', s10);

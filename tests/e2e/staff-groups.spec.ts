@@ -24,7 +24,7 @@ test('summary: every squad is a framed block with its name; members sit inside',
 });
 
 test('development: squads fold and unfold by the arrow; touch-sized toggles', async ({ page }, info) => {
-  await page.getByTestId('staff-tab-development').click();
+  await page.getByTestId('open-p1').click();
   const toggle = page.getByTestId('group-toggle-axon');
   // состав выбранного сотрудника раскрыт, остальные свёрнуты
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
@@ -41,6 +41,6 @@ test('development: squads fold and unfold by the arrow; touch-sized toggles', as
   await page.getByTestId('group-toggle-vector').click();
   await expect(page.getByTestId('pick-group-vector').locator('[data-testid^="person-"]')).toHaveCount(2);
   await page.getByTestId('person-p4').click();
-  await expect(page.locator('.person-head')).toContainText(await page.getByTestId('person-p4').locator('b').innerText());
+  await expect(page.getByTestId('dossier')).toContainText(await page.getByTestId('person-p4').locator('b').innerText());
   await page.screenshot({ path: `test-results/screens/groups-development-open-${info.project.name}.png` });
 });

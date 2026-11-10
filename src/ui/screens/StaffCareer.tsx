@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import {
   BRANCH_IDS, CAREER, NODES, ORGANS, RANK_NAMES, courseBlocker, innateSystems, metabolic, nodeById, organBlocker, organById,
-  promotionStatus, relationsOf, seedReasons, skillPoints,
+  STAT_WORD, promotionStatus, relationsOf, seedReasons, skillPoints, type NodeDef,
 } from '../../core/career';
 import { ROLE_LABEL } from '../../core/content';
 import { HEALTH_LOG } from '../../core/healthText';
 import { clockLabel, formatRe } from '../../core/selectors';
 import type { GameState, Staff } from '../../core/types';
 import { dispatch } from '../../store';
+import { Icon } from '../Icon';
 import { Portrait } from '../Portrait';
+import { SkillArt } from '../skillArt';
 import { staffGroups } from './staffGroups';
 
 /** W6 (часть 2): развитие (UI-08), модификации (UI-09), отношения (UI-11), история (UI-12). */
@@ -64,37 +66,62 @@ export function PersonPicker({ game, selected, onSelect, archive = false }: { ga
 const sign = (v: number) => (v > 0 ? `+${v}` : `${v}`);
 const word = (v: number) => (v >= 3 ? 'высокая' : v >= 1 ? 'есть' : v <= -3 ? 'конфликт' : v < 0 ? 'натянуто' : 'нейтрально');
 
+type NodeState = 'learned' | 'studying' | 'open' | 'locked';
+const STATE_WORD: Record<NodeState, string> = { learned: 'изучено', studying: 'идёт курс', open: 'можно изучить', locked: 'закрыто' };
+
+/** Требования узла списком: что уже выполнено, а что нет (ранг, качество, предыдущий навык ветки). */
+function requirements(p: Staff, n: NodeDef) {
+  const prev = NODES.find((x) => x.branch === n.branch && x.tier === n.tier - 1);
+  const out: { ok: boolean; text: string }[] = [];
+  if (prev) out.push({ ok: p.skills.includes(prev.id), text: `Навык «${prev.label}»` });
+  out.push({ ok: p.rank >= n.rankMin, text: `Ранг ${RANK_NAMES[n.rankMin - 1]}` });
+  if (n.stat) out.push({ ok: p.stats[n.stat.key] >= n.stat.min, text: `${STAT_WORD[n.stat.key][0]!.toUpperCase()}${STAT_WORD[n.stat.key].slice(1)} ${n.stat.min}+` });
+  out.push({ ok: skillPoints(p).free >= n.points || p.skills.includes(n.id), text: `Очки навыка: ${n.points}` });
+  return out;
+}
+
+/** Развитие (UI-08) деревом: три ветки, у каждого навыка значок; наведение — подсказка, нажатие — карточка с курсом. */
 export function Development({ game, p }: { game: GameState; p: Staff }) {
-  const pts = skillPoints(p);
   const promo = promotionStatus(game, p.id);
+  const stateOf = (n: NodeDef): NodeState =>
+    p.skills.includes(n.id) ? 'learned' : p.training?.nodeId === n.id ? 'studying' : courseBlocker(game, p.id, n.id) ? 'locked' : 'open';
+  const firstOpen = NODES.find((n) => stateOf(n) === 'open') ?? NODES[0]!;
+  const [selId, setSelId] = useState(firstOpen.id);
+  const sel = nodeById(selId) ?? firstOpen;
+  const selState = stateOf(sel);
+  const why = selState === 'locked' ? courseBlocker(game, p.id, sel.id) : null;
   return (
     <div className="career" data-testid="development">
-      <dl className="chips">
-        <div><dt>Ранг</dt><dd>{RANK_NAMES[p.rank - 1]}</dd></div>
-        <div><dt>Опыт</dt><dd>{p.xp}</dd></div>
-        <div><dt>Очки навыка</dt><dd data-testid="skill-points">{pts.free} из {pts.earned}</dd></div>
-        {p.training && <div><dt>Курс</dt><dd>«{nodeById(p.training.nodeId)?.label}», ещё {p.training.shiftsLeft} смен.</dd></div>}
-      </dl>
-      <p className="hint">Очки дают опыт, а не ранг. Курс стоит денег и выводит сотрудника из отряда до окончания. Свободного сброса нет.</p>
-      <div className="branch-grid">
+      <div className="skill-tree" role="group" aria-label="Дерево навыков">
         {BRANCH_IDS.map((b) => (
-          <section key={b} className="sq-card branch" data-testid={`branch-${b}`}>
-            <header><b>{CAREER.branches[b].label}</b></header>
-            <small className="muted">{CAREER.branches[b].hint}</small>
-            <ol className="node-list">
+          <section key={b} className="skill-branch" data-testid={`branch-${b}`}>
+            <header><b>{CAREER.branches[b].label}</b><small>{CAREER.branches[b].hint}</small></header>
+            <ol className="skill-path">
               {NODES.filter((n) => n.branch === b).map((n) => {
-                const learned = p.skills.includes(n.id);
-                const why = learned ? null : courseBlocker(game, p.id, n.id);
-                const studying = p.training?.nodeId === n.id;
+                const st = stateOf(n);
+                const blocker = st === 'locked' ? courseBlocker(game, p.id, n.id) : null;
                 return (
-                  <li key={n.id} className={learned ? 'learned' : ''}>
-                    <span><b>{n.tier}. {n.label}</b><small>{n.desc}</small></span>
-                    {learned ? <span className="tag good">изучено</span> : studying ? <span className="tag">идёт курс</span> : (
-                      <button className="btn" disabled={!!why} title={why ?? undefined} onClick={() => dispatch({ type: 'START_COURSE', staffId: p.id, nodeId: n.id })} data-testid={`course-${n.id}`}>
-                        Курс · {n.points} оч. · {n.cost} РЕ · {n.shifts} смен.
-                      </button>
-                    )}
-                    {!learned && !studying && why && <small className="why">{why}</small>}
+                  <li key={n.id} className={`skill-step st-${st}`}>
+                    <button
+                      className={`skill-node st-${st}`}
+                      aria-pressed={sel.id === n.id}
+                      aria-label={`${n.label}: ${STATE_WORD[st]}`}
+                      aria-describedby={`tip-${n.id}`}
+                      onClick={() => setSelId(n.id)}
+                      data-testid={`skill-${n.id}`}
+                    >
+                      <SkillArt id={n.id} />
+                      <span className="skill-tier">{RANK_NAMES[n.tier - 1]}</span>
+                      {st === 'learned' && <span className="skill-badge good" aria-hidden="true">✓</span>}
+                      {st === 'locked' && <span className="skill-badge" aria-hidden="true"><Icon name="lock" /></span>}
+                      {st === 'studying' && <span className="skill-badge warn" aria-hidden="true"><Icon name="clock" /></span>}
+                    </button>
+                    <span className="skill-caption">{n.label}</span>
+                    <span className="skill-tip" role="tooltip" id={`tip-${n.id}`}>
+                      <b>{n.label}</b>
+                      <span>{n.desc}</span>
+                      <small>{STATE_WORD[st]}{blocker ? ` · ${blocker}` : ''}</small>
+                    </span>
                   </li>
                 );
               })}
@@ -102,6 +129,31 @@ export function Development({ game, p }: { game: GameState; p: Staff }) {
           </section>
         ))}
       </div>
+      <article className={`sq-card skill-detail st-${selState}`} data-testid="skill-detail" aria-live="polite">
+        <div className="skill-detail-head">
+          <span className={`skill-node big st-${selState}`} aria-hidden="true"><SkillArt id={sel.id} /></span>
+          <span>
+            <small className="muted">{CAREER.branches[sel.branch].label} · ступень {RANK_NAMES[sel.tier - 1]}</small>
+            <h4>{sel.label}</h4>
+            <span className={`tag st-${selState}`}>{STATE_WORD[selState]}</span>
+          </span>
+        </div>
+        <p className="skill-gives"><b>Что даёт:</b> {sel.desc}</p>
+        <ul className="plain-list req-list">
+          {requirements(p, sel).map((r) => <li key={r.text} className={r.ok ? 'ok' : 'no'}><span aria-hidden="true">{r.ok ? '✓' : '✗'}</span> {r.text}</li>)}
+        </ul>
+        {selState === 'learned' ? null : selState === 'studying' ? (
+          <p className="muted">Курс идёт: осталось {p.training?.shiftsLeft} смен.</p>
+        ) : (
+          <>
+            <button className="btn primary" disabled={!!why} onClick={() => dispatch({ type: 'START_COURSE', staffId: p.id, nodeId: sel.id })} data-testid={`course-${sel.id}`}>
+              Начать курс · {sel.points} оч. · {sel.cost} РЕ · {sel.shifts} смен.
+            </button>
+            {why && <small className="why">{why}</small>}
+          </>
+        )}
+      </article>
+      <p className="hint">Очки дают опыт, а не ранг. Курс стоит денег и выводит сотрудника из отряда до окончания. Свободного сброса нет. Значки навыков временные — до картинок художника.</p>
       <h4 className="section-title">Аттестация на звание</h4>
       {!promo ? <p className="muted">Высший ранг.</p> : (
         <div className="promo" data-testid="promotion">
@@ -176,7 +228,7 @@ export function Modifications({ game, p }: { game: GameState; p: Staff }) {
   );
 }
 
-export function Relations({ game, p }: { game: GameState; p: Staff }) {
+export function Relations({ game, p, onOpen }: { game: GameState; p: Staff; onOpen?: (id: string) => void }) {
   const links = relationsOf(game, p.id).sort((a, b) => Math.abs(b.trust) + b.teamwork - (Math.abs(a.trust) + a.teamwork));
   const name = (id: string) => game.staff.find((x) => x.id === id)?.name ?? id;
   const dead = (id: string) => game.staff.find((x) => x.id === id)?.health === 'dead';
@@ -192,21 +244,22 @@ export function Relations({ game, p }: { game: GameState; p: Staff }) {
       </dl>
       <p className="hint">Связи меняются только событиями: операциями, ранениями, гибелью, решениями командира. Сработанность от 3 даёт одно совместное действие (группа действует как штатная), доверие от −3 и ниже повышает риск. Эффекты не складываются.</p>
       {links.length === 0 ? <p className="muted">Служебных связей пока нет.</p> : (
-        <div className="table-scroll">
-          <table className="staff-table" data-testid="relations-table">
-            <thead><tr><th>С кем</th><th>Доверие</th><th>Сработанность</th><th>Личная лояльность</th></tr></thead>
-            <tbody>
-              {links.map((r) => (
-                <tr key={r.other} className={dead(r.other) ? 'kia' : undefined}>
-                  <td>{name(r.other)}{dead(r.other) ? ' · архив' : ''}</td>
-                  <td className={r.trust <= -3 ? 'bad' : undefined}>{sign(r.trust)} · {word(r.trust)}</td>
-                  <td className={r.teamwork >= 3 ? 'good' : undefined}>{sign(r.teamwork)} · {word(r.teamwork)}</td>
-                  <td>{sign(r.loyalty)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ul className="plain-list rel-cards" data-testid="relations-table">
+          {links.map((r) => {
+            const o = game.staff.find((x) => x.id === r.other);
+            return (
+              <li key={r.other} className={`rel-card${dead(r.other) ? ' kia' : ''}${r.trust <= -3 ? ' conflict' : r.teamwork >= 3 ? ' close' : ''}`}>
+                <button className="btn rel-who" disabled={!onOpen} onClick={() => onOpen?.(r.other)} data-testid={`rel-open-${r.other}`}>
+                  <Portrait id={r.other} name={name(r.other)} health={o?.health} size="sm" />
+                  <span className="pick-text"><b>{name(r.other)}</b><small>{o ? ROLE_LABEL[o.role] : ''}{dead(r.other) ? ' · архив' : ''}</small></span>
+                </button>
+                <RelMeter label="Доверие" v={r.trust} />
+                <RelMeter label="Сработанность" v={r.teamwork} />
+                <RelMeter label="Личная лояльность" v={r.loyalty} />
+              </li>
+            );
+          })}
+        </ul>
       )}
       <h4 className="section-title">Почему так</h4>
       <ul className="plain-list">
@@ -215,6 +268,18 @@ export function Relations({ game, p }: { game: GameState; p: Staff }) {
         {!seeds.length && !events.length && <li className="muted">Записей нет.</li>}
       </ul>
     </div>
+  );
+}
+
+/** Связь от −5 до +5: полоска от центра, цвет по знаку, словами — смысл. */
+function RelMeter({ label, v }: { label: string; v: number }) {
+  const w = (Math.abs(v) / 5) * 50;
+  return (
+    <span className="rel-meter">
+      <small>{label}</small>
+      <span className="rel-bar" aria-hidden="true"><i className={v < 0 ? 'neg' : 'pos'} style={v < 0 ? { right: '50%', width: `${w}%` } : { left: '50%', width: `${w}%` }} /></span>
+      <small className={v <= -3 ? 'bad' : v >= 3 ? 'good' : undefined}>{sign(v)} · {word(v)}</small>
+    </span>
   );
 }
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { ROLE_LABEL } from '../../core/content';
 import { memberBlocker } from '../../core/dispatch';
 import { HEALTH_LOG } from '../../core/healthText';
@@ -12,23 +12,18 @@ import { dispatch } from '../../store';
 import { Icon } from '../Icon';
 import { Portrait } from '../Portrait';
 import { medicalCapacity } from '../../core/facilities';
-import { Development, History, Modifications, PersonPicker, Relations } from './StaffCareer';
+import { PersonCabinet } from './PersonCabinet';
 import { SQUAD_STATUS } from '../labels';
 import { staffGroups } from './staffGroups';
 
 const RANKS = ['I', 'II', 'III', 'IV', 'V'];
-type Tab = 'summary' | 'roster' | 'medical' | 'hiring' | 'development' | 'mods' | 'relations' | 'history';
+type Tab = 'summary' | 'roster' | 'medical' | 'hiring';
 const TABS: { id: Tab; label: string }[] = [
   { id: 'summary', label: 'Сводка' },
   { id: 'roster', label: 'Штат' },
   { id: 'medical', label: 'Медицина' },
   { id: 'hiring', label: 'Найм' },
-  { id: 'development', label: 'Развитие' },
-  { id: 'mods', label: 'Модификации' },
-  { id: 'relations', label: 'Отношения' },
-  { id: 'history', label: 'История' },
 ];
-const PERSONAL: Tab[] = ['development', 'mods', 'relations', 'history'];
 const STAT_LABEL: Record<keyof Stats, string> = { reaction: 'Реакция', analysis: 'Анализ', control: 'Контроль', resilience: 'Стойкость', authority: 'Авторитет' };
 const DOSSIER: Record<DossierStatus, { mark: string; label: string }> = {
   verified: { mark: '✓', label: 'подтверждено' },
@@ -37,11 +32,25 @@ const DOSSIER: Record<DossierStatus, { mark: string; label: string }> = {
   contested: { mark: '!', label: 'оспаривается' },
 };
 
-/** Кадры (W6, часть 1): сводка, штат и назначения (UI-14), медицина (UI-10), найм (UI-13). */
+/** Открыть личный кабинет сотрудника: портрет и имя в списках «Кадров» — одна кнопка. */
+type Open = (id: string) => void;
+function PersonLink({ game, id, open, size = 'xs', children }: { game: GameState; id: string; open: Open; size?: 'xs' | 'sm'; children?: ReactNode }) {
+  const p = game.staff.find((x) => x.id === id)!;
+  return (
+    <button className="btn person-link" onClick={() => open(id)} title="Открыть личное дело" data-testid={`open-${id}`}>
+      <Portrait id={id} name={p.name} health={p.health} size={size} />
+      {children ?? <span>{p.name}</span>}
+    </button>
+  );
+}
+
+/**
+ * Кадры: сводка, штат и назначения (UI-14), медицина (UI-10), найм (UI-13).
+ * Развитие, модификации, отношения и история — в личном кабинете сотрудника (нажатие на портрет).
+ */
 export function StaffScreen({ game, onClose }: { game: GameState; onClose: () => void }) {
   const [tab, setTab] = useState<Tab>('summary');
-  const [personId, setPersonId] = useState('p1');
-  const person = game.staff.find((p) => p.id === personId) ?? game.staff[0]!;
+  const [openId, setOpenId] = useState<string | null>(null);
   const alive = game.staff.filter((p) => p.health !== 'dead').length;
   return (
     <section className="panel screen" role="region" aria-label="Кадры" data-testid="staff-screen">
@@ -49,37 +58,28 @@ export function StaffScreen({ game, onClose }: { game: GameState; onClose: () =>
         <h2><Icon name="users" /> Кадры · {alive}</h2>
         <div className="tabs screen-tabs" role="tablist" aria-label="Разделы кадров">
           {TABS.map((t) => (
-            <button key={t.id} role="tab" className="btn" aria-selected={tab === t.id} aria-pressed={tab === t.id} onClick={() => setTab(t.id)} data-testid={`staff-tab-${t.id}`}>{t.label}</button>
+            <button key={t.id} role="tab" className="btn" aria-selected={!openId && tab === t.id} aria-pressed={!openId && tab === t.id} onClick={() => { setTab(t.id); setOpenId(null); }} data-testid={`staff-tab-${t.id}`}>{t.label}</button>
           ))}
         </div>
         <button className="btn icon-only" onClick={onClose} aria-label="Вернуться к карте"><Icon name="close" /></button>
       </div>
       <div className="panel-body">
-        {tab === 'summary' && <Summary game={game} />}
-        {tab === 'roster' && <Roster game={game} />}
-        {tab === 'medical' && <Medical game={game} />}
-        {tab === 'hiring' && <Hiring game={game} />}
-        {PERSONAL.includes(tab) && (
-          <div className="person-split">
-            <PersonPicker game={game} selected={person.id} onSelect={setPersonId} archive={tab === 'history' || tab === 'relations'} />
-            <div className="person-detail">
-              <div className="person-head">
-                <Portrait id={person.id} name={person.name} health={person.health} size="lg" />
-                <div><h3 className="person-name">{person.name}</h3><small>{ROLE_LABEL[person.role]} · ранг {RANKS[person.rank - 1]}</small></div>
-              </div>
-              {tab === 'development' && <Development game={game} p={person} />}
-              {tab === 'mods' && <Modifications game={game} p={person} />}
-              {tab === 'relations' && <Relations game={game} p={person} />}
-              {tab === 'history' && <History game={game} p={person} />}
-            </div>
-          </div>
+        {openId ? (
+          <PersonCabinet game={game} personId={openId} onSelect={setOpenId} onBack={() => setOpenId(null)} />
+        ) : (
+          <>
+            {tab === 'summary' && <Summary game={game} open={setOpenId} />}
+            {tab === 'roster' && <Roster game={game} open={setOpenId} />}
+            {tab === 'medical' && <Medical game={game} open={setOpenId} />}
+            {tab === 'hiring' && <Hiring game={game} />}
+          </>
         )}
       </div>
     </section>
   );
 }
 
-function Summary({ game }: { game: GameState }) {
+function Summary({ game, open }: { game: GameState; open: Open }) {
   const groups = staffGroups(game, true);
   return (
     <>
@@ -105,7 +105,7 @@ function Summary({ game }: { game: GameState }) {
                 const pt = patientOf(game, p.id);
                 return (
                   <tr key={p.id} data-testid={`staff-${p.id}`} className={p.health === 'dead' ? 'kia' : undefined}>
-                    <td><span className="name-cell"><Portrait id={p.id} name={p.name} health={p.health} size="xs" />{p.name}{g.commanderId === p.id ? <em className="cmd"> · командир</em> : null}</span></td>
+                    <td><PersonLink game={game} id={p.id} open={open}><span>{p.name}{g.commanderId === p.id ? <em className="cmd"> · командир</em> : null}</span></PersonLink></td>
                     <td>{ROLE_LABEL[p.role]}</td>
                     <td>{RANKS[p.rank - 1]}</td>
                     <td className={`health h-${p.health}`}>{HEALTH_LOG[p.health]}{pt ? ' · в клинике' : ''}{p.adaptation ? ' · адаптация' : ''}</td>
@@ -118,12 +118,12 @@ function Summary({ game }: { game: GameState }) {
           ))}
         </table>
       </div>
-      <p className="empty"><small>Имена и параметры временные (OPEN-08).</small></p>
+      <p className="empty"><small>Нажмите на портрет или имя, чтобы открыть личное дело: развитие, модификации, отношения, история. Имена и параметры временные (OPEN-08).</small></p>
     </>
   );
 }
 
-function Roster({ game }: { game: GameState }) {
+function Roster({ game, open: openPerson }: { game: GameState; open: Open }) {
   const res = reserve(game);
   const vac = vacancies(game);
   const open = (Object.keys(vac) as StaffRole[]).filter((r) => vac[r] > 0);
@@ -148,7 +148,7 @@ function Roster({ game }: { game: GameState }) {
               <ul className="plain-list member-rows">
                 {q.memberIds.map((id) => (
                   <li key={id}>
-                    <span className="face-row"><Portrait id={id} name={name(id)} health={game.staff.find((p) => p.id === id)!.health} size="sm" /><span className="pick-text"><span>{name(id)}{cmd?.id === id ? <em className="cmd"> · командир</em> : ''}</span><small>{ROLE_LABEL[game.staff.find((p) => p.id === id)!.role]}{memberBlocker(game, id, q.id) && !busy ? ` · ${memberBlocker(game, id, q.id)}` : ''}</small></span></span>
+                    <span className="face-row"><PersonLink game={game} id={id} open={openPerson} size="sm"><span className="sr-only">{name(id)}</span></PersonLink><span className="pick-text"><span>{name(id)}{cmd?.id === id ? <em className="cmd"> · командир</em> : ''}</span><small>{ROLE_LABEL[game.staff.find((p) => p.id === id)!.role]}{memberBlocker(game, id, q.id) && !busy ? ` · ${memberBlocker(game, id, q.id)}` : ''}</small></span></span>
                     <span className="row-actions">
                       <button className="btn" disabled={busy || cmd?.id === id} onClick={() => dispatch({ type: 'SET_COMMANDER', squadId: q.id, staffId: id })} data-testid={`make-cmd-${id}`}>Командир</button>
                       <button className="btn" disabled={busy} onClick={() => dispatch({ type: 'UNASSIGN_STAFF', staffId: id })} data-testid={`to-reserve-${id}`}>В резерв</button>
@@ -166,7 +166,7 @@ function Roster({ game }: { game: GameState }) {
           <ul className="plain-list member-rows">
             {res.map((p) => (
               <li key={p.id}>
-                <span className="face-row"><Portrait id={p.id} name={p.name} health={p.health} size="sm" /><span className="pick-text">{p.name}<small>{ROLE_LABEL[p.role]} · {HEALTH_LOG[p.health]}{memberBlocker(game, p.id, '') ? ` · ${memberBlocker(game, p.id, '')}` : ''}</small></span></span>
+                <span className="face-row"><PersonLink game={game} id={p.id} open={openPerson} size="sm"><span className="sr-only">{p.name}</span></PersonLink><span className="pick-text">{p.name}<small>{ROLE_LABEL[p.role]} · {HEALTH_LOG[p.health]}{memberBlocker(game, p.id, '') ? ` · ${memberBlocker(game, p.id, '')}` : ''}</small></span></span>
                 <span className="row-actions wrap">
                   {game.squads.filter((q) => q.status === 'ready' && q.memberIds.length < 3).map((q) => (
                     <button key={q.id} className="btn" onClick={() => dispatch({ type: 'ASSIGN_STAFF', staffId: p.id, squadId: q.id })} data-testid={`assign-${p.id}-${q.id}`}>→ «{q.name}»</button>
@@ -181,7 +181,7 @@ function Roster({ game }: { game: GameState }) {
   );
 }
 
-function Medical({ game }: { game: GameState }) {
+function Medical({ game, open }: { game: GameState; open: Open }) {
   const M = medicalCapacity(game);
   const injured = game.staff.filter((p) => TREATABLE.includes(p.health) && !patientOf(game, p.id));
   const name = (id: string) => game.staff.find((p) => p.id === id)?.name ?? id;
@@ -207,7 +207,7 @@ function Medical({ game }: { game: GameState }) {
         <div className="card-grid">
           {injured.map((p) => (
             <article key={p.id} className="sq-card" data-testid={`injured-${p.id}`}>
-              <header><span className="face-row"><Portrait id={p.id} name={p.name} health={p.health} size="sm" /><b>{p.name}</b></span><small className={`health h-${p.health}`}>{HEALTH_LOG[p.health]}</small></header>
+              <header><span className="face-row"><PersonLink game={game} id={p.id} open={open} size="sm"><b>{p.name}</b></PersonLink></span><small className={`health h-${p.health}`}>{HEALTH_LOG[p.health]}</small></header>
               <ul className="pick-list one-col">
                 {PLAN_IDS.map((plan) => {
                   const f = treatmentForecast(game, p.id, plan);

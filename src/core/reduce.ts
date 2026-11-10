@@ -196,6 +196,21 @@ export function reduce(state: GameState, command: Command): CommandResult {
       log(s, 'staff_transferred', `${person.name} переведён(а) в резерв.`, [person.id]);
       return { ok: true, state: s };
     }
+    case 'SWAP_STAFF': {
+      const out = s.staff.find((p) => p.id === command.staffId);
+      const inn = s.staff.find((p) => p.id === command.withId);
+      if (!out || !inn) return reject('Сотрудник не найден.');
+      const sq = squadOf(s, out.id);
+      if (!sq) return reject(`${out.name} не входит в отряд.`);
+      if (DEPLOYED.includes(sq.status)) return reject(`Отряд «${sq.name}» на задании; замена после возвращения.`);
+      if (squadOf(s, inn.id)) return reject(`${inn.name} не в резерве.`);
+      if (['dead', 'missing', 'critical', 'serious_injury'].includes(inn.health))
+        return reject(`${inn.name} не допущен(а) к службе по состоянию.`);
+      sq.memberIds = sq.memberIds.map((id) => (id === out.id ? inn.id : id));
+      if (sq.commanderId === out.id) sq.commanderId = null;
+      log(s, 'staff_transferred', `${out.name} переведён(а) в резерв, ${inn.name} — в отряд «${sq.name}».`, [out.id, inn.id]);
+      return { ok: true, state: s };
+    }
     case 'SET_COMMANDER': {
       const sq = s.squads.find((q) => q.id === command.squadId);
       const person = s.staff.find((p) => p.id === command.staffId);

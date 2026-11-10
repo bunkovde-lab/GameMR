@@ -9,6 +9,7 @@ import { dispatch } from '../../store';
 import { Icon } from '../Icon';
 import { INCIDENT_STATE_LABEL, SEVERITY_LABEL, SQUAD_STATUS } from '../labels';
 import type { Selection } from '../uiState';
+import { SquadCard } from './SquadCard';
 
 interface Props {
   game: GameState;
@@ -133,25 +134,6 @@ function DistrictCard({ game, id, onSelect }: { game: GameState; id: string; onS
         ))}
       </ul>
       <p className="hint">Районы — места происшествий и патрулирования, не территории для захвата.</p>
-    </div>
-  );
-}
-
-function SquadCard({ game, id, onSelect }: { game: GameState; id: string; onSelect: Props['onSelect'] }) {
-  const q = game.squads.find((x) => x.id === id);
-  if (!q) return null;
-  const members = q.memberIds.map((m) => game.staff.find((p) => p.id === m)).filter(Boolean);
-  const inc = q.assignedIncidentId ? game.incidents.find((i) => i.id === q.assignedIncidentId) : undefined;
-  return (
-    <div data-testid="squad-card">
-      <h3 className="card-title">«{q.name}»</h3>
-      <dl className="kv">
-        <dt>Статус</dt><dd data-testid="squad-card-status">{SQUAD_STATUS[q.status].label}</dd>
-        {inc && (<><dt>Задание</dt><dd><button className="link" onClick={() => onSelect({ kind: 'incident', id: inc.id })}>{inc.title}</button></dd></>)}
-        {q.movement && (<><dt>Прибытие</dt><dd>≈{etaMinutes(q.movement.route, q.movement.elapsed)} мин</dd></>)}
-      </dl>
-      <h4 className="section-title">Состав · {members.length}/3</h4>
-      <ul className="plain-list">{members.map((p) => <li key={p!.id}>{p!.name}</li>)}</ul>
     </div>
   );
 }

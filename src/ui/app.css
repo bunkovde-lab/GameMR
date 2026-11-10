@@ -893,7 +893,6 @@ td.bad { color: var(--bad); }
 .pips { display: inline-flex; gap: 3px; }
 .pips i { width: 14px; height: 8px; border-radius: 2px; background: #2a2d34; }
 .pips i.on { background: var(--gold); box-shadow: 0 0 4px #c9a46a88; }
-.cabinet-tabs { margin: 12px 0 4px; flex-wrap: wrap; }
 
 /* Дерево навыков: ветки — колонки, навыки — значки, связанные линией по ступеням. */
 .skill-tree { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
@@ -902,12 +901,7 @@ td.bad { color: var(--bad); }
 .skill-branch header b { font-family: var(--font-title); font-weight: 400; font-size: 17px; color: var(--gold-light); }
 .skill-branch header small { color: var(--muted); font-size: 12px; }
 .skill-path { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; justify-items: center; }
-.skill-step { position: relative; display: grid; justify-items: center; gap: 6px; }
-.skill-step + .skill-step::before { content: ''; position: absolute; top: -22px; left: 50%; width: 3px; height: 22px; transform: translateX(-50%); background: var(--stroke2); }
-.skill-step.st-learned + .skill-step::before, .skill-step.st-learned + .skill-step.st-studying::before { background: var(--green); }
 .skill-caption { max-width: 150px; text-align: center; font-size: 13px; line-height: 1.25; }
-.skill-step.st-locked .skill-caption { color: var(--dim); }
-.skill-step.st-learned .skill-caption { color: var(--green); }
 .skill-node { position: relative; width: 76px; height: 76px; padding: 0; display: grid; place-items: center; border-radius: 14px; border: 2px solid var(--stroke2); background: radial-gradient(circle at 50% 35%, #2a2226, #0d1117 75%); color: var(--gold-light); cursor: pointer; overflow: visible; }
 .skill-node .icon { width: 34px; height: 34px; }
 .skill-node .skill-img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
@@ -923,33 +917,8 @@ td.bad { color: var(--bad); }
 .skill-badge.good { color: var(--green); border-color: var(--green); }
 .skill-badge.warn { color: var(--amber); border-color: var(--amber); }
 .skill-node.big { width: 64px; height: 64px; cursor: default; flex: none; }
-/* Подсказка при наведении (мышь, клавиатура). На сенсорном экране — карточка ниже по нажатию. */
-.skill-tip { position: absolute; z-index: 5; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); width: 240px; display: none; gap: 4px; padding: 10px 12px; border: 1px solid var(--gold); border-radius: 8px; background: #0b1016f7; box-shadow: var(--shadow); font-size: 13px; line-height: 1.35; text-align: left; pointer-events: none; }
-.skill-tip b { color: var(--gold-light); }
-.skill-tip small { color: var(--amber); font-size: 12px; }
-@media (hover: hover) {
-  .skill-step:hover .skill-tip, .skill-node:focus-visible ~ .skill-tip { display: grid; }
-}
-.skill-detail { display: grid; gap: 8px; justify-items: start; }
-.skill-detail.st-open { border-color: var(--gold); }
-.skill-detail-head { display: flex; gap: 12px; align-items: center; }
-.skill-detail-head > span:last-child { display: grid; gap: 2px; justify-items: start; }
-.skill-detail h4 { margin: 0; font-family: var(--font-title); font-weight: 400; font-size: 20px; color: var(--gold-light); }
-.skill-gives { margin: 0; }
-.req-list { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; }
-.req-list .ok { color: var(--green); }
-.req-list .no { color: var(--amber); }
-.tag.st-learned { color: var(--green); border-color: var(--green); }
-.tag.st-open { color: var(--gold-light); border-color: var(--gold); }
-.tag.st-studying { color: var(--amber); border-color: var(--amber); }
-.tag.st-locked { color: var(--dim); }
 
 /* Отношения: карточки с портретом и шкалами −5…+5. */
-.rel-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
-.rel-card { display: grid; gap: 6px; padding: 8px 10px; border: 1px solid var(--stroke2); border-radius: var(--radius); background: #0000002e; }
-.rel-card.conflict { border-color: var(--bad); }
-.rel-card.close { border-color: var(--green); }
-.rel-card.kia { opacity: .7; }
 .btn.rel-who { justify-content: flex-start; gap: 10px; padding: 2px 8px 2px 2px; background: transparent; border-color: transparent; box-shadow: none; text-align: left; }
 .btn.rel-who:disabled { opacity: 1; }
 .btn.rel-who:hover:not(:disabled) { border-color: var(--gold); }
@@ -976,18 +945,14 @@ td.bad { color: var(--bad); }
 }
 .cabinet-side { display: grid; gap: 8px; align-content: start; position: sticky; top: 0; }
 .cabinet-side .person-picker { position: static; }
-.btn.cabinet-back { justify-content: flex-start; gap: 8px; }
 @media (max-height: 860px) {
   .dossier-card { padding: 8px 12px; gap: 12px; }
   .dossier-card .portrait.lg { width: 84px; height: 105px; font-size: 28px; }
   .dossier-card .person-name { font-size: 18px; }
-  .cabinet-tabs { margin: 8px 0 2px; }
 }
 @media (max-width: 950px) {
   .cabinet-side { position: static; }
 }
-.btn.cabinet-back .icon { transform: scaleX(-1); }
-.req-list { list-style: none; margin: 0; padding: 0; }
 /* Портрет-ссылка и карточка связи — без рамки кнопки UI-kit, рамка только при наведении. */
 .btn.person-link::before, .btn.rel-who::before { display: none; }
 .btn.person-link, .btn.rel-who { border: 1px solid transparent; background: none; box-shadow: none; }
@@ -999,3 +964,77 @@ td.bad { color: var(--bad); }
 img.nav-art { width: 30px; height: 30px; object-fit: contain; flex-shrink: 0; pointer-events: none; user-select: none; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6)); }
 .btn.icon-only img.nav-art { width: 28px; height: 28px; }
 .btn:disabled img.nav-art { opacity: 0.5; filter: grayscale(0.6); }
+
+/* Статусы на портрете: ранг, ранение, усталость (личное дело и список составов). */
+.status-face { position: relative; flex: none; display: grid; }
+.status-face .portrait.sm { width: 44px; height: 44px; }
+.sf-rank { position: absolute; left: -5px; top: -5px; z-index: 3; min-width: 18px; height: 16px; padding: 0 3px; display: grid; place-items: center; border-radius: 8px; background: #0b1016; border: 1px solid var(--gold); font: 700 9px/1 var(--font-ui); color: var(--gold-light); box-shadow: 0 0 0 1px #000; }
+.status-face .sf-hp { z-index: 3; }
+.status-face .sf-fatigue { z-index: 3; }
+.status-face .portrait-mark { bottom: 8px; }
+.status-face.lg .sf-rank { left: -8px; top: -8px; min-width: 30px; height: 26px; border-radius: 13px; font-size: 13px; }
+.status-face.lg .sf-hp { width: 24px; height: 24px; font-size: 14px; top: -8px; right: -8px; }
+.status-face.lg .sf-fatigue { height: 7px; left: 4px; right: 4px; bottom: 4px; border-radius: 4px; }
+.status-face.lg .portrait-mark { bottom: 14px; }
+.status-face.hp-recovering .portrait { border-color: var(--amber); }
+.person-picker .btn.pick.with-face { padding-top: 6px; padding-bottom: 6px; }
+
+/* ---------- Личное дело на одном экране ---------- */
+.cabinet .person-split { grid-template-columns: 220px minmax(0, 1fr) minmax(380px, 40%); }
+.cabinet-main { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.cabinet-dev { min-width: 0; position: sticky; top: 0; align-self: start; }
+.dossier-card { grid-template-columns: auto minmax(0, 1fr); }
+.dossier-card .stat-bars { grid-column: 1 / -1; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px 10px; min-width: 0; }
+.dossier-card .stat-bars li { display: grid; gap: 3px; justify-content: start; }
+.cab-sec { display: grid; gap: 8px; padding: 10px 12px; border: 1px solid var(--stroke2); border-radius: var(--radius); background: #0000002e; min-width: 0; }
+.cab-sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+.cab-sec-head h4 { margin: 0; font-family: var(--font-title); font-weight: 400; font-size: 17px; color: var(--gold-light); }
+.cab-sec-head small { color: var(--muted); font-size: 12px; }
+.cab-sec-head small b { color: var(--text); }
+.cab-note { margin: 0; color: var(--muted); font-size: 13px; }
+.cab-dev .skill-tree { gap: 6px; }
+.cab-dev .skill-branch { padding: 8px 4px; gap: 8px; }
+.cab-dev .skill-branch header b { font-size: 13px; line-height: 1.2; }
+.cab-dev .skill-path { gap: 16px; }
+.tile-step { position: relative; display: grid; justify-items: center; gap: 4px; }
+.skill-path .tile-step + .tile-step::before { content: ''; position: absolute; top: -16px; left: 50%; width: 3px; height: 16px; transform: translateX(-50%); background: var(--stroke2); }
+.skill-path .tile-step.st-learned + .tile-step::before { background: var(--green); }
+.cab-dev .skill-node { width: 60px; height: 60px; border-radius: 10px; }
+.cab-dev .skill-node .skill-img { border-radius: 8px; }
+.cab-dev .skill-caption { font-size: 12px; max-width: 110px; }
+.tile-step.st-locked .skill-caption { color: var(--dim); }
+.tile-step.st-learned .skill-caption { color: var(--green); }
+.skill-node[aria-disabled='true'] { cursor: help; }
+.skill-node.armed { outline: 3px solid var(--crimson-glow); outline-offset: 3px; }
+.skill-node.st-innate { border-color: #4b6a78; color: var(--cyan); }
+.tile-row { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 12px; }
+.tile-row .skill-node { width: 52px; height: 52px; border-radius: 10px; }
+.tile-row .skill-node .icon { width: 26px; height: 26px; }
+.cab-why { font-size: 12px; color: var(--muted); display: grid; gap: 2px; }
+.cab-why b { color: var(--text); font-weight: 500; }
+.tile-tip { position: fixed; z-index: 1000; width: 260px; display: grid; gap: 4px; padding: 10px 12px; border: 1px solid var(--gold); border-radius: 8px; background: #0b1016fa; box-shadow: var(--shadow); font-size: 13px; line-height: 1.35; pointer-events: none; }
+.tile-tip b { color: var(--gold-light); font-size: 14px; }
+.tile-tip small { font-size: 12px; color: var(--muted); }
+.tile-tip .tl-ok { color: var(--green); }
+.tile-tip .tl-no { color: var(--amber); }
+.tile-tip .tl-cost { color: var(--gold-light); font-weight: 600; }
+.tile-tip .tl-hint { color: var(--cyan); }
+.cab-dev .promo { gap: 6px; }
+.cab-dev .promo small { color: var(--muted); font-size: 12px; }
+.rel-rows { display: grid; gap: 6px; }
+.rel-row { display: grid; grid-template-columns: minmax(130px, 170px) repeat(3, minmax(0, 1fr)); gap: 4px 10px; align-items: center; }
+.rel-row.kia { opacity: .7; }
+.rel-row .rel-meter { grid-template-columns: 1fr; gap: 2px; }
+.rel-row .rel-why { grid-column: 1 / -1; color: var(--muted); font-size: 12px; padding-left: 4px; }
+.cab-sec .history-list { max-height: 180px; overflow-y: auto; }
+@media (max-width: 1250px) {
+  .cabinet .person-split { grid-template-columns: 200px minmax(0, 1fr); }
+  .cabinet-dev { grid-column: 2; position: static; }
+}
+@media (max-width: 950px) {
+  .cabinet .person-split { grid-template-columns: 1fr; }
+  .cabinet-dev { grid-column: auto; }
+  .dossier-card .stat-bars { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .rel-row { grid-template-columns: 1fr 1fr 1fr; }
+  .rel-row .rel-who { grid-column: 1 / -1; }
+}

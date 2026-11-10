@@ -1,9 +1,9 @@
 import { Icon, type IconName } from './Icon';
 
 /**
- * Значки навыков дерева развития. Пока художник не прислал картинки (ART-020),
- * показываются иконки ART-007 по смыслу навыка. Когда в assets/ui/skills/ появится
- * файл skill_<id>.webp или .png, он автоматически заменит иконку.
+ * Значки навыков дерева развития. Картинки ART-020 лежат в assets/ui/skills/; если файла нет,
+ * показывается иконка ART-007 по смыслу навыка. Файл
+ * skill_<id>.png или .webp подхватывается автоматически.
  */
 const files = import.meta.glob('../../assets/ui/skills/skill_*.{png,webp}', { eager: true, import: 'default' }) as Record<string, string>;
 const ART: Record<string, string> = {};

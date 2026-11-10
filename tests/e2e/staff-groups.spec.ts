@@ -10,21 +10,19 @@ test.beforeEach(async ({ page }) => {
   await page.getByTestId('nav-staff').click();
 });
 
-test('summary: every squad is a framed block with its name; members sit inside', async ({ page }, info) => {
-  const axon = page.getByTestId('summary-group-axon');
-  await expect(axon.locator('.group-head')).toContainText('Состав «Аксон»');
-  await expect(axon.locator('.group-head')).toContainText('Готов');
-  await expect(axon.getByTestId('staff-p1')).toBeVisible();
-  await expect(axon.getByTestId('staff-p2')).toBeVisible();
-  await expect(axon.locator('[data-testid^="staff-p"]')).toHaveCount(2);
-  await expect(page.getByTestId('summary-group-vector').getByTestId('staff-p3')).toBeVisible();
-  await expect(page.getByTestId('summary-group-reserve')).toContainText('Резерв');
-  await expect(page.getByTestId('staff-screen').locator('.group-head')).toHaveCount(7);
+test('summary opens straight into the personal file; squads group the list; status sits on the portrait', async ({ page }, info) => {
+  await expect(page.getByTestId('person-cabinet')).toBeVisible();
+  const axon = page.getByTestId('pick-group-axon');
+  await expect(axon).toContainText('«Аксон»');
+  await expect(axon.locator('[data-testid^="person-"]')).toHaveCount(2);
+  const face = page.getByTestId('person-p1').getByTestId('face-p1');
+  await expect(face.locator('.sf-rank')).toHaveText('III');
+  await expect(face.locator('.sf-fatigue')).toBeVisible();
+  await expect(page.getByTestId('dossier').getByTestId('face-p1').locator('.sf-rank')).toBeVisible();
   await page.screenshot({ path: `test-results/screens/groups-summary-${info.project.name}.png` });
 });
 
 test('development: squads fold and unfold by the arrow; touch-sized toggles', async ({ page }, info) => {
-  await page.getByTestId('staff-tab-development').click();
   const toggle = page.getByTestId('group-toggle-axon');
   // состав выбранного сотрудника раскрыт, остальные свёрнуты
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
@@ -41,6 +39,6 @@ test('development: squads fold and unfold by the arrow; touch-sized toggles', as
   await page.getByTestId('group-toggle-vector').click();
   await expect(page.getByTestId('pick-group-vector').locator('[data-testid^="person-"]')).toHaveCount(2);
   await page.getByTestId('person-p4').click();
-  await expect(page.locator('.person-head')).toContainText(await page.getByTestId('person-p4').locator('b').innerText());
+  await expect(page.getByTestId('dossier')).toContainText(await page.getByTestId('person-p4').locator('b').innerText());
   await page.screenshot({ path: `test-results/screens/groups-development-open-${info.project.name}.png` });
 });

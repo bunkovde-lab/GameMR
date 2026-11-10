@@ -1,6 +1,7 @@
 import { aliveStaff, citySafety, cityTrust, clockLabel, formatRe } from '../../core/selectors';
 import type { GameState, Speed } from '../../core/types';
 import { dispatch } from '../../store';
+import { NavIcon } from './NavIcon';
 import { Icon } from '../Icon';
 
 const SPEEDS: Speed[] = [1, 2, 4];
@@ -62,7 +63,7 @@ export function TopHud({ game, onOpenSettings }: { game: GameState; onOpenSettin
         ))}
       </dl>
       <button className="btn icon-only" onClick={onOpenSettings} aria-label="Сохранения и настройки" data-testid="open-settings">
-        <Icon name="save" />
+        <NavIcon id="saves" />
       </button>
     </header>
   );

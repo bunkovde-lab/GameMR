@@ -43,13 +43,13 @@ export function SquadCard({ game, id, onSelect }: { game: GameState; id: string;
         {q.movement && (<><dt>Прибытие</dt><dd>≈{etaMinutes(q.movement.route, q.movement.elapsed)} мин</dd></>)}
       </dl>
 
-      <section className="sq-summary" aria-label="Сводка отряда" data-testid="squad-summary">
-        <div className="sq-chips">
+      <section className="qs-summary" aria-label="Сводка отряда" data-testid="squad-summary">
+        <div className="qs-chips">
           <div><b data-testid="squad-fit">{sum.fit}/{sum.total}</b><small>годны к выезду</small></div>
           <div><b className={sum.avgFatigue >= exhausted ? 'warn-text' : ''} data-testid="squad-fatigue">{sum.avgFatigue}%</b><small>усталость</small></div>
           <div><b>{sum.needTreatment}</b><small>ждут лечения</small></div>
         </div>
-        <ul className="stat-bars" data-testid="squad-stats">
+        <ul className="qs-stats" data-testid="squad-stats">
           {STAT_KEYS.map((k) => (
             <li key={k}>
               <span>{STAT_LABEL[k]}</span>
@@ -63,13 +63,13 @@ export function SquadCard({ game, id, onSelect }: { game: GameState; id: string;
           {sum.commander && <> · командир: {sum.commander.name}</>}
         </p>
         {sum.warnings.length > 0 && (
-          <ul className="plain-list sq-warnings" data-testid="squad-warnings">{sum.warnings.map((w) => <li key={w}>{w}</li>)}</ul>
+          <ul className="plain-list qs-warnings" data-testid="squad-warnings">{sum.warnings.map((w) => <li key={w}>{w}</li>)}</ul>
         )}
       </section>
 
       <h4 className="section-title">Состав · {sum.total}/{sum.max}</h4>
       {sum.locked && <p className="hint">Отряд на задании: состав и лечение — после возвращения.</p>}
-      <ul className="plain-list sq-members">
+      <ul className="plain-list qs-members">
         {q.memberIds.map((pid) => {
           const p = game.staff.find((x) => x.id === pid);
           if (!p) return null;
@@ -78,7 +78,7 @@ export function SquadCard({ game, id, onSelect }: { game: GameState; id: string;
           const treatable = TREATABLE.includes(p.health) && !patientOf(game, p.id);
           const fatigueTone = p.fatigue >= exhausted ? 'red' : p.fatigue >= exhausted / 2 ? 'amber' : 'green';
           return (
-            <li key={p.id} className="sq-member" data-testid={`sq-member-${p.id}`}>
+            <li key={p.id} className="qs-member" data-testid={`sq-member-${p.id}`}>
               <div className="face-row">
                 <Portrait id={p.id} name={p.name} health={p.health} size="sm" />
                 <span className="pick-text">

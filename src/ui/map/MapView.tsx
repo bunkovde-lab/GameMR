@@ -47,7 +47,7 @@ const toSvg = (p: Point) => `${p[0] * W},${p[1] * H}`;
 export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen, onSelect, onToggleLayer, onOpenLeftPanel }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
-  const [fitLeft, setFitLeft] = useState(0);
+  const [fitX, setFitX] = useState({ left: 0, right: 0 });
   const [effects, setEffects] = useState<EffectsLevel>(loadEffectsLevel);
   const [, setFrame] = useState(0);
   const [cam, setCam] = useState<Camera>({ zoom: 1, panX: 0, panY: 0 });
@@ -70,13 +70,20 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
     return () => ro.disconnect();
   }, []);
 
-  // ART-019: весь город помещается в свободную часть окна (справа от открытой панели вызовов на широком экране).
+  // ART-019: на широком экране область карты закреплена между местами боковых панелей (--left-w / --right-w),
+  // открыты они или нет: город стоит по центру и не сдвигается и не меняет размер при открытии/закрытии панелей.
+  // На узком экране панели — выдвижные, поверх карты, и карта занимает всё окно.
   useLayoutEffect(() => {
-    const stage = ref.current?.getBoundingClientRect();
-    const left = leftPanelOpen && window.innerWidth >= NARROW_PX ? document.querySelector('.left-panel')?.getBoundingClientRect() : undefined;
-    setFitLeft(stage && left ? Math.max(0, Math.round(left.right - stage.left + 6)) : 0);
-  }, [leftPanelOpen, size.w, size.h]);
-  const vp = useMemo<Viewport>(() => ({ w: size.w, h: size.h, fit: { x: fitLeft, y: 0, w: Math.max(1, size.w - fitLeft), h: size.h } }), [size.w, size.h, fitLeft]);
+    const wide = window.innerWidth >= NARROW_PX;
+    const css = getComputedStyle(ref.current ?? document.documentElement);
+    const px = (name: string) => parseFloat(css.getPropertyValue(name)) || 0;
+    const next = wide ? { left: Math.round(px('--left-w') + 6), right: Math.round(px('--right-w') + 6) } : { left: 0, right: 0 };
+    setFitX((cur) => (cur.left === next.left && cur.right === next.right ? cur : next));
+  }, [size.w, size.h]);
+  const vp = useMemo<Viewport>(
+    () => ({ w: size.w, h: size.h, fit: { x: fitX.left, y: 0, w: Math.max(1, size.w - fitX.left - fitX.right), h: size.h } }),
+    [size.w, size.h, fitX],
+  );
 
   useEffect(() => {
     const on = (e: Event) => setEffects((e as CustomEvent<EffectsLevel>).detail);

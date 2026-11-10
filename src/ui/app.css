@@ -180,6 +180,52 @@ svg.icon {
 .tone-grey .status { color: var(--dim); }
 .squad.tone-red { border-color: #7a3a3a; }
 
+/* Состав отряда: лица бойцов стоят на самой карточке справа, на свободном месте (данные — из состояния игры). */
+.squad-item { container: squad / inline-size; }
+.squad-list .squad {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: 1fr 1fr; column-gap: 10px; row-gap: 1px;
+  grid-template-areas: 'banner name members' 'banner meta members';
+}
+.squad-text { display: contents; }
+.squad .monogram { grid-area: banner; align-self: stretch; }
+.squad-text b { grid-area: name; align-self: end; line-height: 1.2; }
+.squad-meta { grid-area: meta; align-self: start; font-size: 12px; line-height: 1.2; }
+.squad-members { grid-area: members; align-self: center; display: flex; align-items: center; gap: 5px; min-width: 0; }
+.sq-member { position: relative; flex: none; display: grid; width: 40px; }
+.sq-member .portrait.xs { width: 40px; height: 40px; font-size: 14px; }
+.sq-badge {
+  position: absolute; top: -3px; right: -4px; z-index: 3; width: 15px; height: 15px; border-radius: 50%; display: grid; place-items: center;
+  font: 700 9px/1 var(--font-ui); color: #fff; background: var(--bad); box-shadow: 0 0 0 1px #000, 0 0 4px #e84c50aa;
+}
+.hp-recovering .sq-badge { background: var(--amber); color: #1b1408; }
+.hp-recovering .portrait { border-color: var(--amber); }
+.hp-lost .sq-badge { background: #2a2d33; color: var(--muted); }
+/* Полоса усталости лежит по нижнему краю портрета — так она не заходит на рамку карточки. */
+.sq-fatigue { position: absolute; left: 2px; right: 2px; bottom: 2px; z-index: 2; height: 4px; border-radius: 2px; background: #000000cc; box-shadow: 0 0 0 1px #000c; overflow: hidden; }
+.sq-fatigue i { display: block; height: 100%; border-radius: inherit; }
+.sq-fatigue.tone-green i { background: var(--green); }
+.sq-fatigue.tone-amber i { background: var(--amber); }
+.sq-fatigue.tone-red i { background: var(--bad); }
+.sq-wounded { color: var(--bad); font-weight: 600; }
+/* Узкая карточка (ПК 1366, планшет): лица меньше и наезжают друг на друга, но остаются на кнопке справа. */
+@container squad (max-width: 250px) {
+  .squad-list .squad { column-gap: 8px; }
+  .squad-members { gap: 0; }
+  .sq-member + .sq-member { margin-left: -8px; }
+  .sq-member, .sq-member .portrait.xs { width: 30px; }
+  .sq-member .portrait.xs { height: 30px; box-shadow: 0 0 0 1px #000; }
+  .squad-meta .cnt, .sq-wounded { display: none; }
+}
+/* Самая узкая карточка (планшет): стяг уже, лица мельче — чтобы название отряда читалось целиком. */
+@container squad (max-width: 200px) {
+  .squad-list .squad { column-gap: 6px; padding-right: 8px; }
+  .squad-list .squad .monogram.monogram[class*='banner-'] { width: 34px; }
+  .sq-member, .sq-member .portrait.xs { width: 26px; }
+  .sq-member .portrait.xs { height: 26px; }
+  .sq-member + .sq-member { margin-left: -9px; }
+  .squad-text b { font-size: 14px; }
+}
+
 .overlay { position: fixed; inset: 0; z-index: 20; background: #05080dcc; display: grid; place-items: center; grid-template-columns: minmax(0, 1fr); padding: 12px; }
 .modal { width: min(560px, 100%); min-width: 0; justify-self: center; max-height: calc(100dvh - 24px); display: flex; flex-direction: column; background: var(--surface); }
 .modal-body { padding: 14px 16px; overflow-y: auto; }
@@ -216,6 +262,15 @@ svg.icon {
   .monogram { width: 32px; height: 32px; font-size: 14px; }
   .squad-text .cnt { display: none; }
   .squad-text b { font-size: 13px; }
+  /* Телефон: имя сверху, ниже статус; лица справа на кнопке. */
+  .squad-list .squad { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'name members' 'meta members'; column-gap: 6px; }
+  .squad-meta { font-size: 11px; }
+  .sq-member, .sq-member .portrait.xs { width: 24px; }
+  .sq-member .portrait.xs { height: 24px; font-size: 9px; }
+  .sq-fatigue { height: 3px; left: 1px; right: 1px; bottom: 1px; }
+  .sq-badge { width: 11px; height: 11px; font-size: 7px; top: -2px; right: -3px; }
+  .sq-wounded { display: none; }
+  .squad-item { flex-basis: 156px; }
 }
 
 /* ---------- W3: карта ---------- */
@@ -233,7 +288,10 @@ svg.icon {
 }
 .map-ambient span { padding: 3px 9px; border-radius: 999px; background: #0c1016d9; border: 1px solid var(--stroke2); color: var(--muted, #b9b0a0); }
 .map-ambient .hot { color: #ff9a6a; border-color: #8d3138; }
-.workspace:has(.left-panel) .map-ambient { left: calc(50% + var(--left-w) / 2); }
+/* Широкий экран: подпись — по центру закреплённой области карты между местами панелей (открыты они или нет). */
+@media (min-width: 951px) {
+  .map-ambient { left: calc(50% + (var(--left-w) - var(--right-w)) / 2); }
+}
 .city-splash { position: fixed; inset: 0; z-index: 19; background: #05070b center / cover no-repeat; }
 .city-splash + .overlay { background: #0405078c; }
 .district-hit {
@@ -332,7 +390,12 @@ svg.icon {
 .layer-tools .btn, .zoom-tools .btn, .map-tools .btn { background: #141a22e8; }
 .layer-tools .btn[aria-pressed='true'] { background: linear-gradient(180deg, #8d3138, #511f27); }
 .workspace:has(.left-panel) .map-tools, .workspace:has(.left-panel) .layer-tools { left: calc(var(--left-w) + 10px); }
-.workspace:has(.right-panel) .zoom-tools { right: calc(var(--right-w) + 10px); }
+/* Широкий экран: масштаб и слои всегда у краёв закреплённой области карты — не прыгают при открытии/закрытии панелей;
+   кнопки слоёв не заходят под карточку справа, а переносятся во второй ряд. */
+@media (min-width: 951px) {
+  .zoom-tools { right: calc(var(--right-w) + 10px); }
+  .layer-tools { left: calc(var(--left-w) + 10px); right: calc(var(--right-w) + 10px); max-width: none; }
+}
 
 /* ---------- W3: список вызовов и карточки ---------- */
 .incident.selected { border-color: #ff8a78; box-shadow: inset 0 0 0 1px #ff8a78; }
@@ -358,9 +421,7 @@ svg.icon {
 @media (max-width: 950px) {
   .left-panel, .right-panel { width: min(var(--left-w), 86vw); }
   .workspace:has(.left-panel) .map-tools, .workspace:has(.left-panel) .layer-tools { left: 10px; }
-  .workspace:has(.left-panel) .map-ambient { left: 50%; }
   .map-ambient { font-size: 11px; top: 6px; }
-  .workspace:has(.right-panel) .zoom-tools { right: 10px; }
   .layer-tools .label { display: none; }
   .district-label { font-size: 11px; }
 }
@@ -784,25 +845,237 @@ td.bad { color: var(--bad); }
 .squad-card .kv dd.tone-amber { color: var(--amber); }
 .squad-card .kv dd.tone-red { color: var(--bad); }
 .squad-card .kv dd.tone-grey { color: var(--dim); }
-.sq-summary { border: 1px solid var(--stroke2); border-radius: 10px; background: var(--raised); padding: 8px 10px; display: grid; gap: 8px; }
-.sq-chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center; }
-.sq-chips > div { display: grid; gap: 1px; }
-.sq-chips b { font-size: 18px; }
-.sq-chips small, .squad-card .small { color: var(--muted); font-size: 12px; margin: 0; }
-.stat-bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
-.stat-bars li { display: grid; grid-template-columns: 80px 1fr 28px; align-items: center; gap: 8px; font-size: 13px; }
-.stat-bars li > span:first-child { color: var(--muted); }
-.stat-bars b { text-align: right; }
+.qs-summary { border: 1px solid var(--stroke2); border-radius: 10px; background: var(--raised); padding: 8px 10px; display: grid; gap: 8px; }
+.qs-chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center; }
+.qs-chips > div { display: grid; gap: 1px; }
+.qs-chips b { font-size: 18px; }
+.qs-chips small, .squad-card .small { color: var(--muted); font-size: 12px; margin: 0; }
+.qs-stats { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.qs-stats li { display: grid; grid-template-columns: 80px 1fr 28px; align-items: center; gap: 8px; font-size: 13px; }
+.qs-stats li > span:first-child { color: var(--muted); }
+.qs-stats b { text-align: right; }
 .squad-card .bar { display: block; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.08); overflow: hidden; }
 .squad-card .bar i { display: block; height: 100%; background: var(--gold); }
-.sq-warnings { color: var(--amber); font-size: 12px; display: grid; gap: 2px; }
+.qs-warnings { color: var(--amber); font-size: 12px; display: grid; gap: 2px; }
 .warn-text { color: var(--amber); }
-.sq-members { display: grid; gap: 8px; }
-.sq-member { border-top: 1px solid var(--stroke2); padding-top: 8px; display: grid; gap: 6px; }
-.sq-member .face-row { align-items: flex-start; }
-.sq-member .fatigue { display: grid; grid-template-columns: 70px auto; align-items: center; gap: 6px; }
-.sq-member .fatigue.tone-green .bar i { background: var(--green); }
-.sq-member .fatigue.tone-amber .bar i { background: var(--amber); }
-.sq-member .fatigue.tone-red .bar i { background: var(--bad); }
-.sq-member .row-actions .btn { flex: 1 1 auto; }
+.qs-members { display: grid; gap: 8px; }
+.qs-member { border-top: 1px solid var(--stroke2); padding-top: 8px; display: grid; gap: 6px; }
+.qs-member .face-row { align-items: flex-start; }
+.qs-member .fatigue { display: grid; grid-template-columns: 70px auto; align-items: center; gap: 6px; }
+.qs-member .fatigue.tone-green .bar i { background: var(--green); }
+.qs-member .fatigue.tone-amber .bar i { background: var(--amber); }
+.qs-member .fatigue.tone-red .bar i { background: var(--bad); }
+.qs-member .row-actions .btn { flex: 1 1 auto; }
 .reserve-pick .btn.pick { padding: 6px 8px; }
+/* ---------- Цели над картой (вкладка «Обзор» Дирекции, раскрывается кнопкой слева сверху) ---------- */
+.workspace { --goals-w: 128px; }
+.goals-dock {
+  position: absolute; top: 10px; left: 10px; bottom: 10px; z-index: 3;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+  pointer-events: none;
+}
+.goals-dock > * { pointer-events: auto; }
+.goals-toggle { width: var(--goals-w); justify-content: space-between; background: #141a22e8; }
+.goals-toggle .count.bad { background: var(--bad, #c4413f); }
+.goals-toggle .chev { font-size: 11px; color: var(--muted); }
+.goals-dock.open .goals-toggle { border-color: #c96a68; }
+.goals-panel {
+  width: min(400px, calc(100vw - 40px)); flex: 0 1 auto; min-height: 0;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.goals-panel .panel-body { padding: 12px 14px; }
+.goals-foot { display: flex; gap: 6px; justify-content: flex-end; padding: 8px 10px; border-top: 1px solid var(--stroke2); }
+.workspace:has(.goals-dock) .map-tools { left: calc(10px + var(--goals-w) + 6px); }
+.workspace:has(.left-panel) .goals-dock { left: calc(var(--left-w) + 10px); }
+@media (max-width: 950px) {
+  .workspace { --goals-w: 92px; }
+  .goals-toggle .label { display: none; }
+  .workspace:has(.left-panel) .goals-dock, .workspace:has(.right-panel) .goals-dock { display: none; }
+  .workspace:has(.goals-dock) .map-tools { left: calc(10px + var(--goals-w) + 6px); }
+}
+@media (max-height: 560px) {
+  /* Телефон: окно карты низкое — раскрытая панель ложится поверх ленты отрядов до нижней навигации. */
+  .goals-dock .goals-panel {
+    position: fixed; z-index: 12; left: 10px; width: min(440px, calc(100vw - 20px));
+    top: calc(var(--hud-h) + 62px); bottom: calc(var(--nav-h) + 12px);
+  }
+  .goals-panel .panel-body { padding: 8px 10px; }
+  .goals-foot { padding: 6px 8px; }
+}
+
+/* ---------- Личный кабинет сотрудника ---------- */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.btn.person-link { min-height: var(--tap); padding: 4px 10px 4px 4px; gap: 8px; justify-content: flex-start; text-align: left; background: transparent; border-color: transparent; box-shadow: none; }
+.btn.person-link:hover:not(:disabled), .btn.person-link:focus-visible { border-color: var(--gold); background: #c9a46a14; }
+.btn.person-link:has(.sr-only) { padding: 0; min-width: var(--tap); }
+.cabinet { display: grid; gap: 10px; }
+.dossier-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 12px; border: 1px solid var(--stroke); border-radius: var(--radius); background: linear-gradient(90deg, #1a1416, #0e131a 60%); }
+.dossier-main { display: grid; gap: 6px; min-width: 0; }
+.dossier-line { margin: 0; color: var(--muted); }
+.dossier-chips { margin: 0; }
+.xp-row { display: grid; gap: 4px; max-width: 420px; }
+.xp-row small { color: var(--muted); font-size: 12px; }
+.xp-row .meter span { background: var(--gold); }
+.stat-bars { display: grid; gap: 6px; min-width: 190px; }
+.stat-bars li { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.stat-bars small { color: var(--muted); font-size: 12px; }
+.pips { display: inline-flex; gap: 3px; }
+.pips i { width: 14px; height: 8px; border-radius: 2px; background: #2a2d34; }
+.pips i.on { background: var(--gold); box-shadow: 0 0 4px #c9a46a88; }
+
+/* Дерево навыков: ветки — колонки, навыки — значки, связанные линией по ступеням. */
+.skill-tree { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.skill-branch { display: grid; gap: 10px; align-content: start; padding: 12px 10px; border: 1px solid var(--stroke2); border-radius: var(--radius); background: #0000002e; }
+.skill-branch header { display: grid; gap: 2px; text-align: center; }
+.skill-branch header b { font-family: var(--font-title); font-weight: 400; font-size: 17px; color: var(--gold-light); }
+.skill-branch header small { color: var(--muted); font-size: 12px; }
+.skill-path { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; justify-items: center; }
+.skill-caption { max-width: 150px; text-align: center; font-size: 13px; line-height: 1.25; }
+.skill-node { position: relative; width: 76px; height: 76px; padding: 0; display: grid; place-items: center; border-radius: 14px; border: 2px solid var(--stroke2); background: radial-gradient(circle at 50% 35%, #2a2226, #0d1117 75%); color: var(--gold-light); cursor: pointer; overflow: visible; }
+.skill-node .icon { width: 34px; height: 34px; }
+.skill-node .skill-img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
+.skill-node.st-open { border-color: var(--gold); box-shadow: 0 0 0 1px #000, 0 0 12px #c9a46a55; }
+.skill-node.st-learned { border-color: var(--green); box-shadow: 0 0 10px #64bf7e44; }
+.skill-node.st-studying { border-color: var(--amber); box-shadow: 0 0 10px #d5a34366; }
+.skill-node.st-locked { color: var(--dim); filter: grayscale(.85) brightness(.75); }
+.skill-node[aria-pressed='true'] { outline: 3px solid var(--crimson-glow); outline-offset: 3px; }
+.skill-node:focus-visible { outline: 3px solid var(--cyan); outline-offset: 3px; }
+.skill-tier { position: absolute; left: -8px; top: -8px; min-width: 24px; height: 24px; padding: 0 4px; display: grid; place-items: center; border-radius: 12px; background: #0b1016; border: 1px solid var(--stroke); font: 600 11px/1 var(--font-ui); color: var(--gold); }
+.skill-badge { position: absolute; right: -8px; bottom: -8px; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 12px; background: #0b1016; border: 1px solid var(--stroke); color: var(--muted); font-size: 13px; }
+.skill-badge .icon { width: 14px; height: 14px; }
+.skill-badge.good { color: var(--green); border-color: var(--green); }
+.skill-badge.warn { color: var(--amber); border-color: var(--amber); }
+.skill-node.big { width: 64px; height: 64px; cursor: default; flex: none; }
+
+/* Отношения: карточки с портретом и шкалами −5…+5. */
+.btn.rel-who { justify-content: flex-start; gap: 10px; padding: 2px 8px 2px 2px; background: transparent; border-color: transparent; box-shadow: none; text-align: left; }
+.btn.rel-who:disabled { opacity: 1; }
+.btn.rel-who:hover:not(:disabled) { border-color: var(--gold); }
+.rel-meter { display: grid; grid-template-columns: 120px 1fr auto; gap: 8px; align-items: center; }
+.rel-meter small { font-size: 12px; color: var(--muted); }
+.rel-meter small.good { color: var(--green); }
+.rel-meter small.bad { color: var(--bad); }
+.rel-bar { position: relative; height: 8px; border-radius: 4px; background: #23262d; }
+.rel-bar::after { content: ''; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--stroke); }
+.rel-bar i { position: absolute; top: 0; bottom: 0; border-radius: 4px; }
+.rel-bar i.pos { background: var(--green); }
+.rel-bar i.neg { background: var(--bad); }
+
+@media (max-width: 950px) {
+  .dossier-card { grid-template-columns: auto minmax(0, 1fr); }
+  .stat-bars { grid-column: 1 / -1; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .skill-tree { gap: 6px; }
+  .skill-branch { padding: 8px 4px; }
+  .skill-branch header small { display: none; }
+  .skill-branch header b { font-size: 14px; }
+  .skill-node { width: 60px; height: 60px; }
+  .skill-caption { font-size: 12px; }
+  .rel-meter { grid-template-columns: 96px 1fr auto; }
+}
+.cabinet-side { display: grid; gap: 8px; align-content: start; position: sticky; top: 0; }
+.cabinet-side .person-picker { position: static; }
+@media (max-height: 860px) {
+  .dossier-card { padding: 8px 12px; gap: 12px; }
+  .dossier-card .portrait.lg { width: 84px; height: 105px; font-size: 28px; }
+  .dossier-card .person-name { font-size: 18px; }
+}
+@media (max-width: 950px) {
+  .cabinet-side { position: static; }
+}
+/* Портрет-ссылка и карточка связи — без рамки кнопки UI-kit, рамка только при наведении. */
+.btn.person-link::before, .btn.rel-who::before { display: none; }
+.btn.person-link, .btn.rel-who { border: 1px solid transparent; background: none; box-shadow: none; }
+.btn.person-link:hover:not(:disabled), .btn.rel-who:hover:not(:disabled), .btn.person-link:focus-visible, .btn.rel-who:focus-visible { border-color: var(--gold); background: #c9a46a14; box-shadow: none; }
+.btn.rel-who .pick-text { display: grid; gap: 2px; min-width: 0; }
+.btn.rel-who .pick-text small { color: var(--muted); font-size: 12px; }
+
+/* ART-021: рисованные значки разделов в нижней панели и на кнопке «Сохранения». */
+img.nav-art { width: 30px; height: 30px; object-fit: contain; flex-shrink: 0; pointer-events: none; user-select: none; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6)); }
+.btn.icon-only img.nav-art { width: 28px; height: 28px; }
+.btn:disabled img.nav-art { opacity: 0.5; filter: grayscale(0.6); }
+
+/* Статусы на портрете: ранг, ранение, усталость (личное дело и список составов). */
+.status-face { position: relative; flex: none; display: grid; }
+.status-face .portrait.sm { width: 44px; height: 44px; }
+.sf-rank { position: absolute; left: -5px; top: -5px; z-index: 3; min-width: 18px; height: 16px; padding: 0 3px; display: grid; place-items: center; border-radius: 8px; background: #0b1016; border: 1px solid var(--gold); font: 700 9px/1 var(--font-ui); color: var(--gold-light); box-shadow: 0 0 0 1px #000; }
+.status-face .sf-hp { z-index: 3; }
+.status-face .sf-fatigue { z-index: 3; }
+.status-face .portrait-mark { bottom: 8px; }
+.status-face.lg .sf-rank { left: -8px; top: -8px; min-width: 30px; height: 26px; border-radius: 13px; font-size: 13px; }
+.status-face.lg .sf-hp { width: 24px; height: 24px; font-size: 14px; top: -8px; right: -8px; }
+.status-face.lg .sf-fatigue { height: 7px; left: 4px; right: 4px; bottom: 4px; border-radius: 4px; }
+.status-face.lg .portrait-mark { bottom: 14px; }
+.status-face.hp-recovering .portrait { border-color: var(--amber); }
+.person-picker .btn.pick.with-face { padding-top: 6px; padding-bottom: 6px; }
+
+/* ---------- Личное дело на одном экране ---------- */
+.cabinet .person-split { grid-template-columns: 220px minmax(0, 1fr) minmax(380px, 40%); }
+.cabinet-main { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.cabinet-dev { min-width: 0; position: sticky; top: 0; align-self: start; }
+.dossier-card { grid-template-columns: auto minmax(0, 1fr); }
+.dossier-card .stat-bars { grid-column: 1 / -1; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px 10px; min-width: 0; }
+.dossier-card .stat-bars li { display: grid; gap: 3px; justify-content: start; }
+.cab-sec { display: grid; gap: 8px; padding: 10px 12px; border: 1px solid var(--stroke2); border-radius: var(--radius); background: #0000002e; min-width: 0; }
+.cab-sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+.cab-sec-head h4 { margin: 0; font-family: var(--font-title); font-weight: 400; font-size: 17px; color: var(--gold-light); }
+.cab-sec-head small { color: var(--muted); font-size: 12px; }
+.cab-sec-head small b { color: var(--text); }
+.cab-note { margin: 0; color: var(--muted); font-size: 13px; }
+.cab-dev .skill-tree { gap: 6px; }
+.cab-dev .skill-branch { padding: 8px 4px; gap: 8px; }
+.cab-dev .skill-branch header b { font-size: 13px; line-height: 1.2; }
+.cab-dev .skill-path { gap: 16px; }
+.tile-step { position: relative; display: grid; justify-items: center; gap: 4px; }
+.skill-path .tile-step + .tile-step::before { content: ''; position: absolute; top: -16px; left: 50%; width: 3px; height: 16px; transform: translateX(-50%); background: var(--stroke2); }
+.skill-path .tile-step.st-learned + .tile-step::before { background: var(--green); }
+.cab-dev .skill-node { width: 60px; height: 60px; border-radius: 10px; }
+.cab-dev .skill-node .skill-img { border-radius: 8px; }
+.cab-dev .skill-caption { font-size: 12px; max-width: 110px; }
+.tile-step.st-locked .skill-caption { color: var(--dim); }
+.tile-step.st-learned .skill-caption { color: var(--green); }
+.skill-node[aria-disabled='true'] { cursor: help; }
+.skill-node.armed { outline: 3px solid var(--crimson-glow); outline-offset: 3px; }
+.skill-node.st-innate { border-color: #4b6a78; color: var(--cyan); }
+.tile-row { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 12px; }
+.tile-row .skill-node { width: 52px; height: 52px; border-radius: 10px; }
+.tile-row .skill-node .icon { width: 26px; height: 26px; }
+.cab-why { font-size: 12px; color: var(--muted); display: grid; gap: 2px; }
+.cab-why b { color: var(--text); font-weight: 500; }
+.tile-tip { position: fixed; z-index: 1000; width: 260px; display: grid; gap: 4px; padding: 10px 12px; border: 1px solid var(--gold); border-radius: 8px; background: #0b1016fa; box-shadow: var(--shadow); font-size: 13px; line-height: 1.35; pointer-events: none; }
+.tile-tip b { color: var(--gold-light); font-size: 14px; }
+.tile-tip small { font-size: 12px; color: var(--muted); }
+.tile-tip .tl-ok { color: var(--green); }
+.tile-tip .tl-no { color: var(--amber); }
+.tile-tip .tl-cost { color: var(--gold-light); font-weight: 600; }
+.tile-tip .tl-hint { color: var(--cyan); }
+.cab-dev .promo { gap: 6px; }
+.cab-dev .promo small { color: var(--muted); font-size: 12px; }
+.rel-rows { display: grid; gap: 6px; }
+.rel-row { display: grid; grid-template-columns: minmax(130px, 170px) repeat(3, minmax(0, 1fr)); gap: 4px 10px; align-items: center; }
+.rel-row.kia { opacity: .7; }
+.rel-row .rel-meter { grid-template-columns: 1fr; gap: 2px; }
+.rel-row .rel-why { grid-column: 1 / -1; color: var(--muted); font-size: 12px; padding-left: 4px; }
+.cab-sec .history-list { max-height: 180px; overflow-y: auto; }
+@media (max-width: 1250px) {
+  .cabinet .person-split { grid-template-columns: 200px minmax(0, 1fr); }
+  .cabinet-dev { grid-column: 2; position: static; }
+}
+@media (max-width: 950px) {
+  .cabinet .person-split { grid-template-columns: 1fr; }
+  .cabinet-dev { grid-column: auto; }
+  .dossier-card .stat-bars { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .rel-row { grid-template-columns: 1fr 1fr 1fr; }
+  .rel-row .rel-who { grid-column: 1 / -1; }
+}
+/* Модификации — та же раскладка, что у развития: ветки по системам организма. */
+.mods-tree { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.mods-tree .skill-branch { padding: 8px 4px; gap: 8px; }
+.mods-tree .skill-branch header b { font-size: 13px; line-height: 1.2; }
+.mods-tree .skill-branch.innate { background: #0d1a2033; border-color: #2c4651; }
+.mods-tree .skill-node { width: 56px; height: 56px; border-radius: 10px; }
+.mods-tree .skill-node .icon { width: 26px; height: 26px; }
+.mods-tree .skill-caption { font-size: 12px; max-width: 110px; }
+.skill-path.loose { gap: 10px; }
+.skill-path.loose .tile-step + .tile-step::before { display: none; }
+.load-meter span { background: var(--cyan); }
+@media (max-width: 950px) { .mods-tree { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

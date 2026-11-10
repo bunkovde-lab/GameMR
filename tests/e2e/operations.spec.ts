@@ -63,8 +63,10 @@ test('routine dispatch resolves by itself; staff and shift report show the conse
   await expect(report).toContainText('Пропажа регистратора');
   await expect(report).toContainText('Цель операции');
   await page.getByTestId('ack-report').click();
+  // Время идёт на ×4: отчёт другого отряда (демо-«Вектор» уже на месте) может всплыть поверх следующих окон.
+  await page.addLocatorHandler(report, async () => { await page.getByTestId('ack-report').click(); });
   await page.getByTestId('nav-staff').click();
-  await expect(page.getByTestId('staff-p1')).toContainText(/здоров|ранение|погиб/);
+  await expect(page.getByTestId('face-p1').first()).toContainText(/здоров|ранение|погиб/);
   await page.keyboard.press('Escape');
   await page.getByTestId('end-shift').click();
   await page.getByTestId('confirm-end-shift').click();

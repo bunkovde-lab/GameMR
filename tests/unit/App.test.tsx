@@ -33,12 +33,13 @@ describe('App shell', () => {
     expect(screen.getByTestId('incident-bioleak').textContent).toContain('Принят');
   });
 
-  it('staff section lists 12 people and Escape returns to the map keeping the collapsed panel', () => {
+  it('staff section counts 12 people, opens the personal file and Escape returns to the map keeping the collapsed panel', () => {
     render(<App />);
     fireEvent.click(screen.getByTestId('start-shift'));
     act(() => { fireEvent.click(screen.getByLabelText('Свернуть список вызовов')); });
     fireEvent.click(screen.getByTestId('nav-staff'));
-    expect(screen.getAllByTestId(/^staff-p/)).toHaveLength(12);
+    expect(screen.getByTestId('staff-screen').textContent).toContain('Кадры · 12');
+    expect(screen.getByTestId('person-cabinet')).toBeTruthy();
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.queryByTestId('staff-screen')).toBeNull();
     expect(screen.queryByTestId('left-panel')).toBeNull();

@@ -40,13 +40,44 @@ test('ART-019: the whole city fits the free part of the map window without zoomi
   expect(img.y + img.height).toBeLessThanOrEqual(stage.y + stage.height + 1);
   // карта занимает свободное место целиком по одной из сторон
   const left = (await page.getByTestId('left-panel').count()) ? await page.getByTestId('left-panel').boundingBox() : null;
-  const freeW = stage.width - (left && info.project.name !== 'phone-844' ? left.x + left.width - stage.x : 0);
+  // на широком экране область карты закреплена между местами обеих панелей (открыты они или нет)
+  const wide = info.project.name !== 'phone-844';
+  const rightW = wide ? await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--right-w'))) : 0;
+  const freeW = stage.width - (left && wide ? left.x + left.width - stage.x : 0) - rightW;
   expect(Math.max(img.width / freeW, img.height / stage.height)).toBeGreaterThan(0.97);
   if (left) expect(img.x).toBeGreaterThanOrEqual(left.x + left.width - 1);
   // все вызовы видны без прокрутки
   for (const id of ['medriot', 'bioleak', 'raid', 'missing', 'illegal']) await expect(page.getByTestId(`marker-incident-${id}`)).toBeInViewport();
   await expect(page.getByTestId('map-life')).toBeAttached();
   await expect(page.getByTestId('map-ambient')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('MAP-CENTER: on a wide screen the city is pinned between the side panels — centred, never under the card, and it does not move when panels close', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone-844', 'на телефоне панели выдвижные, поверх карты');
+  const errors = await start(page);
+  if (!(await page.getByTestId('left-panel').isVisible())) await page.getByRole('button', { name: /Вызовы/ }).click();
+  await page.locator('.squad').first().click();
+  await expect(page.getByTestId('right-panel')).toBeVisible();
+  const left = (await page.getByTestId('left-panel').boundingBox())!;
+  const right = (await page.getByTestId('right-panel').boundingBox())!;
+  await expect.poll(async () => (await page.getByTestId('map-image').boundingBox())!.x + (await page.getByTestId('map-image').boundingBox())!.width)
+    .toBeLessThanOrEqual(right.x + 1);
+  const img = (await page.getByTestId('map-image').boundingBox())!;
+  expect(img.x).toBeGreaterThanOrEqual(left.x + left.width - 1);
+  // отступы слева и справа от карты одинаковые
+  expect(Math.abs((img.x - (left.x + left.width)) - (right.x - (img.x + img.width)))).toBeLessThan(4);
+  // кнопки слоёв не уходят под карточку справа
+  const tools = (await page.locator('.layer-tools').boundingBox())!;
+  expect(tools.x + tools.width).toBeLessThanOrEqual(right.x + 1);
+  // карточку и панель вызовов закрыли — карта остаётся на месте и того же размера (область закреплена)
+  await page.getByTestId('right-panel').getByRole('button', { name: /Закрыть/ }).click();
+  await expect(page.getByTestId('right-panel')).toHaveCount(0);
+  await page.getByTestId('left-panel').getByRole('button', { name: /Свернуть|Закрыть/ }).first().click();
+  await expect(page.getByTestId('left-panel')).toHaveCount(0);
+  await page.waitForTimeout(200);
+  const after = (await page.getByTestId('map-image').boundingBox())!;
+  for (const k of ['x', 'y', 'width', 'height'] as const) expect(Math.abs(after[k] - img[k])).toBeLessThan(1.5);
   expect(errors).toEqual([]);
 });
 

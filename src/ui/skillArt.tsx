@@ -1,0 +1,47 @@
+import { Icon, type IconName } from './Icon';
+
+/**
+ * Значки навыков дерева развития. Картинки ART-020 лежат в assets/ui/skills/; если файла нет,
+ * показывается иконка ART-007 по смыслу навыка. Файл
+ * skill_<id>.png или .webp подхватывается автоматически.
+ */
+const files = import.meta.glob('../../assets/ui/skills/skill_*.{png,webp}', { eager: true, import: 'default' }) as Record<string, string>;
+const ART: Record<string, string> = {};
+for (const [path, url] of Object.entries(files)) {
+  const id = /skill_([a-z0-9]+)\.(png|webp)$/.exec(path)?.[1];
+  if (id) ART[id] = url;
+}
+
+const PLACEHOLDER: Record<string, IconName> = {
+  cmd1: 'users', cmd2: 'layers', cmd3: 'medical',
+  ci1: 'search', ci2: 'folder', ci3: 'eye',
+  op1: 'scales', op2: 'crosshair', op3: 'warning',
+};
+
+export const hasSkillArt = (id: string) => !!ART[id];
+
+export function SkillArt({ id }: { id: string }) {
+  const url = ART[id];
+  if (url) return <img className="skill-img" src={url} alt="" draggable={false} />;
+  return <span className="skill-ph"><Icon name={PLACEHOLDER[id] ?? 'book'} /></span>;
+}
+
+/**
+ * Значки органов и врождённых систем (ART-022): assets/ui/organs/organ_<id>.png или .webp.
+ * Пока файла нет — иконка ART-007 по смыслу.
+ */
+const organFiles = import.meta.glob('../../assets/ui/organs/organ_*.{png,webp}', { eager: true, import: 'default' }) as Record<string, string>;
+const ORGAN_ART: Record<string, string> = {};
+for (const [path, url] of Object.entries(organFiles)) {
+  const id = /organ_([a-z0-9_]+)\.(png|webp)$/.exec(path)?.[1];
+  if (id) ORGAN_ART[id] = url;
+}
+const ORGAN_PLACEHOLDER: Record<string, IconName> = {
+  org_scent: 'search', org_trace: 'beaker', org_dermal: 'shield', org_adapt: 'heart',
+  innate_core: 'person', line_sense: 'eye', line_assay: 'medical',
+};
+export function OrganArt({ id }: { id: string }) {
+  const url = ORGAN_ART[id];
+  if (url) return <img className="skill-img" src={url} alt="" draggable={false} />;
+  return <span className="skill-ph"><Icon name={ORGAN_PLACEHOLDER[id] ?? 'beaker'} /></span>;
+}

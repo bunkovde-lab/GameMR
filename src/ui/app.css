@@ -1093,7 +1093,7 @@ img.nav-art { width: 36px; height: 36px; margin: -6px 0; object-fit: contain; fl
 .tile-row .skill-node .icon { width: 26px; height: 26px; }
 .cab-why { font-size: 12px; color: var(--muted); display: grid; gap: 2px; }
 .cab-why b { color: var(--text); font-weight: 500; }
-.tile-tip { position: fixed; z-index: 1000; width: 260px; display: grid; gap: 4px; padding: 10px 12px; border: 1px solid var(--gold); border-radius: 8px; background: #0b1016fa; box-shadow: var(--shadow); font-size: 13px; line-height: 1.35; pointer-events: none; }
+.tile-tip { position: fixed; z-index: 10000; width: 260px; isolation: isolate; display: grid; gap: 4px; padding: 10px 12px; border: 1px solid var(--gold); border-radius: 8px; background: #0b1016; box-shadow: 0 0 0 1px #000, 0 14px 32px #000000e6; font-size: 13px; line-height: 1.35; pointer-events: none; }
 .tile-tip b { color: var(--gold-light); font-size: 14px; }
 .tile-tip small { font-size: 12px; color: var(--muted); }
 .tile-tip .tl-ok { color: var(--green); }

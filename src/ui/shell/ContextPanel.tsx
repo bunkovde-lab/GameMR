@@ -11,6 +11,7 @@ import { Icon } from '../Icon';
 import { INCIDENT_STATE_LABEL, SEVERITY_LABEL, SQUAD_STATUS } from '../labels';
 import type { Selection } from '../uiState';
 import { SquadCard } from './SquadCard';
+import { AftermathList, IncidentHero, incidentCardBg } from './IncidentArt';
 
 interface Props {
   game: GameState;
@@ -25,12 +26,12 @@ interface Props {
 /** Правая контекстная карточка: открывается только при выборе объекта (ТЗ §3.1). */
 export function ContextPanel({ game, selection, onClose, onSelect, onPreview, onOpenDispatch, onOpenCase }: Props) {
   return (
-    <aside className="panel right-panel" aria-label="Карточка" data-testid="right-panel">
+    <aside className={`panel right-panel kind-${selection.kind}`} aria-label="Карточка" data-testid="right-panel">
       <div className="panel-header">
         <h2>{selection.kind === 'incident' ? 'Карточка происшествия' : selection.kind === 'district' ? 'Район' : 'Отряд'}</h2>
         <button className="btn icon-only" onClick={onClose} aria-label="Закрыть карточку"><Icon name="close" /></button>
       </div>
-      <div className="panel-body card-body">
+      <div className="panel-body card-body" style={selection.kind === 'incident' ? incidentCardBg() : undefined}>
         {selection.kind === 'incident' && <IncidentCard game={game} id={selection.id} onPreview={onPreview} onSelect={onSelect} onOpenDispatch={onOpenDispatch} onOpenCase={onOpenCase} />}
         {selection.kind === 'district' && <DistrictCard game={game} id={selection.id} onSelect={onSelect} />}
         {selection.kind === 'squad' && <SquadCard game={game} id={selection.id} onSelect={onSelect} />}
@@ -49,11 +50,12 @@ function IncidentCard({ game, id, onPreview, onSelect, onOpenDispatch, onOpenCas
   const prof = incidentProfile(inc);
   const op = assigned?.operation;
   return (
-    <div data-testid="incident-card">
+    <div data-testid="incident-card" className="incident-card">
       <h3 className="card-title">{inc.title}</h3>
       <p className="muted">
         {district.name} · <span className={`sev-text sev-${inc.severity}`}>{SEVERITY_LABEL[inc.severity]}</span> · <span data-testid="card-class">{DISPATCH_RULES.classes[prof.incidentClass].label}</span>
       </p>
+      <IncidentHero inc={inc} />
       {prof.known && <p className="known">{houseText(prof.known)}</p>}
       {(() => {
         // Вызов из сюжета расследования: предыстория дела и что даст выезд (без скрытой правды).
@@ -80,7 +82,7 @@ function IncidentCard({ game, id, onPreview, onSelect, onOpenDispatch, onOpenCas
         return (
           <div className="stakes" data-testid="card-stakes">
             {late && isOpen(inc) && <p className="late"><b>{word}:</b> {houseText(late)}</p>}
-            {stakes.length > 0 && <ul className="plain-list">{stakes.map((x) => <li key={x}>{x}</li>)}</ul>}
+            {stakes.length > 0 && <AftermathList items={stakes} />}
           </div>
         );
       })()}

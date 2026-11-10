@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
  * сборкой без изменений кода. Пока файла нет — нейтральная заглушка с подписью, интерактивные элементы всегда рисует код.
  */
 const files = {
-  ...import.meta.glob('../../assets/{backgrounds,events,locations}/*.{webp,png,jpg}', { eager: true, import: 'default' }),
+  ...import.meta.glob('../../assets/{backgrounds,events,locations,incidents}/*.{webp,png,jpg}', { eager: true, import: 'default' }),
   // ART-016: только игровые webp-копии Дирекции (оригиналы PNG в сборку не попадают).
   ...import.meta.glob('../../assets/{facilities,research}/web/*.webp', { eager: true, import: 'default' }),
 } as Record<string, string>;
@@ -36,6 +36,16 @@ for (const [path, url] of Object.entries(mkFiles)) { const m = /\/(marker_[^/]+)
 for (const [path, url] of Object.entries(mkIcons)) { const m = /\/(marker_[^/]+)\.svg$/.exec(path); if (m) MARKER_ICON[m[1]!] = url; }
 export const markerArtUrl = (key: string): string | undefined => MARKER[key];
 export const markerIconUrl = (key: string): string | undefined => MARKER_ICON[key];
+
+/** ART-023: значки категорий «что на кону» (assets/ui/aftermath/aft_<кат>.svg) и штампы итога (assets/ui/stamps/web/stamp_<итог>.webp — маска, цвет даёт код). */
+const aftFiles = import.meta.glob('../../assets/ui/aftermath/*.svg', { eager: true, import: 'default' }) as Record<string, string>;
+const stampFiles = import.meta.glob('../../assets/ui/stamps/web/*.webp', { eager: true, import: 'default' }) as Record<string, string>;
+const AFT: Record<string, string> = {};
+const STAMPS: Record<string, string> = {};
+for (const [path, url] of Object.entries(aftFiles)) { const m = /\/(aft_[^/]+)\.svg$/.exec(path); if (m) AFT[m[1]!] = url; }
+for (const [path, url] of Object.entries(stampFiles)) { const m = /\/(stamp_[^/]+)\.webp$/.exec(path); if (m) STAMPS[m[1]!] = url; }
+export const aftermathIconUrl = (key: string): string | undefined => AFT[key];
+export const stampUrl = (key: string): string | undefined => STAMPS[key];
 
 /** Одноцветный значок 24×24 через маску: цвет берётся из currentColor, как у встроенных иконок. */
 export function MarkerIcon({ markerKey, size = 18 }: { markerKey: string; size?: number }) {

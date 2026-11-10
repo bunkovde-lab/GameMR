@@ -5,16 +5,17 @@ import crestDirectorate from '../../../assets/ui/kit_v2/crest_directorate.png';
 export type NavIconId = 'map' | 'staff' | 'investigations' | 'directorate' | 'end_shift' | 'saves';
 
 /**
- * ART-021: рисованные значки разделов. Файлы кладутся в assets/ui/nav/nav_<id>.png (или .webp)
- * и подхватываются сами, без правки кода. Пока файла нет:
- *  - «Дирекция» показывает утверждённый герб Дирекции (ART-008, kit_v2/crest_directorate.png);
+ * ART-021: рисованные значки разделов. Исходники — assets/ui/nav/nav_<id>.png (512×512),
+ * в игру идут веб-копии assets/ui/nav/web/nav_<id>.webp (scripts/build_nav_web.py). Если копии нет:
+ *  - «Дирекция» показывает утверждённый герб Дирекции (ART-008, kit_v2/crest_directorate.png) —
+ *    отдельного медальона ART-021 для неё нет, пока владелец не выберет замену герба;
  *  - остальные — контурная иконка ART-007.
  */
-const files = import.meta.glob('../../../assets/ui/nav/nav_*.{png,webp}', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
+const files = import.meta.glob('../../../assets/ui/nav/web/nav_*.webp', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
 const NAV_ART: Partial<Record<NavIconId, string>> = {};
 for (const [path, url] of Object.entries(files)) {
-  const id = /nav_([a-z_]+)\.(png|webp)$/.exec(path)?.[1] as NavIconId | undefined;
-  if (id && (!NAV_ART[id] || path.endsWith('.webp'))) NAV_ART[id] = url;
+  const id = /nav_([a-z_]+)\.webp$/.exec(path)?.[1] as NavIconId | undefined;
+  if (id) NAV_ART[id] = url;
 }
 
 const CLOSEST: Partial<Record<NavIconId, string>> = { directorate: crestDirectorate };

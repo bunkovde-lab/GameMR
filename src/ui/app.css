@@ -295,13 +295,10 @@ svg.icon {
 .city-splash { position: fixed; inset: 0; z-index: 19; background: #05070b center / cover no-repeat; }
 .city-splash + .overlay { background: #0405078c; }
 .district-hit {
-  pointer-events: auto; cursor: pointer; fill: transparent; stroke: transparent; stroke-width: 2;
-  vector-effect: non-scaling-stroke; transition: fill 0.15s, stroke 0.15s;
+  pointer-events: auto; cursor: pointer; fill: transparent; stroke: none;
 }
-.district-hit.outlined { stroke: #e9d8b166; stroke-dasharray: 6 5; }
-.district-hit.hover { fill: #f3e2b812; stroke: #e9d8b1aa; }
-.district-hit.selected { fill: #c9454a1f; stroke: #ff8a78; stroke-width: 3; stroke-dasharray: none; }
-.district-hit:focus-visible { outline: none; stroke: var(--cyan); stroke-width: 3; }
+/* Границы и заливка районов не рисуются: наведение, фокус и выбор подсвечивают только название района. */
+.district-hit:focus, .district-hit:focus-visible { outline: none; }
 .road { fill: none; stroke: #6fc7d2aa; stroke-width: 3; vector-effect: non-scaling-stroke; stroke-linecap: round; }
 .road.closed { stroke: #ff5a52; stroke-dasharray: 5 5; }
 .route { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }
@@ -310,9 +307,20 @@ svg.icon {
 
 .map-screen { position: absolute; inset: 0; pointer-events: none; }
 .map-screen > * { position: absolute; transform: translate(-50%, -50%); }
+/* Маркер отряда носит класс .squad, как и карточка в ленте: общие правила карточки (position: relative, отступы, обрезка)
+   сдвигали щиты отрядов с их точки на карте. */
+.map-screen > .marker.squad { position: absolute; padding: 0; overflow: visible; flex: none; min-width: 0; }
 .district-label {
   font-family: Georgia, serif; font-size: 13px; letter-spacing: 1.2px; text-transform: uppercase; white-space: nowrap;
   color: #f4e7c8; text-shadow: 0 1px 3px #000, 0 0 8px #000;
+  transition: color 0.15s, text-shadow 0.15s, transform 0.15s;
+}
+.district-label.selected { color: #ffd38a; text-shadow: 0 1px 3px #000, 0 0 8px #000, 0 0 14px #c9454acc; }
+.district-label { padding: 2px 8px; border-radius: 4px; border: 1px solid transparent; }
+.district-label.hover {
+  z-index: 2; color: #ffe39a; transform: translate(-50%, -50%) scale(1.15);
+  background: #0b0d10d9; border-color: #c9a46a; box-shadow: 0 0 14px #f6d27a66;
+  text-shadow: 0 1px 3px #000, 0 0 10px #f6d27acc;
 }
 .risk-badge {
   display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; font-size: 11px;
@@ -386,15 +394,12 @@ svg.icon {
   padding: 10px 14px; border-radius: 10px; background: #3a1418f2; border: 1px solid var(--bad);
 }
 .zoom-tools { position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; gap: 6px; z-index: 1; }
-.layer-tools { position: absolute; left: 10px; bottom: 10px; display: flex; flex-wrap: wrap; gap: 6px; z-index: 1; max-width: calc(100% - 20px); }
-.layer-tools .btn, .zoom-tools .btn, .map-tools .btn { background: #141a22e8; }
-.layer-tools .btn[aria-pressed='true'] { background: linear-gradient(180deg, #8d3138, #511f27); }
-.workspace:has(.left-panel) .map-tools, .workspace:has(.left-panel) .layer-tools { left: calc(var(--left-w) + 10px); }
+.zoom-tools .btn, .map-tools .btn { background: #141a22e8; }
+.workspace:has(.left-panel) .map-tools { left: calc(var(--left-w) + 10px); }
 /* Широкий экран: масштаб и слои всегда у краёв закреплённой области карты — не прыгают при открытии/закрытии панелей;
    кнопки слоёв не заходят под карточку справа, а переносятся во второй ряд. */
 @media (min-width: 951px) {
   .zoom-tools { right: calc(var(--right-w) + 10px); }
-  .layer-tools { left: calc(var(--left-w) + 10px); right: calc(var(--right-w) + 10px); max-width: none; }
 }
 
 /* ---------- W3: список вызовов и карточки ---------- */
@@ -420,17 +425,16 @@ svg.icon {
 
 @media (max-width: 950px) {
   .left-panel, .right-panel { width: min(var(--left-w), 86vw); }
-  .workspace:has(.left-panel) .map-tools, .workspace:has(.left-panel) .layer-tools { left: 10px; }
+  .workspace:has(.left-panel) .map-tools { left: 10px; }
   .map-ambient { font-size: 11px; top: 6px; }
-  .layer-tools .label { display: none; }
-  .district-label { font-size: 11px; }
+  .map-screen .district-label { font-size: 10px; letter-spacing: 0.6px; padding: 1px 5px; }
 }
 @media (max-height: 560px) {
   .zoom-tools { flex-direction: row; }
 }
 @media (prefers-reduced-motion: reduce) {
   .marker.incident.st-escalated, .marker.incident.shield.st-escalated { animation: none; }
-  .district-hit { transition: none; }
+  .district-label { transition: none; }
 }
 
 /* ---------- W4: окно отправки ---------- */

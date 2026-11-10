@@ -12,7 +12,6 @@ export interface UiState {
   selection: Selection;
   /** Отряд, маршрут которого показываем в превью (наведение в карточке вызова) */
   previewSquadId: string | null;
-  layers: Record<LayerId, boolean>;
   /** Какое дело открыть на экране расследований (переход из карточки вызова) */
   focusCaseId?: string | null;
 }
@@ -23,14 +22,14 @@ export type UiAction =
   | { type: 'SELECT'; selection: Selection; narrow?: boolean }
   | { type: 'CLOSE_RIGHT_PANEL' }
   | { type: 'PREVIEW_SQUAD'; squadId: string | null }
-  | { type: 'TOGGLE_LAYER'; layer: LayerId }
   | { type: 'ESCAPE' };
 
-export const DEFAULT_LAYERS: Record<LayerId, boolean> = {
+/** Слои карты постоянны (кнопок фильтров нет): события, патрули, районы и угрозы видны всегда, служебные объекты скрыты. */
+export const MAP_LAYERS: Readonly<Record<LayerId, boolean>> = {
   events: true,
-  patrols: false,
-  districts: false,
-  risks: false,
+  patrols: true,
+  districts: true,
+  risks: true,
   infrastructure: false,
 };
 
@@ -40,7 +39,6 @@ export const initialUiState: UiState = {
   rightPanelOpen: false,
   selection: null,
   previewSquadId: null,
-  layers: DEFAULT_LAYERS,
 };
 
 /** Узкий экран (< 950 px, W3 §6): панели — выдвижные, одновременно открыта только одна. */
@@ -66,8 +64,6 @@ export function uiReducer(state: UiState, action: UiAction): UiState {
       return { ...state, rightPanelOpen: false, previewSquadId: null };
     case 'PREVIEW_SQUAD':
       return state.previewSquadId === action.squadId ? state : { ...state, previewSquadId: action.squadId };
-    case 'TOGGLE_LAYER':
-      return { ...state, layers: { ...state.layers, [action.layer]: !state.layers[action.layer] } };
     case 'ESCAPE':
       if (state.view !== 'map') return { ...state, view: 'map' };
       if (state.rightPanelOpen) return { ...state, rightPanelOpen: false, previewSquadId: null };

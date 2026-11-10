@@ -1,14 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_LAYERS, initialUiState, uiReducer } from '../../src/ui/uiState';
+import { MAP_LAYERS, initialUiState, uiReducer } from '../../src/ui/uiState';
 
 describe('uiReducer', () => {
-  it('starts on the map with the incident panel open, nothing selected, only events layer on', () => {
+  it('starts on the map with the incident panel open and nothing selected', () => {
     expect(initialUiState.view).toBe('map');
     expect(initialUiState.leftPanelOpen).toBe(true);
     expect(initialUiState.rightPanelOpen).toBe(false);
     expect(initialUiState.selection).toBeNull();
-    expect(initialUiState.layers).toEqual(DEFAULT_LAYERS);
-    expect(DEFAULT_LAYERS.events).toBe(true);
   });
 
   it('keeps the panel state when switching views and back', () => {
@@ -39,10 +37,8 @@ describe('uiReducer', () => {
     expect(uiReducer(s, { type: 'ESCAPE' })).toBe(s);
   });
 
-  it('layers toggle independently', () => {
-    const s = uiReducer(initialUiState, { type: 'TOGGLE_LAYER', layer: 'districts' });
-    expect(s.layers.districts).toBe(true);
-    expect(s.layers.events).toBe(true);
+  it('map layers are fixed: events, patrols, districts and threats on, service objects off', () => {
+    expect(MAP_LAYERS).toEqual({ events: true, patrols: true, districts: true, risks: true, infrastructure: false });
   });
 
   it('returns the same object when opening the current view', () => {

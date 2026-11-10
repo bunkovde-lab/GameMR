@@ -53,15 +53,14 @@ export function SquadStrip({ game, selectedId, onSelect }: { game: GameState; se
               <span className={`monogram banner-${q.id}`} aria-hidden="true">{members[0] ? initials(members[0].name) : '—'}</span>
               <span className="squad-text">
                 <b>«{q.name}»</b>
-                <small className="squad-meta"><span className="cnt">{members.length}/{SLOTS} · </span><span className="status">{st.label}</span></small>
-                <span className="squad-members" data-testid={`squad-members-${q.id}`}>
-                  {members.map((p) => <SquadMember key={p.id} p={p} />)}
-                  {Array.from({ length: Math.max(0, SLOTS - members.length) }, (_, i) => (
-                    <span key={`empty-${i}`} className="sq-member empty" aria-hidden="true" title="Свободное место" />
-                  ))}
-                  {wounded > 0 && <span className="sq-wounded">ранен{wounded > 1 ? 'ы' : ''}: {wounded}</span>}
-                </span>
+                <small className="squad-meta">
+                  <span className="cnt">{members.length}/{SLOTS} · </span><span className="status">{st.label}</span>
+                  {wounded > 0 && <span className="sq-wounded"> · ранен{wounded > 1 ? 'о' : ''}: {wounded}</span>}
+                </small>
                 <span className="visually-hidden">. Состав: {members.length ? members.map(memberSummary).join('; ') : 'нет бойцов'}.</span>
+              </span>
+              <span className="squad-members" data-testid={`squad-members-${q.id}`}>
+                {members.map((p) => <SquadMember key={p.id} p={p} />)}
               </span>
               </button>
             </li>

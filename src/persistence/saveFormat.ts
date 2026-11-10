@@ -80,6 +80,8 @@ const MIGRATIONS: Record<number, (s: Record<string, unknown>) => Record<string, 
   /** v8 (W7.2) → v9 (W8): отношения с Домами, коалиции, разрешения и договоры. */
   8: (s) => ({ ...s, politics: initialPolitics() }),
   9: (s) => ({ ...s, investigations: initialInvestigations(), campaign: initialCampaign() }),
+  /** v10 → v11: вызовы приходят в течение смены; у старых сохранений очередь пуста (все вызовы смены уже на карте). */
+  10: (s) => ({ ...s, incoming: [] }),
 };
 
 export function toSaveFile(state: GameState, label: string, now: Date): SaveFile {

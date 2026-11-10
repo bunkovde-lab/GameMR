@@ -21,6 +21,8 @@ export function tick(s: GameState, minutes: number, choose: (options: string[]) 
       s = ok(s, { type: 'CHOOSE_OPTION', squadId: p.squad.id, optionId: choose(p.stage.options.map((o) => o.id)) });
       continue;
     }
+    // Новый вызов в течение смены ставит автопаузу — «игрок» сразу продолжает.
+    if (s.paused) s = ok(s, { type: 'RESUME' });
     s = ok(s, { type: 'TICK', minutes: target - s.minute });
   }
   return s;

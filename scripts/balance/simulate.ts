@@ -33,6 +33,22 @@ function botRng(seed: number) {
   };
 }
 
+/**
+ * Бот отправляет на вызов первый отряд, выезд которого ядро принимает; сначала самые отдохнувшие
+ * (иначе бот застревает на отряде без годных людей и гоняет один и тот же отряд весь день).
+ */
+export function dispatchAny(s: GameState, incidentId: string, allowed?: Set<string>): GameState | null {
+  const inc = s.incidents.find((i) => i.id === incidentId)!;
+  const fatigue = (ids: string[]) => ids.reduce((a, id) => a + (s.staff.find((p) => p.id === id)?.fatigue ?? 0), 0) / Math.max(1, ids.length);
+  const ready = s.squads.filter((q) => (!allowed || allowed.has(q.id)) && !dispatchBlocker(s, q, inc))
+    .sort((a, b) => fatigue(a.memberIds) - fatigue(b.memberIds) || a.id.localeCompare(b.id));
+  for (const q of ready) {
+    const r = reduce(s, { type: 'DISPATCH_SQUAD', squadId: q.id, incidentId });
+    if (r.ok) return r.state;
+  }
+  return null;
+}
+
 export function simulate(seed: number, policy: Policy): RunResult {
   const pick = botRng(seed + 17);
   let s: GameState = createInitialState(seed);
@@ -72,8 +88,8 @@ export function simulate(seed: number, policy: Policy): RunResult {
         const open = s.incidents.filter((i) => isOpen(i) && ['new', 'acknowledged', 'escalated'].includes(i.state))
           .sort((a, b) => SEV[b.severity] - SEV[a.severity] || a.deadlineMinute - b.deadlineMinute);
         for (const inc of open) {
-          const sq = s.squads.find((q) => !dispatchBlocker(s, q, inc));
-          if (sq) run({ type: 'DISPATCH_SQUAD', squadId: sq.id, incidentId: inc.id });
+          const next = dispatchAny(s, inc.id);
+          if (next) s = next;
         }
         for (const p of s.staff) {
           if (!['serious_injury', 'critical'].includes(p.health) || s.medical.patients.some((x) => x.staffId === p.id)) continue;
@@ -88,6 +104,7 @@ export function simulate(seed: number, policy: Policy): RunResult {
         }
       }
       if (activeOp(s)) continue;
+      if (s.paused) run({ type: 'RESUME' }); // новый вызов поставил паузу — бот уже отреагировал выше
       if (!run({ type: 'TICK', minutes: Math.min(30, 719 - s.minute) })) break;
       minBalance = Math.min(minBalance, s.economy.balance);
     }

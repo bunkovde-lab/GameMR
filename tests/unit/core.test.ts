@@ -147,7 +147,34 @@ describe('shift cycle (ТЗ §2.2)', () => {
     expect(s.incidents.filter((i) => i.state === 'escalated').length).toBeGreaterThan(0);
     s = ok(s, { type: 'ADVANCE_SHIFT' });
     for (const id of openBefore) expect(isOpen(s.incidents.find((i) => i.id === id)!)).toBe(true);
-    expect(s.incidents.filter((i) => i.createdShift === 2)).toHaveLength(3);
+    // Вызовы смены 2: один к брифингу, остальные приходят в течение дня.
+    expect(s.incidents.filter((i) => i.createdShift === 2)).toHaveLength(1);
+    expect(s.incoming.map((c) => c.incident.createdShift)).toEqual([2, 2]);
+  });
+  it('calls arrive during the shift: a new call pauses the game, its deadline counts from arrival', () => {
+    let s = ok(fullShift(createInitialState()), { type: 'ADVANCE_SHIFT' });
+    const [first, second] = s.incoming;
+    expect(first!.at).toBeGreaterThanOrEqual(60);
+    expect(second!.at).toBeLessThanOrEqual(540);
+    expect(first!.at).toBeLessThanOrEqual(second!.at);
+    expect(first!.incident.deadlineMinute).toBeGreaterThan(first!.at);
+    s = ok(s, { type: 'START_SHIFT' });
+    s = ok(s, { type: 'TICK', minutes: 600 });
+    // Время остановилось ровно в минуту поступления, вызов на карте, игра на паузе.
+    expect(s.minute).toBe(first!.at);
+    expect(s.paused).toBe(true);
+    expect(s.incidents.some((i) => i.id === first!.incident.id)).toBe(true);
+    expect(s.log.at(-1)!.text).toBe(`Новый вызов: ${first!.incident.title}.`);
+    expect(reduce(s, { type: 'TICK', minutes: 1 }).ok).toBe(false);
+    s = ok(s, { type: 'RESUME' });
+    expect(ok(s, { type: 'TICK', minutes: 1 }).minute).toBe(first!.at + 1);
+  });
+  it('ending the shift early does not dodge calls: the rest arrive and carry over', () => {
+    let s = ok(fullShift(createInitialState()), { type: 'ADVANCE_SHIFT' });
+    const pending = s.incoming.map((c) => c.incident.id);
+    s = ok(ok(s, { type: 'START_SHIFT' }), { type: 'END_SHIFT' });
+    expect(s.incoming).toHaveLength(0);
+    for (const id of pending) expect(isOpen(s.incidents.find((i) => i.id === id)!)).toBe(true);
   });
   it('escalation lowers district safety and is written to the log', () => {
     let s = ok(createInitialState(), { type: 'START_SHIFT' });

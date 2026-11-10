@@ -2097,6 +2097,278 @@
       "notes": "204.8 сек. Веб-оптимизированная версия оригинального трека. Применить регулируемую громкость/паузы и проверить цикл."
     },
     {
+      "id": "ART016_FACILITY_OPS",
+      "file": "assets/facilities/facility_ops.png",
+      "category": "facilities",
+      "role": "Постройка Дирекции: Оперативный центр",
+      "status": "approved",
+      "width": 960,
+      "height": 540,
+      "alpha": false,
+      "sha256": "2af66a92149339615ccd39af01b962f25a8733aa0c6304418704615c55c31c5d",
+      "source": "ART-016_DIRECTORATE_FOR_CHATGPT.md; generated master visual, 2026-11-09",
+      "approvedBy": "Dmitry (2026-11-09)",
+      "notes": "Кадр из единого исходного арт-листа; экспорт отдельным PNG; проверить в игровой полосе. Художественная приёмка владельца ожидается.",
+      "webCopies": [
+        "assets/facilities/web/facility_ops.webp"
+      ]
+    },
+    {
+      "id": "ART016_FACILITY_LAB",
+      "file": "assets/facilities/facility_lab.png",
+      "category": "facilities",
+      "role": "Постройка Дирекции: Лабораторный комплекс",
+      "status": "approved",
+      "width": 960,
+      "height": 540,
+      "alpha": false,
+      "sha256": "2ff1b7bd415904f9297eae03a90a578f36cd8d2abe115896f33adf1dd0a0a264",
+      "source": "ART-016_DIRECTORATE_FOR_CHATGPT.md; generated master visual, 2026-11-09",
+      "approvedBy": "Dmitry (2026-11-09)",
+      "notes": "Кадр из единого исходного арт-листа; экспорт отдельным PNG; проверить в игровой полосе. Художественная приёмка владельца ожидается.",
+      "webCopies": [
+        "assets/facilities/web/facility_lab.webp"
+      ]
+    },
+    {
+      "id": "ART016_FACILITY_MEDICAL",
+      "file": "assets/facilities/facility_medical.png",
+      "category": "facilities",
+      "role": "Постройка Дирекции: Медицинский блок",
+      "status": "approved",
+      "width": 960,
+      "height": 540,
+      "alpha": false,
+      "sha256": "464cbcc052ef0812a99184ad07f235bf81df27e38f41f3348b9b07b4a5fc9c42",
+      "source": "ART-016_DIRECTORATE_FOR_CHATGPT.md; generated master visual, 2026-11-09",
+      "approvedBy": "Dmitry (2026-11-09)",
+      "notes": "Кадр из единого исходного арт-листа; экспорт отдельным PNG; проверить в игровой полосе. Художественная приёмка владельца ожидается.",
+      "webCopies": [
+        "assets/facilities/web/facility_medical.webp"
+      ]
+    },
+    {
+      "id": "ART016_FACILITY_ANALYTICS",
+      "file": "assets/facilities/facility_analytics.png",
+      "category": "facilities",
+      "role": "Постройка Дирекции: Аналитический отдел",
+      "status": "approved",
+      "width": 960,
+      "height": 540,
+      "alpha": false,
+      "sha256": "815891575e0e2b54633207058699caacc50e8ac7cca890e5b36fa6006a9eb68a",
+      "source": "ART-016_DIRECTORATE_FOR_CHATGPT.md; generated master visual, 2026-11-09",
+      "approvedBy": "Dmitry (2026-11-09)",
+      "notes": "Кадр из единого исходного арт-листа; экспорт отдельным PNG; проверить в игровой полосе. Художественная приёмка владельца ожидается.",
+      "webCopies": [
+        "assets/facilities/web/facility_analytics.webp"
+      ]
+    },
+    {
+      "id": "ART016_FACILITY_DETENTION",
+      "file": "assets/facilities/facility_detention.png",
+      "category": "facilities",
+      "role": "Постройка Дирекции: Изолятор и допросы",
+      "status": "approved",
+      "width": 960,
+      "height": 540,
+      "alpha": false,
+      "sha256": "32b5ccbb8ad4f0ace9cc1864fb4f206ba5ceb758d3094cf9dce9186294d302ba",
+      "source": "ART-016_DIRECTORATE_FOR_CHATGPT.md; generated master visual, 2026-11-09",
+      "approvedBy": "Dmitry (2026-11-09)",
+      "notes": "Кадр из единого исходного арт-листа; экспорт отдельным PNG; проверить в игровой полосе. Художественная приёмка владельца ожидается.",
+      "webCopies": [
+        "assets/facilities/web/facility_detention.webp"
+      ]
+    },
+    {
+      "id": "ART016_FACILITY_TECH",
+      "file": "assets/facilities/facility_tech.png",
+      "category": "facilities",
+      "role": "Постройка Дирекции: Технический сектор",
+      "status": "approved",
+      "width": 960,
+      "height": 540,
+      "alpha": false,
+      "sha256": "efe56b82fbec0819443ba3b7b616ecd19d7f99964fe99facc5322bde6c02a3d5",
+      "source": "ART-016_DIRECTORATE_FOR_CHATGPT.md; generated master visual, 2026-11-09",
+      "approvedBy": "Dmitry (2026-11-09)",
+      "notes": "Кадр из единого исходного арт-листа; экспорт отдельным PNG; проверить в игровой полосе. Художественная приёмка владельца ожидается.",
+      "webCopies": [
+        "assets/facilities/web/facility_tech.webp"
+      ]
+    },
+    {
+      "id": "ART016_FACILITY_TRAINING",
+      "file": "assets/facilities/facility_training.png",
+      "category": "facilities",
+      "role": "Постройка Дирекции: Учебный центр",
+      "status": "approved",
+      "width": 960,
+      "height": 540,
+      "alpha": false,
+      "sha256": "7f63fd01c0747925e58950b743ec73a6a0a63ff30633b139983bef173a2a9bec",
+      "source": "ART-016_DIRECTORATE_FOR_CHATGPT.md; generated master visual, 2026-11-09",
+      "approvedBy": "Dmitry (2026-11-09)",
+      "notes": "Кадр из единого исходного арт-листа; экспорт отдельным PNG; проверить в игровой полосе. Художественная приёмка владельца ожидается.",
+      "webCopies": [
+        "assets/facilities/web/facility_training.webp"
+      ]
+    },
+    {
+      "id": "ART016_FACILITY_ARCHIVE",
+      "file": "assets/facilities/facility_archive.png",
+      "category": "facilities",
+      "role": "Постройка Дирекции: Архив и хранилище",
+      "status": "approved",
+      "width": 960,
+      "height": 540,
+      "alpha": false,
+      "sha256": "983d7c142f1f0e2271206b792eaf511bf19e9ae768b00a9c3c14424e486a7204",
+      "source": "ART-016_DIRECTORATE_FOR_CHATGPT.md; generated master visual, 2026-11-09",
+      "approvedBy": "Dmitry (2026-11-09)",
+      "notes": "Кадр из единого исходного арт-листа; экспорт отдельным PNG; проверить в игровой полосе. Художественная приёмка владельца ожидается.",
+      "webCopies": [
+        "assets/facilities/web/facility_archive.webp"
+      ]
+    },
+    {
+      "id": "ART016_RESEARCH_BIO_REAGENTS",
+      "file": "assets/research/research_bio_reagents.png",
+      "category": "research",
+      "role": "Исследование: Стабилизация реагентов; ветка Биология",
+      "status": "approved",
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "sha256": "cdbba7084d9299093241bdf70e619d0448731a93c9430b77f909737dd9d00b51",
+      "source": "ART-016_DIRECTORATE_FOR_CHATGPT.md; generated master visual, 2026-11-09",
+      "approvedBy": "Dmitry (2026-11-09)",
+      "notes": "Иллюстрация предмета из отдельной ячейки исходного арт-листа; фон по внешним краям #141922; важное в центре. Проверить чтение при 56 px.",
+      "webCopies": [
+        "assets/research/web/research_bio_reagents.webp"
+      ]
+    },
+    {
+      "id": "ART016_RESEARCH_POROG",
+      "file": "assets/research/research_porog.png",
+      "category": "research",
+      "role": "Исследование: «Порог»: карантинные меры; ветка Биология",
+      "status": "approved",
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "sha256": "e7d9fa67aee0188dcfe83d7001b5e7ddd47b0bfc457534735132be288f1f8a69",
+      "source": "ART-016_DIRECTORATE_FOR_CHATGPT.md; generated master visual, 2026-11-09",
+      "approvedBy": "Dmitry (2026-11-09)",
+      "notes": "Иллюстрация предмета из отдельной ячейки исходного арт-листа; фон по внешним краям #141922; важное в центре. Проверить чтение при 56 px.",
+      "webCopies": [
+        "assets/research/web/research_porog.webp"
+      ]
+    },
+    {
+      "id": "ART016_RESEARCH_BIO_PROCEDURE",
+      "file": "assets/research/research_bio_procedure.png",
+      "category": "research",
+      "role": "Исследование: Программа совместимости; ветка Биология",
+      "status": "approved",
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "sha256": "4d4045ada96d030f9d255faec7ee56fe0ce5dee1f623141b69446c2f3925528f",
+      "source": "ART-016_DIRECTORATE_FOR_CHATGPT.md; generated master visual, 2026-11-09",
+      "approvedBy": "Dmitry (2026-11-09)",
+      "notes": "Иллюстрация предмета из отдельной ячейки исходного арт-листа; фон по внешним краям #141922; важное в центре. Проверить чтение при 56 px.",
+      "webCopies": [
+        "assets/research/web/research_bio_procedure.webp"
+      ]
+    },
+    {
+      "id": "ART016_RESEARCH_SEDATIVE_SYNTH",
+      "file": "assets/research/research_sedative_synth.png",
+      "category": "research",
+      "role": "Исследование: Синтез седативных зарядов; ветка Военные системы",
+      "status": "approved",
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "sha256": "d39eb2b17533c40ee618219d5f5ae877db80524ad41ae297493dac2a938b6603",
+      "source": "ART-016_DIRECTORATE_FOR_CHATGPT.md; generated master visual, 2026-11-09",
+      "approvedBy": "Dmitry (2026-11-09)",
+      "notes": "Иллюстрация предмета из отдельной ячейки исходного арт-листа; фон по внешним краям #141922; важное в центре. Проверить чтение при 56 px.",
+      "webCopies": [
+        "assets/research/web/research_sedative_synth.webp"
+      ]
+    },
+    {
+      "id": "ART016_RESEARCH_ASSAULT_SHIELD",
+      "file": "assets/research/research_assault_shield.png",
+      "category": "research",
+      "role": "Исследование: Штурмовой щит; ветка Военные системы",
+      "status": "approved",
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "sha256": "64891c71ffdf54939178c12239db7604ddb6169fb35f898bed14b6ca94c2ee9b",
+      "source": "ART-016_DIRECTORATE_FOR_CHATGPT.md; generated master visual, 2026-11-09",
+      "approvedBy": "Dmitry (2026-11-09)",
+      "notes": "Иллюстрация предмета из отдельной ячейки исходного арт-листа; фон по внешним краям #141922; важное в центре. Проверить чтение при 56 px.",
+      "webCopies": [
+        "assets/research/web/research_assault_shield.webp"
+      ]
+    },
+    {
+      "id": "ART016_RESEARCH_FORECAST_MODEL",
+      "file": "assets/research/research_forecast_model.png",
+      "category": "research",
+      "role": "Исследование: Модель оперативного прогноза; ветка Аналитика",
+      "status": "approved",
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "sha256": "b9d4ac6247517321e206c282d5d0b90f7f5be1e4f5c9ef493c1c7ac25f9fc097",
+      "source": "ART-016_DIRECTORATE_FOR_CHATGPT.md; generated master visual, 2026-11-09",
+      "approvedBy": "Dmitry (2026-11-09)",
+      "notes": "Иллюстрация предмета из отдельной ячейки исходного арт-листа; фон по внешним краям #141922; важное в центре. Проверить чтение при 56 px.",
+      "webCopies": [
+        "assets/research/web/research_forecast_model.webp"
+      ]
+    },
+    {
+      "id": "ART016_RESEARCH_UZEL",
+      "file": "assets/research/research_uzel.png",
+      "category": "research",
+      "role": "Исследование: «Узел»; ветка Аналитика",
+      "status": "approved",
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "sha256": "47076a5b408c20d48fa79d90899e656709a5165a8343c4273a04fc3f13dfbba7",
+      "source": "ART-016_DIRECTORATE_FOR_CHATGPT.md; generated master visual, 2026-11-09",
+      "approvedBy": "Dmitry (2026-11-09)",
+      "notes": "Иллюстрация предмета из отдельной ячейки исходного арт-листа; фон по внешним краям #141922; важное в центре. Проверить чтение при 56 px.",
+      "webCopies": [
+        "assets/research/web/research_uzel.webp"
+      ]
+    },
+    {
+      "id": "ART016_RESEARCH_MIRROR_M",
+      "file": "assets/research/research_mirror_m.png",
+      "category": "research",
+      "role": "Исследование: «Зеркало-М»; ветка Контрразведка",
+      "status": "approved",
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "sha256": "387306c8792877419b49ac04ffa9899f2e8d77f19ae7e73db4135a0f993e9f12",
+      "source": "ART-016_DIRECTORATE_FOR_CHATGPT.md; generated master visual, 2026-11-09",
+      "approvedBy": "Dmitry (2026-11-09)",
+      "notes": "Иллюстрация предмета из отдельной ячейки исходного арт-листа; фон по внешним краям #141922; важное в центре. Проверить чтение при 56 px.",
+      "webCopies": [
+        "assets/research/web/research_mirror_m.webp"
+      ]
+    },
+    {
       "id": "M00B_CLEAN_MASTER_1672X941",
       "file": "assets/menu/m00b/background/m00b_clean_master_1672x941.png",
       "category": "menu",

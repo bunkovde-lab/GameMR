@@ -33,3 +33,22 @@ test('infrastructure: queuing an upgrade reserves money without spending it', as
   await expect(page.getByTestId('hud')).toContainText('105');
   await page.screenshot({ path: `test-results/screens/w7-finance-${info.project.name}.png` });
 });
+
+test('ART-016: every facility card has its room strip and every project its object thumbnail', async ({ page }, info) => {
+  await page.getByTestId('dir-tab-infra').click();
+  const strips = page.locator('[data-testid^="fac-art-"]');
+  await expect(strips).toHaveCount(8);
+  for (const id of ['ops', 'lab', 'medical', 'analytics', 'detention', 'tech', 'training', 'archive']) {
+    const el = page.getByTestId(`fac-art-${id}`);
+    await expect(el).toHaveAttribute('style', /url\(/);
+    const b = (await el.boundingBox())!;
+    expect(b.height).toBeGreaterThanOrEqual(100);
+  }
+  await page.screenshot({ path: `test-results/screens/art016-infra-${info.project.name}.png`, fullPage: true });
+  await page.getByTestId('dir-tab-projects').click();
+  const thumbs = page.locator('img.res-thumb');
+  await expect(thumbs).toHaveCount(8);
+  await expect.poll(() => thumbs.evaluateAll((xs) => xs.every((x) => (x as HTMLImageElement).complete && (x as HTMLImageElement).naturalWidth === 128))).toBe(true);
+  await page.screenshot({ path: `test-results/screens/art016-projects-${info.project.name}.png`, fullPage: true });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});

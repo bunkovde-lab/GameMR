@@ -3,6 +3,7 @@ import { DISPATCH_RULES, forecastWord, incidentProfile, tacticById } from '../..
 import { buildRoute, etaMinutes } from '../../core/map/graph';
 import { districtById } from '../../core/map/mapConfig';
 import { houseText, lateKind, publicAftermath, templateOf } from '../../core/events';
+import { CASE_LINK_TEXT, incidentCaseLink } from '../../core/caseGuide';
 import { isOpen } from '../../core/selectors';
 import type { GameState } from '../../core/types';
 import { dispatch } from '../../store';
@@ -18,10 +19,11 @@ interface Props {
   onSelect: (s: Selection) => void;
   onPreview: (squadId: string | null) => void;
   onOpenDispatch: (incidentId: string, squadId: string | null) => void;
+  onOpenCase?: (caseId: string) => void;
 }
 
 /** Правая контекстная карточка: открывается только при выборе объекта (ТЗ §3.1). */
-export function ContextPanel({ game, selection, onClose, onSelect, onPreview, onOpenDispatch }: Props) {
+export function ContextPanel({ game, selection, onClose, onSelect, onPreview, onOpenDispatch, onOpenCase }: Props) {
   return (
     <aside className="panel right-panel" aria-label="Карточка" data-testid="right-panel">
       <div className="panel-header">
@@ -29,7 +31,7 @@ export function ContextPanel({ game, selection, onClose, onSelect, onPreview, on
         <button className="btn icon-only" onClick={onClose} aria-label="Закрыть карточку"><Icon name="close" /></button>
       </div>
       <div className="panel-body card-body">
-        {selection.kind === 'incident' && <IncidentCard game={game} id={selection.id} onPreview={onPreview} onSelect={onSelect} onOpenDispatch={onOpenDispatch} />}
+        {selection.kind === 'incident' && <IncidentCard game={game} id={selection.id} onPreview={onPreview} onSelect={onSelect} onOpenDispatch={onOpenDispatch} onOpenCase={onOpenCase} />}
         {selection.kind === 'district' && <DistrictCard game={game} id={selection.id} onSelect={onSelect} />}
         {selection.kind === 'squad' && <SquadCard game={game} id={selection.id} onSelect={onSelect} />}
       </div>
@@ -37,7 +39,7 @@ export function ContextPanel({ game, selection, onClose, onSelect, onPreview, on
   );
 }
 
-function IncidentCard({ game, id, onPreview, onSelect, onOpenDispatch }: { game: GameState; id: string; onPreview: Props['onPreview']; onSelect: Props['onSelect']; onOpenDispatch: Props['onOpenDispatch'] }) {
+function IncidentCard({ game, id, onPreview, onSelect, onOpenDispatch, onOpenCase }: { game: GameState; id: string; onPreview: Props['onPreview']; onSelect: Props['onSelect']; onOpenDispatch: Props['onOpenDispatch']; onOpenCase?: Props['onOpenCase'] }) {
   const inc = game.incidents.find((i) => i.id === id);
   if (!inc) return <p className="empty">Вызов закрыт или не найден.</p>;
   const district = districtById(inc.districtId)!;
@@ -53,6 +55,21 @@ function IncidentCard({ game, id, onPreview, onSelect, onOpenDispatch }: { game:
         {district.name} · <span className={`sev-text sev-${inc.severity}`}>{SEVERITY_LABEL[inc.severity]}</span> · <span data-testid="card-class">{DISPATCH_RULES.classes[prof.incidentClass].label}</span>
       </p>
       {prof.known && <p className="known">{houseText(prof.known)}</p>}
+      {(() => {
+        // Вызов из сюжета расследования: предыстория дела и что даст выезд (без скрытой правды).
+        const link = incidentCaseLink(game, inc);
+        if (!link) return null;
+        return (
+          <div className="case-link-box" data-testid="card-case-link">
+            <h4><Icon name="search" /> Дело №{link.number} «{link.title}»</h4>
+            <p><b>Предыстория.</b> {link.backstory}</p>
+            <p className="muted">{CASE_LINK_TEXT[link.mode]}</p>
+            {link.mode !== 'opens' && link.mode !== 'pending' && onOpenCase && (
+              <button className="btn" onClick={() => onOpenCase(link.caseId)} data-testid="card-open-case"><Icon name="folder" /> Открыть дело</button>
+            )}
+          </div>
+        );
+      })()}
       {(() => {
         // W10: что будет при опоздании и что на кону (без скрытой правды и без строк о деле).
         const t = templateOf(inc);

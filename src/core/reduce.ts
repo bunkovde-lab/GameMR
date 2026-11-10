@@ -29,6 +29,7 @@ import { activeOp, advanceOps, chooseOpOption, opDef, optionBlocker, startOp, st
 import { buildRoute, shortestPath } from './map/graph';
 import { districtById, edgeById, spawnPosition } from './map/mapConfig';
 import { nextInt } from './rng';
+import { isAway, leaveSquad, returnHome } from './squadHome';
 import { DEPLOYED, aliveStaff, citySafety, isOpen } from './selectors';
 import type { Command, CommandResult, GameState, Incident, Squad, Transaction, TransactionKind } from './types';
 
@@ -73,6 +74,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
       if (activeOp(s)) return reject(`Идёт особая операция «${opDef(activeOp(s)!.id)!.title}»: примите решение.`);
       // Новый вызов ставит игру на паузу (s.paused) — оставшиеся минуты этого шага не идут.
       for (let i = 0; i < command.minutes && s.phase === 'ACTIVE' && !s.paused && !pendingDecision(s); i++) advanceMinute(s);
+      returnHome(s, staffLog(s));
       return { ok: true, state: s };
     }
     case 'CHOOSE_OPTION': {
@@ -116,6 +118,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
         return reject(`В отряде «${target.name}» нет свободных мест.`);
       if (current) current.memberIds = current.memberIds.filter((id) => id !== person.id);
       target.memberIds.push(person.id);
+      person.home = null;
       log(s, 'staff_transferred', `${person.name} переведён(а) в отряд «${target.name}».`, [person.id]);
       return { ok: true, state: s };
     }
@@ -157,6 +160,11 @@ export function reduce(state: GameState, command: Command): CommandResult {
       }
       const cohesion = forecastTerms(s, draft).C;
       // Ручной состав: выбранные переходят в этот отряд, не поехавшие остаются в резерве без отряда.
+      // Кто не поехал из-за ранения, лечения или учёбы — помнит своё место и вернётся сам.
+      for (const id of [...sq.memberIds]) {
+        const p = s.staff.find((x) => x.id === id);
+        if (p && !memberIds.includes(id) && isAway(s, id, sq.id)) leaveSquad(p, sq);
+      }
       for (const q of s.squads) if (q.id !== sq.id) q.memberIds = q.memberIds.filter((id) => !memberIds.includes(id));
       sq.memberIds = [...memberIds];
       for (const id of equipmentIds) {
@@ -192,8 +200,14 @@ export function reduce(state: GameState, command: Command): CommandResult {
       const sq = squadOf(s, person.id);
       if (!sq) return reject(`${person.name} уже в резерве.`);
       if (DEPLOYED.includes(sq.status)) return reject(`${person.name} на задании в отряде «${sq.name}»; перевод после возвращения.`);
+      if (isAway(s, person.id, sq.id)) {
+        leaveSquad(person, sq);
+        log(s, 'staff_transferred', `${person.name} переведён(а) в резерв; вернётся в отряд «${sq.name}», когда будет годен(на).`, [person.id]);
+        return { ok: true, state: s };
+      }
       sq.memberIds = sq.memberIds.filter((id) => id !== person.id);
       if (sq.commanderId === person.id) sq.commanderId = null;
+      person.home = null;
       log(s, 'staff_transferred', `${person.name} переведён(а) в резерв.`, [person.id]);
       return { ok: true, state: s };
     }
@@ -207,8 +221,15 @@ export function reduce(state: GameState, command: Command): CommandResult {
       if (squadOf(s, inn.id)) return reject(`${inn.name} не в резерве.`);
       if (['dead', 'missing', 'critical', 'serious_injury'].includes(inn.health))
         return reject(`${inn.name} не допущен(а) к службе по состоянию.`);
+      inn.home = null;
+      if (isAway(s, out.id, sq.id)) {
+        leaveSquad(out, sq, inn.id);
+        log(s, 'staff_transferred', `${inn.name} подменяет ${out.name} в отряде «${sq.name}»; ${out.name} вернётся на своё место, когда будет годен(на).`, [out.id, inn.id]);
+        return { ok: true, state: s };
+      }
       sq.memberIds = sq.memberIds.map((id) => (id === out.id ? inn.id : id));
       if (sq.commanderId === out.id) sq.commanderId = null;
+      out.home = null;
       log(s, 'staff_transferred', `${out.name} переведён(а) в резерв, ${inn.name} — в отряд «${sq.name}».`, [out.id, inn.id]);
       return { ok: true, state: s };
     }
@@ -263,7 +284,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
       const shifts = n.shifts > 1 ? Math.max(1, n.shifts - courseShiftsCut(s)) : n.shifts;
       p.training = { nodeId: n.id, shiftsLeft: shifts };
       const sq = squadOf(s, p.id);
-      if (sq) { sq.memberIds = sq.memberIds.filter((id) => id !== p.id); if (sq.commanderId === p.id) sq.commanderId = null; }
+      if (sq) leaveSquad(p, sq);
       post(s, 'training', -toCents(n.cost), `Курс «${n.label}»: ${p.name}`);
       log(s, 'course_started', `${p.name} направлен(а) на курс «${n.label}» (${shifts} смен.), выведен(а) в резерв.`, [p.id]);
       return { ok: true, state: s };
@@ -285,7 +306,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
       const p = s.staff.find((x) => x.id === command.staffId)!;
       const o = organById(command.organId)!;
       const sq = squadOf(s, p.id);
-      if (sq) { sq.memberIds = sq.memberIds.filter((id) => id !== p.id); if (sq.commanderId === p.id) sq.commanderId = null; }
+      if (sq) leaveSquad(p, sq);
       s.medical.patients.push({ staffId: p.id, plan: 'standard', status: 'treating', shiftsLeft: o.shifts, injury: p.health, since: s.shift, kind: 'implant', organId: o.id });
       post(s, 'implant', -toCents(o.cost), `Установка органа «${o.label}»: ${p.name}`);
       log(s, 'implant_started', `${p.name}: установка «${o.label}», реабилитация ${o.shifts} смен., выведен(а) в резерв.`, [p.id]);
@@ -336,7 +357,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
       if (why) return reject(why);
       const p = s.staff.find((x) => x.id === command.researcherId)!;
       const sq = squadOf(s, p.id);
-      if (sq) { sq.memberIds = sq.memberIds.filter((id) => id !== p.id); if (sq.commanderId === p.id) sq.commanderId = null; }
+      if (sq) leaveSquad(p, sq);
       s.research = s.research.filter((x) => x.id !== command.projectId);
       s.research.push(makeProject(s, command.projectId, command.protocol, p.id));
       refreshResearch(s);
@@ -350,6 +371,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
       s.research = s.research.filter((x) => x !== pr);
       refreshResearch(s);
       log(s, 'research_cancelled', `Исследование «${projectDef(pr.id)?.label}» остановлено; затраты не возвращаются.`, [pr.researcherId]);
+      returnHome(s, staffLog(s));
       return { ok: true, state: s };
     }
     case 'FABRICATE': {
@@ -626,6 +648,8 @@ export function reduce(state: GameState, command: Command): CommandResult {
       }
       // Незакрытые вызовы переносятся (ТЗ §2.2, SHIFT-01): их срок отсчитывается заново от начала новой смены.
       for (const inc of s.incidents) if (isOpen(inc)) inc.deadlineMinute = Math.max(0, inc.deadlineMinute - BALANCE.shift.lengthMinutes);
+      // Выздоровевшие и окончившие курс возвращаются на свои места в отрядах.
+      returnHome(s, staffLog(s));
       spawnIncidents(s, BALANCE.incidentsPerNewShift);
       refreshCandidates(s);
       beginStoryShift(s, (t, x) => log(s, t, x));

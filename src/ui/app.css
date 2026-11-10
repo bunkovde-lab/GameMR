@@ -1038,3 +1038,15 @@ img.nav-art { width: 30px; height: 30px; object-fit: contain; flex-shrink: 0; po
   .rel-row { grid-template-columns: 1fr 1fr 1fr; }
   .rel-row .rel-who { grid-column: 1 / -1; }
 }
+/* Модификации — та же раскладка, что у развития: ветки по системам организма. */
+.mods-tree { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.mods-tree .skill-branch { padding: 8px 4px; gap: 8px; }
+.mods-tree .skill-branch header b { font-size: 13px; line-height: 1.2; }
+.mods-tree .skill-branch.innate { background: #0d1a2033; border-color: #2c4651; }
+.mods-tree .skill-node { width: 56px; height: 56px; border-radius: 10px; }
+.mods-tree .skill-node .icon { width: 26px; height: 26px; }
+.mods-tree .skill-caption { font-size: 12px; max-width: 110px; }
+.skill-path.loose { gap: 10px; }
+.skill-path.loose .tile-step + .tile-step::before { display: none; }
+.load-meter span { background: var(--cyan); }
+@media (max-width: 950px) { .mods-tree { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

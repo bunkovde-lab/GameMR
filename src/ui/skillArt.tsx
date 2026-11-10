@@ -25,3 +25,23 @@ export function SkillArt({ id }: { id: string }) {
   if (url) return <img className="skill-img" src={url} alt="" draggable={false} />;
   return <span className="skill-ph"><Icon name={PLACEHOLDER[id] ?? 'book'} /></span>;
 }
+
+/**
+ * Значки органов и врождённых систем (ART-022): assets/ui/organs/organ_<id>.png или .webp.
+ * Пока файла нет — иконка ART-007 по смыслу.
+ */
+const organFiles = import.meta.glob('../../assets/ui/organs/organ_*.{png,webp}', { eager: true, import: 'default' }) as Record<string, string>;
+const ORGAN_ART: Record<string, string> = {};
+for (const [path, url] of Object.entries(organFiles)) {
+  const id = /organ_([a-z0-9_]+)\.(png|webp)$/.exec(path)?.[1];
+  if (id) ORGAN_ART[id] = url;
+}
+const ORGAN_PLACEHOLDER: Record<string, IconName> = {
+  org_scent: 'search', org_trace: 'beaker', org_dermal: 'shield', org_adapt: 'heart',
+  innate_core: 'person', line_sense: 'eye', line_assay: 'medical',
+};
+export function OrganArt({ id }: { id: string }) {
+  const url = ORGAN_ART[id];
+  if (url) return <img className="skill-img" src={url} alt="" draggable={false} />;
+  return <span className="skill-ph"><Icon name={ORGAN_PLACEHOLDER[id] ?? 'beaker'} /></span>;
+}

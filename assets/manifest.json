@@ -2487,6 +2487,84 @@
       "source": "GameMR_M00B_Claude_Handoff_v1.zip (главный художник, 2026-11-09), импорт scripts/import_m00b_assets.py",
       "approvedBy": null,
       "notes": "Статус в пакете: draft. Утверждённая концепция M00-B; реализация меню ждёт приёмки."
+    },
+    {
+      "id": "NAV_MAP_MEDALLION",
+      "file": "assets/ui/nav/nav_map.png",
+      "category": "ui",
+      "role": "ART-021: медальон навигации — Карта",
+      "status": "approved",
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "source": "GameMR_ART021_6_nav_icons_REVIEW.zip; ChatGPT art direction; source approved 2026-11-10",
+      "approvedBy": "Дмитрий",
+      "notes": "Исходный PNG без изменений. Игра автоматически подхватывает после появления файла; код отвечает за выбранность/блокировку иконки."
+    },
+    {
+      "id": "NAV_STAFF_MEDALLION",
+      "file": "assets/ui/nav/nav_staff.png",
+      "category": "ui",
+      "role": "ART-021: медальон навигации — Кадры",
+      "status": "approved",
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "source": "GameMR_ART021_6_nav_icons_REVIEW.zip; ChatGPT art direction; source approved 2026-11-10",
+      "approvedBy": "Дмитрий",
+      "notes": "Исходный PNG без изменений. Игра автоматически подхватывает после появления файла; код отвечает за выбранность/блокировку иконки."
+    },
+    {
+      "id": "NAV_INVESTIGATIONS_MEDALLION",
+      "file": "assets/ui/nav/nav_investigations.png",
+      "category": "ui",
+      "role": "ART-021: медальон навигации — Расследования",
+      "status": "approved",
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "source": "GameMR_ART021_6_nav_icons_REVIEW.zip; ChatGPT art direction; source approved 2026-11-10",
+      "approvedBy": "Дмитрий",
+      "notes": "Исходный PNG без изменений. Игра автоматически подхватывает после появления файла; код отвечает за выбранность/блокировку иконки."
+    },
+    {
+      "id": "NAV_END_SHIFT_MEDALLION",
+      "file": "assets/ui/nav/nav_end_shift.png",
+      "category": "ui",
+      "role": "ART-021: медальон навигации — Завершить смену",
+      "status": "approved",
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "source": "GameMR_ART021_6_nav_icons_REVIEW.zip; ChatGPT art direction; source approved 2026-11-10",
+      "approvedBy": "Дмитрий",
+      "notes": "Исходный PNG без изменений. Игра автоматически подхватывает после появления файла; код отвечает за выбранность/блокировку иконки."
+    },
+    {
+      "id": "NAV_SAVES_MEDALLION",
+      "file": "assets/ui/nav/nav_saves.png",
+      "category": "ui",
+      "role": "ART-021: медальон навигации — Сохранения",
+      "status": "approved",
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "source": "GameMR_ART021_6_nav_icons_REVIEW.zip; ChatGPT art direction; source approved 2026-11-10",
+      "approvedBy": "Дмитрий",
+      "notes": "Исходный PNG без изменений. Игра автоматически подхватывает после появления файла; код отвечает за выбранность/блокировку иконки."
+    },
+    {
+      "id": "NAV_DIRECTORATE_ALTERNATIVE",
+      "file": "art_refs/nav/nav_directorate_alternative.png",
+      "category": "ui",
+      "role": "ART-021: медальон навигации — Дирекция (альтернативный медальон — не замена действующего герба)",
+      "status": "approved",
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "source": "GameMR_ART021_6_nav_icons_REVIEW.zip; ChatGPT art direction; source approved 2026-11-10",
+      "approvedBy": "Дмитрий",
+      "notes": "Альтернативный медальон одобрен, но не подменяет assets/ui/kit_v2/crest_directorate.png; не размещать в assets/ui/nav/nav_directorate.png без отдельного решения"
     }
   ]
 }

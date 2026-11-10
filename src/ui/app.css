@@ -776,3 +776,15 @@ td.bad { color: var(--bad); }
 .music-volume { flex: 1; min-width: 180px; display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
 .music-volume input[type='range'] { width: 100%; min-height: var(--tap); accent-color: var(--gold); touch-action: pan-x; }
 .music-hint { color: var(--muted); }
+
+/* ART-017: гербы Домов. Карточка Дома: герб слева, текст справа; на узком экране герб меньше. */
+.house-crest { flex: none; object-fit: contain; vertical-align: middle; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .55)); user-select: none; }
+.house-card { display: grid; grid-template-columns: 96px 1fr; column-gap: 12px; align-content: start; }
+.house-card > .house-crest { grid-row: 1 / span 4; width: 96px; height: 96px; }
+.house-card > :not(.house-crest) { grid-column: 2; }
+.with-crest { display: inline-flex; align-items: center; gap: 6px; }
+.permit-row small .house-crest { margin-right: 6px; vertical-align: -6px; }
+@media (max-width: 600px), (max-height: 560px) {
+  .house-card { grid-template-columns: 64px 1fr; column-gap: 10px; }
+  .house-card > .house-crest { width: 64px; height: 64px; }
+}

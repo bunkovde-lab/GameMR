@@ -61,3 +61,16 @@ export function ArtSlot({ artKey, label, className = '', children }: { artKey: s
     </div>
   );
 }
+
+/** ART-017: гербы шести Домов (webp-копии 256 и 64 px из scripts/build_crests.py), по ID h1…h6. */
+const crestFiles = import.meta.glob('../../assets/houses/web/crest_h*.webp', { eager: true, import: 'default' }) as Record<string, string>;
+const CREST: Record<string, string> = {};
+for (const [path, url] of Object.entries(crestFiles)) { const m = /\/crest_(h\d)_(\d+)\.webp$/.exec(path); if (m) CREST[`${m[1]}_${m[2]}`] = url; }
+export const houseCrestUrl = (houseId: string, size: 64 | 256 = 256): string | undefined => CREST[`${houseId}_${size}`];
+
+/** Герб Дома. Маленький (до 48 px) берёт копию 64 px, крупный — 256 px. Без файла не рисуется ничего. */
+export function HouseCrest({ houseId, size = 32, label }: { houseId: string; size?: number; label?: string }) {
+  const url = houseCrestUrl(houseId, size <= 48 ? 64 : 256);
+  if (!url) return null;
+  return <img className="house-crest" src={url} width={size} height={size} alt={label ? `Герб: ${label}` : ''} aria-hidden={label ? undefined : true} draggable={false} data-testid={`crest-${houseId}`} />;
+}

@@ -5,6 +5,8 @@ import type { GameState, OperationReport } from '../../core/types';
 import { dispatch } from '../../store';
 import { Modal } from '../Modal';
 import { Portrait } from '../Portrait';
+import { ArtSlot, artUrl } from '../art';
+import { templateById } from '../../core/events';
 
 const OUTCOME: Record<OperationReport['outcome'], { label: string; tone: string }> = {
   success: { label: 'Успех', tone: 'good' },
@@ -29,6 +31,7 @@ export function DecisionDialog({ game }: { game: GameState }) {
       testId="decision-dialog"
       className="wide"
     >
+      <SceneBand templateId={p.incident.templateId} title={p.incident.title} />
       <p className="hint">Время остановлено до приказа.</p>
       <blockquote className={`report-quote${commander ? ' with-face' : ''}`}>
         {commander && <Portrait id={commander.id} name={commander.name} health={commander.health} size="sm" />}
@@ -75,7 +78,11 @@ export function OperationReportDialog({ game }: { game: GameState }) {
       className="wide"
       footer={<button className="btn primary" onClick={ack} data-testid="ack-report">Принято</button>}
     >
+      <SceneBand templateId={game.incidents.find((i) => i.id === r.incidentId)?.templateId} title={r.incidentTitle} short />
       <p className={`outcome ${o.tone}`} data-testid="report-outcome">{o.label}</p>
+      {r.findings?.length ? (
+        <ul className="plain-list findings" data-testid="report-findings">{r.findings.map((x) => <li key={x}>{x}</li>)}</ul>
+      ) : null}
       <div className="report-grid">
         <section>
           <h4 className="section-title">Задачи</h4>
@@ -116,6 +123,13 @@ export function OperationReportDialog({ game }: { game: GameState }) {
       </div>
     </Modal>
   );
+}
+
+/** W10: сцена ART-015 у сложных и особых событий (у рядовых сцены нет). */
+function SceneBand({ templateId, title, short }: { templateId?: string; title: string; short?: boolean }) {
+  const scene = templateId ? templateById(templateId)?.scene : null;
+  if (!scene || !artUrl(scene)) return null;
+  return <ArtSlot artKey={scene} label={`Сцена: ${title}`} className={`op-art${short ? ' short' : ''}`} />;
 }
 
 const signed = (v: number) => (v > 0 ? `+${v}` : v < 0 ? `−${-v}` : '0');

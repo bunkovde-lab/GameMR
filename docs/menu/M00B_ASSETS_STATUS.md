@@ -2,6 +2,8 @@
 
 **Дата:** 09.11.2026 · **Проект:** GameMR · **Утверждённая композиция:** «Наблюдательный рубеж».
 
+> **Обновление 10.11.2026 (Claude Code):** пакет `GameMR_M00B_Claude_Handoff_v1.zip` импортирован в ветку `claude/project-thread-n44j1r` скриптом, SHA-256 сверены; файлы лежат в `assets/menu/m00b/`. Подробности — [M00B_IMPLEMENTATION.md](M00B_IMPLEMENTATION.md). Раздел ниже описывает состояние до импорта.
+
 ## Что действительно есть в этой ветке GitHub
 
 - `docs/menu/CLAUDE_MAIN_MENU_M00B.md` — подробное задание Claude Code (дизайн, React/Vite, анимация, сохранения, тесты).

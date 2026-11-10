@@ -1,12 +1,17 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
-import mapUrl from '../../../assets/approved_map_original_1672x941.png';
+import mapUrl from '../../../assets/map/web/city_topdown_day.webp';
+import mapNightUrl from '../../../assets/map/web/city_topdown_night.webp';
 import { buildRoute, routePolyline } from '../../core/map/graph';
 import { MAP, districtById, nodePosition, type Point } from '../../core/map/mapConfig';
 import { isOpen } from '../../core/selectors';
 import type { GameState } from '../../core/types';
 import { Icon } from '../Icon';
 import { SQUAD_STATUS } from '../labels';
-import type { LayerId, Selection } from '../uiState';
+import { BALANCE } from '../../core/content';
+import { NARROW_PX, type LayerId, type Selection } from '../uiState';
+import { getSubMinute } from '../useGameLoop';
+import { MOOD_LABEL, WEATHER_LABEL, districtMood, loadEffectsLevel, nightLevel, weatherForShift, weatherIntensity, type EffectsLevel } from './cityLife';
+import { MapLife } from './MapLife';
 import { DEFAULT_SAFE, clampCamera, ensureVisible, transform, worldToScreen, zoomAt, type Camera, type Viewport, W, H } from './camera';
 import { MarkerIcon, markerArtUrl } from '../art';
 import { CLUSTER_MARKER, INCIDENT_ICON, INCIDENT_MARKER, SQUAD_MARKER, incidentPoint, squadPoint } from './entities';
@@ -36,12 +41,15 @@ interface DragState { pointers: Map<number, Point>; start: Point; cam: Camera; m
 const toSvg = (p: Point) => `${p[0] * W},${p[1] * H}`;
 
 /**
- * Карта W3: утверждённый арт + SVG-слой геометрии в одной матрице, маркеры — в экранном слое
+ * Карта ART-019 (вид сверху, день/ночь) поверх геометрии W3: арт + SVG-слой геометрии в одной матрице, маркеры — в экранном слое
  * постоянного размера (44 px), позиции через worldToScreen.
  */
 export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen, onSelect, onToggleLayer, onOpenLeftPanel }: Props) {
   const ref = useRef<HTMLDivElement>(null);
-  const [vp, setVp] = useState<Viewport>({ w: 0, h: 0 });
+  const [size, setSize] = useState({ w: 0, h: 0 });
+  const [fitLeft, setFitLeft] = useState(0);
+  const [effects, setEffects] = useState<EffectsLevel>(loadEffectsLevel);
+  const [, setFrame] = useState(0);
   const [cam, setCam] = useState<Camera>({ zoom: 1, panX: 0, panY: 0 });
   const [artProblem, setArtProblem] = useState<string | null>(null);
   const [hoverDistrict, setHoverDistrict] = useState<string | null>(null);
@@ -51,7 +59,7 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
 
   useLayoutEffect(() => {
     const el = ref.current!;
-    const measure = () => setVp({ w: el.clientWidth, h: el.clientHeight });
+    const measure = () => setSize({ w: el.clientWidth, h: el.clientHeight });
     measure();
     if (typeof ResizeObserver === 'undefined') {
       window.addEventListener('resize', measure);
@@ -61,6 +69,34 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+
+  // ART-019: весь город помещается в свободную часть окна (справа от открытой панели вызовов на широком экране).
+  useLayoutEffect(() => {
+    const stage = ref.current?.getBoundingClientRect();
+    const left = leftPanelOpen && window.innerWidth >= NARROW_PX ? document.querySelector('.left-panel')?.getBoundingClientRect() : undefined;
+    setFitLeft(stage && left ? Math.max(0, Math.round(left.right - stage.left + 6)) : 0);
+  }, [leftPanelOpen, size.w, size.h]);
+  const vp = useMemo<Viewport>(() => ({ w: size.w, h: size.h, fit: { x: fitLeft, y: 0, w: Math.max(1, size.w - fitLeft), h: size.h } }), [size.w, size.h, fitLeft]);
+
+  useEffect(() => {
+    const on = (e: Event) => setEffects((e as CustomEvent<EffectsLevel>).detail);
+    window.addEventListener('gamemr:effects', on);
+    return () => window.removeEventListener('gamemr:effects', on);
+  }, []);
+
+  // Плавное движение отрядов между игровыми минутами: перерисовка ~30 кадров/с, пока кто-то едет.
+  const anyMoving = game.phase === 'ACTIVE' && !game.paused && game.squads.some((q) => q.movement && (q.status === 'en_route' || q.status === 'returning'));
+  useEffect(() => {
+    if (!anyMoving) return;
+    let raf = 0, lastT = 0;
+    const loop = (now: number) => {
+      raf = requestAnimationFrame(loop);
+      if (now - lastT >= 33) { lastT = now; setFrame((f) => (f + 1) % 1e6); }
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [anyMoving]);
+  const sub = anyMoving ? getSubMinute() : 0;
 
   // Размер окна изменился → удерживаем камеру в допустимых пределах (MAP-034).
   useEffect(() => { if (vp.w) setCam((c) => clampCamera(c, vp)); }, [vp]);
@@ -185,11 +221,17 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
     return lines;
   }, [game, selection, selIncident, previewSquadId]);
 
+  const clockStart = BALANCE.shift.startClockMinute;
+  const night = nightLevel(clockStart + game.minute + sub);
+  const weather = weatherForShift(game.seed, game.shift);
+  const weatherOn = game.phase === 'ACTIVE' && weatherIntensity(weather, game.minute) > 0.05;
+  const hot = game.districts.filter((d) => districtMood(d.safety) !== 'calm');
+
   const visibleSquads = game.squads.filter((q) => layers.patrols || ['en_route', 'on_scene', 'returning'].includes(q.status) || (selection?.kind === 'squad' && selection.id === q.id));
   const squadOffsets = new Map<string, number>();
   const seen = new Map<string, number>();
   for (const q of visibleSquads) {
-    const p = squadPoint(game, q);
+    const p = squadPoint(game, q, sub);
     const key = `${p[0].toFixed(3)},${p[1].toFixed(3)}`;
     const n = seen.get(key) ?? 0;
     squadOffsets.set(q.id, n);
@@ -205,6 +247,7 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
       onPointerDown={onPointerDown}
       onClickCapture={clickGuard}
     >
+      <img className="map-backdrop" src={mapNightUrl} alt="" aria-hidden="true" draggable={false} />
       {vp.w > 0 && (
         <div
           className="map-world"
@@ -215,7 +258,7 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
             src={mapUrl}
             width={W}
             height={H}
-            alt="Утверждённая карта города Карвен: шесть районов"
+            alt="Карта города Карвен, вид сверху: шесть районов"
             draggable={false}
             data-testid="map-image"
             onClick={() => onSelect(null)}
@@ -225,6 +268,19 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
                 setArtProblem(`Изображение карты ${img.naturalWidth}×${img.naturalHeight} не совпадает с конфигом ${MAP.art.width}×${MAP.art.height}. Метки отключены.`);
             }}
             onError={() => setArtProblem('Не удалось загрузить изображение карты.')}
+          />
+          <img
+            className="map-night"
+            src={mapNightUrl}
+            width={W}
+            height={H}
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+            data-testid="map-night"
+            data-night={night.toFixed(2)}
+            style={{ opacity: night }}
+            onClick={() => onSelect(null)}
           />
           {anchorsOn && (
             <svg className="map-geo" viewBox={`0 0 ${W} ${H}`} width={W} height={H}>
@@ -255,6 +311,10 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
             </svg>
           )}
         </div>
+      )}
+
+      {vp.w > 0 && (
+        <MapLife game={game} transform={t} width={vp.w} height={vp.h} level={effects} clockStart={clockStart} />
       )}
 
       {anchorsOn && vp.w > 0 && (
@@ -329,7 +389,7 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
             );
           })()}
           {visibleSquads.map((q) => {
-            const [x, y] = screen(squadPoint(game, q));
+            const [x, y] = screen(squadPoint(game, q, sub));
             const off = (squadOffsets.get(q.id) ?? 0) * 46;
             if (!onStage([x + 30 + off, y - 22])) return null;
             const st = SQUAD_STATUS[q.status];
@@ -351,6 +411,11 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
         </div>
       )}
 
+      <div className="map-ambient" data-testid="map-ambient" aria-live="off">
+        <span>{night > 0.6 ? 'Ночь' : night > 0.15 ? (game.minute < 120 ? 'Рассвет' : 'Сумерки') : 'День'}</span>
+        {weatherOn && <span data-testid="map-weather">{WEATHER_LABEL[weather.kind]}</span>}
+        {hot.length > 0 && <span className="hot" title={hot.map((d) => `${d.name}: ${MOOD_LABEL[districtMood(d.safety)]}`).join('\n')}>Неспокойно: {hot.length}</span>}
+      </div>
       {artProblem && <div className="map-warning" role="alert">{artProblem}</div>}
       {expandedCluster && layers.events && expandedCluster.split('|').some((id) => openIncidents.some((i) => i.id === id)) && (
         <button className="btn cluster-collapse" onClick={() => setExpandedCluster(null)} data-testid="cluster-collapse">Свернуть группу вызовов</button>

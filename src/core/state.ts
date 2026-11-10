@@ -4,7 +4,7 @@ import { initialCampaign } from './flags';
 import { allegianceStart, initialRelations } from './career';
 import { initialFacilities } from './facilities';
 import { RESEARCH } from './research';
-import { BALANCE, DISTRICTS, INCIDENT_TEMPLATES, SQUAD_MEMBERS, SQUADS_DEMO, STAFF_START, toCents } from './content';
+import { BALANCE, DISTRICTS, START_INCIDENTS, SQUAD_MEMBERS, SQUADS_DEMO, STAFF_START, toCents } from './content';
 import { bestCommander, computeForecast, initialEquipment, riskLevel } from './dispatch';
 import { seedRng } from './rng';
 import { refreshCandidates } from './staff';
@@ -14,7 +14,7 @@ export const DEFAULT_SEED = 2864;
 
 /** Начальное состояние кампании: смена 1, фаза брифинга. */
 export function createInitialState(seed: number = DEFAULT_SEED): GameState {
-  const incidents: Incident[] = INCIDENT_TEMPLATES.map((t) => {
+  const incidents: Incident[] = START_INCIDENTS.map((t) => {
     const onScene = SQUADS_DEMO.some((s) => s.assignedIncidentId === t.id && s.status === 'on_scene');
     const state: IncidentState = onScene ? 'on_scene' : 'new';
     return {

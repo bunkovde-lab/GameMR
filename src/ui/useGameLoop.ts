@@ -2,6 +2,10 @@ import { useEffect } from 'react';
 import { BALANCE } from '../core/content';
 import { dispatch, getGame } from '../store';
 
+/** Доля текущей игровой минуты (0..1) — только для плавной отрисовки движения и света, ядро её не видит. */
+let subMinute = 0;
+export const getSubMinute = () => subMinute;
+
 /**
  * Единственный источник хода времени: requestAnimationFrame копит реальные миллисекунды
  * и отправляет в ядро целые игровые минуты командой TICK. При паузе и в главном меню ничего не копится.
@@ -22,10 +26,14 @@ export function useGameLoop(enabled = true) {
         const minutes = Math.floor(acc / BALANCE.realMsPerGameMinuteAtX1);
         if (minutes > 0) {
           acc -= minutes * BALANCE.realMsPerGameMinuteAtX1;
-          dispatch({ type: 'TICK', minutes });
+          // Время не пошло (ждём решения по операции) — не копим долю минуты, иначе отряды «дрожат».
+          if (!dispatch({ type: 'TICK', minutes })) acc = 0;
         }
-      } else {
+        subMinute = acc / BALANCE.realMsPerGameMinuteAtX1;
+      } else if (g.phase !== 'ACTIVE') {
+        // Пауза сохраняет накопленную долю минуты: отряд на карте не откатывается назад.
         acc = 0;
+        subMinute = 0;
       }
       frame = requestAnimationFrame(step);
     };

@@ -21,7 +21,7 @@ export type SquadStatus =
 export type IncidentState =
   | 'new' | 'acknowledged' | 'assigned' | 'en_route' | 'on_scene'
   | 'resolved_success' | 'resolved_partial' | 'failed' | 'escalated' | 'expired';
-export type Severity = 'critical' | 'high' | 'medium';
+export type Severity = 'critical' | 'high' | 'medium' | 'low';
 export type DeadlineType = 'escalate' | 'expire' | 'branch';
 /** ТЗ §6.1: класс определяет формат разрешения, а не тяжесть */
 export type IncidentClass = 'routine' | 'complex' | 'special';
@@ -90,6 +90,8 @@ export interface OperationReport {
   fatigue: number;
   equipment: { id: string; label: string; state: EquipmentState }[];
   district: { safety: number; trust: number };
+  /** W10: что выяснилось на месте (скрытая правда процедурного события после успеха, передача в дело) */
+  findings?: string[];
   seen: boolean;
 }
 

@@ -19,10 +19,29 @@ const squad = (s: GameState, id: string) => s.squads.find((q) => q.id === id)!;
 const incident = (s: GameState, id: string) => s.incidents.find((i) => i.id === id)!;
 
 describe('approved map asset', () => {
-  it('MAP-001/002: PNG on disk matches the SHA-256 and size in map_config.json', () => {
-    const buf = readFileSync(MAP.art.file);
-    expect(createHash('sha256').update(buf).digest('hex')).toBe(MAP.art.sha256);
-    expect([buf.readUInt32BE(16), buf.readUInt32BE(20)]).toEqual([1672, 941]);
+  it('MAP-001/002 (ART-019): day and night PNG match the SHA-256 and size in map_config.json', () => {
+    const art = MAP.art as typeof MAP.art & { nightFile: string; nightSha256: string };
+    for (const [file, sha] of [[art.file, art.sha256], [art.nightFile, art.nightSha256]] as const) {
+      const buf = readFileSync(file);
+      expect(createHash('sha256').update(buf).digest('hex')).toBe(sha);
+      expect([buf.readUInt32BE(16), buf.readUInt32BE(20)]).toEqual([2560, 1440]);
+    }
+  });
+  it('ART-019: the previous approved art is kept unchanged for the splash screen', () => {
+    const buf = readFileSync('assets/approved_map_original_1672x941.png');
+    expect(createHash('sha256').update(buf).digest('hex')).toBe('72ef916c330d70bafa5abbc953d0d040369ac459258c67f30ba9547e09b99ddc');
+  });
+  it('ART-019: every node, polyline point, spawn point and district polygon is inside the map', () => {
+    const inside = ([x, y]: [number, number]) => x > 0 && x < 1 && y > 0 && y < 1;
+    for (const n of MAP.nodes) expect(inside(n.position), n.id).toBe(true);
+    for (const e of MAP.edges) {
+      for (const p of e.polyline) expect(inside(p), e.id).toBe(true);
+      expect(e.polyline[0]).toEqual(nodePosition(e.from));
+      expect(e.polyline.at(-1)).toEqual(nodePosition(e.to));
+    }
+    for (const d of MAP.districts) {
+      for (const p of [...d.hitPolygon, d.labelAnchor, ...d.spawnPoints.map((s) => s.position)]) expect(inside(p), d.id).toBe(true);
+    }
   });
   it('config: 6 districts, 20 nodes, 24 edges, every serviceNode exists', () => {
     expect(MAP.districts).toHaveLength(6);

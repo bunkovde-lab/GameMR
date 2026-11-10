@@ -3,7 +3,8 @@ import districtsFile from '../../content/districts.json';
 import staffFile from '../../content/staff_start.json';
 import squadsDemo from '../../content/squads_demo.json';
 import incidentsDemo from '../../content/incidents_demo.json';
-import type { DistrictId, Severity, SquadStatus, StaffRole, Stats } from './types';
+import incidentsW10 from '../../content/incidents_w10.json';
+import type { DeadlineType, DistrictId, Severity, SquadStatus, StaffRole, Stats } from './types';
 
 export const BALANCE = balance;
 export const toCents = (re: number) => Math.round(re * 100);
@@ -15,14 +16,25 @@ export interface StaffSeed {
 }
 export interface IncidentTemplate {
   id: string; title: string; districtId: DistrictId; spawnId: string; severity: Severity; deadlineMinutes: number;
+  /** W10 (сценарий W10_EVENTS_v1): номер EV, что будет при опоздании, «на кону», скрытая правда (только Core), сцена ART-015, флаги, сюжетная смена */
+  num?: number; deadlineType?: DeadlineType; lateText?: string; aftermath?: string; hidden?: string; scene?: string | null;
+  coreFlags?: string[]; story?: { shift: number; caseId: string };
 }
 
 export const DISTRICTS = districtsFile.districts as { id: DistrictId; name: string; civilianTrust: number }[];
 export const STAFF_START = staffFile.staff as StaffSeed[];
 export const SQUAD_MEMBERS = staffFile.squadMembers as Record<string, string[]>;
 export const SQUADS_DEMO = squadsDemo as { id: string; name: string; status: SquadStatus; currentNodeId: string; assignedIncidentId: string | null }[];
-/** Демо-вызовы W3 используются и как шаблоны для новых смен (пока нет контента событий W4). */
-export const INCIDENT_TEMPLATES = incidentsDemo as IncidentTemplate[];
+/** Пять вызовов первой смены (демо W3). */
+export const START_INCIDENTS = incidentsDemo as IncidentTemplate[];
+/**
+ * W10: 36 шаблонов происшествий (по 6 на район). Пять демо-вызовов входят в их число: их профиль берётся из demo,
+ * сценарные поля — из incidents_w10.json. Новые получают точку появления в своём районе.
+ */
+export const INCIDENT_TEMPLATES: IncidentTemplate[] = (incidentsW10.templates as unknown as Partial<IncidentTemplate>[]).map((w) => {
+  const demo = START_INCIDENTS.find((d) => d.id === w.id);
+  return { ...(demo ?? { spawnId: `${w.districtId}:spawn:01`, state: 'new', flags: [] }), ...w } as IncidentTemplate;
+});
 
 export const ROLE_LABEL: Record<StaffRole, string> = {
   guard: 'Страж',

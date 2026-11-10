@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures';
+import { expect, openIncident, test } from './fixtures';
 
 test.use({ viewport: { width: 1366, height: 768 } });
 
@@ -15,8 +15,10 @@ test('full shift: pause, end shift, report from ledger, next shift, autosave sur
   expect(await page.getByTestId('clock').textContent()).toBe(t1);
   await page.getByTestId('toggle-pause').click();
 
-  await page.getByTestId('incident-bioleak').getByRole('button', { name: 'Принять вызов' }).click();
-  await expect(page.getByTestId('incident-bioleak')).toContainText('Принят');
+  await openIncident(page, 'bioleak');
+  await page.getByTestId('incident-card').getByRole('button', { name: 'Принять вызов' }).click();
+  await expect(page.getByTestId('incident-card')).toContainText('Принят');
+  await page.keyboard.press('Escape');
 
   await page.getByTestId('end-shift').click();
   await page.getByTestId('confirm-end-shift').click();

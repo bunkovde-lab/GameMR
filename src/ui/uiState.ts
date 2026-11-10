@@ -7,7 +7,6 @@ export type Selection = { kind: 'incident' | 'district' | 'squad'; id: string } 
 
 export interface UiState {
   view: ViewId;
-  leftPanelOpen: boolean;
   rightPanelOpen: boolean;
   selection: Selection;
   /** Отряд, маршрут которого показываем в превью (наведение в карточке вызова) */
@@ -18,8 +17,7 @@ export interface UiState {
 
 export type UiAction =
   | { type: 'OPEN_VIEW'; view: ViewId; caseId?: string }
-  | { type: 'TOGGLE_LEFT_PANEL' }
-  | { type: 'SELECT'; selection: Selection; narrow?: boolean }
+  | { type: 'SELECT'; selection: Selection }
   | { type: 'CLOSE_RIGHT_PANEL' }
   | { type: 'PREVIEW_SQUAD'; squadId: string | null }
   | { type: 'ESCAPE' };
@@ -35,13 +33,12 @@ export const MAP_LAYERS: Readonly<Record<LayerId, boolean>> = {
 
 export const initialUiState: UiState = {
   view: 'map',
-  leftPanelOpen: true,
   rightPanelOpen: false,
   selection: null,
   previewSquadId: null,
 };
 
-/** Узкий экран (< 950 px, W3 §6): панели — выдвижные, одновременно открыта только одна. */
+/** Узкий экран (< 950 px, W3 §6): карточка справа — выдвижная, поверх карты. */
 export const NARROW_PX = 950;
 
 export function uiReducer(state: UiState, action: UiAction): UiState {
@@ -49,15 +46,12 @@ export function uiReducer(state: UiState, action: UiAction): UiState {
     case 'OPEN_VIEW':
       if (action.caseId !== undefined) return { ...state, view: action.view, focusCaseId: action.caseId };
       return state.view === action.view ? state : { ...state, view: action.view, focusCaseId: null };
-    case 'TOGGLE_LEFT_PANEL':
-      return { ...state, leftPanelOpen: !state.leftPanelOpen };
     case 'SELECT':
       return {
         ...state,
         selection: action.selection,
         rightPanelOpen: action.selection !== null,
         previewSquadId: null,
-        leftPanelOpen: action.narrow && action.selection ? false : state.leftPanelOpen,
       };
     case 'CLOSE_RIGHT_PANEL':
       // W3 §5: крестик закрывает карточку, но не сбрасывает выбранный объект.

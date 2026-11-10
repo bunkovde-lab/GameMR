@@ -1,8 +1,24 @@
-import { afterEach, describe, expect, it } from 'vitest';
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { App } from '../../src/App';
 import { createInitialState } from '../../src/core/state';
 import { getGame, replaceGame } from '../../src/store';
+
+// В jsdom у элементов нет размеров; окну карты задаём размер ПК, чтобы на ней появились метки вызовов
+// (список вызовов убран — вызов открывается только меткой на карте).
+const getContext = HTMLCanvasElement.prototype.getContext;
+beforeAll(() => {
+  HTMLCanvasElement.prototype.getContext = (() => null) as typeof getContext; // эффекты города (MapLife) в jsdom не рисуются
+  Object.defineProperty(HTMLElement.prototype, 'clientWidth', { configurable: true, get(this: HTMLElement) { return this.dataset.testid === 'map-stage' ? 1340 : 0; } });
+  Object.defineProperty(HTMLElement.prototype, 'clientHeight', { configurable: true, get(this: HTMLElement) { return this.dataset.testid === 'map-stage' ? 760 : 0; } });
+});
+afterAll(() => {
+  HTMLCanvasElement.prototype.getContext = getContext;
+  // свойства лежали на Element.prototype — снимаем свои с HTMLElement.prototype
+  delete (HTMLElement.prototype as { clientWidth?: number }).clientWidth;
+  delete (HTMLElement.prototype as { clientHeight?: number }).clientHeight;
+});
+const openIncident = (id: string) => fireEvent.click(screen.getByTestId(`marker-incident-${id}`));
 
 afterEach(() => {
   cleanup();
@@ -24,33 +40,46 @@ describe('App shell', () => {
     expect(getGame().rng).toEqual(before);
   });
 
-  it('briefing → start → acknowledge updates the list from the core', () => {
+  it('briefing → start → acknowledge from the map card updates the card from the core', () => {
     render(<App />);
     fireEvent.click(screen.getByTestId('start-shift'));
     expect(getGame().phase).toBe('ACTIVE');
-    fireEvent.click(screen.getByTestId('ack-bioleak'));
+    expect(screen.queryByTestId('left-panel')).toBeNull();
+    openIncident('bioleak');
+    fireEvent.click(screen.getByRole('button', { name: /Принять вызов/ }));
     expect(getGame().incidents.find((i) => i.id === 'bioleak')!.state).toBe('acknowledged');
-    expect(screen.getByTestId('incident-bioleak').textContent).toContain('Принят');
+    expect(screen.getByTestId('incident-card').textContent).toContain('Принят');
   });
 
-  it('staff section counts 12 people, opens the personal file and Escape returns to the map keeping the collapsed panel', () => {
+  it('every open call has a timer above its map marker; a call linked to a case also shows the case number', () => {
     render(<App />);
     fireEvent.click(screen.getByTestId('start-shift'));
-    act(() => { fireEvent.click(screen.getByLabelText('Свернуть список вызовов')); });
+    const g = getGame();
+    const bioleak = g.incidents.find((i) => i.id === 'bioleak')!;
+    expect(screen.getByTestId('timer-bioleak').textContent).toContain(`${bioleak.deadlineMinute - g.minute} мин`);
+    expect(screen.getByTestId('incident-count').textContent).toContain(String(g.incidents.filter((i) => !['resolved_success', 'resolved_partial', 'failed', 'expired'].includes(i.state)).length));
+    const caseTimer = screen.getAllByTestId(/^case-badge-/)[0]!;
+    expect(caseTimer.textContent).toMatch(/^№\d+$/);
+    expect(caseTimer.closest('.mk-timer')!.querySelector('.t')!.textContent).toMatch(/мин|ч|в пути|на месте|ухудшение|назначен/);
+  });
+
+  it('staff section counts 12 people, opens the personal file and Escape returns to the map', () => {
+    render(<App />);
+    fireEvent.click(screen.getByTestId('start-shift'));
     fireEvent.click(screen.getByTestId('nav-staff'));
     expect(screen.getByTestId('staff-screen').textContent).toContain('Кадры · 12');
     expect(screen.getByTestId('person-cabinet')).toBeTruthy();
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.queryByTestId('staff-screen')).toBeNull();
-    expect(screen.queryByTestId('left-panel')).toBeNull();
+    expect(screen.getByTestId('map-stage')).toBeTruthy();
   });
 
-  it('MAP-008: choosing an incident in the list opens its card; Escape closes the card', () => {
+  it('MAP-008: choosing an incident marker on the map opens its card; Escape closes the card', () => {
     render(<App />);
     fireEvent.click(screen.getByTestId('start-shift'));
-    fireEvent.click(screen.getByRole('button', { name: getGame().incidents.find((i) => i.id === 'medriot')!.title }));
+    openIncident('medriot');
     expect(screen.getByTestId('incident-card').textContent).toContain('Бунт в лечебном комплексе');
-    expect(screen.getByTestId('incident-medriot').className).toContain('selected');
+    expect(screen.getByTestId('marker-incident-medriot').className).toContain('selected');
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.queryByTestId('incident-card')).toBeNull();
   });
@@ -61,7 +90,7 @@ describe('App shell', () => {
     fireEvent.click(screen.getByTestId('squad-axon'));
     expect(screen.getByTestId('squad-card')).toBeTruthy();
     fireEvent.keyDown(window, { key: 'Escape' });
-    fireEvent.click(screen.getByRole('button', { name: getGame().incidents.find((i) => i.id === 'medriot')!.title }));
+    openIncident('medriot');
     const option = screen.getByTestId('dispatch-axon');
     expect(option.textContent).toContain('≈11 мин');
     expect(option.textContent).toContain('1,25 РЕ');
@@ -77,7 +106,7 @@ describe('App shell', () => {
   it('W4: manual setup keeps the tactic when switching modes and dispatches the edited group', () => {
     render(<App />);
     fireEvent.click(screen.getByTestId('start-shift'));
-    fireEvent.click(screen.getByRole('button', { name: 'Утечка биоматериала' }));
+    openIncident('bioleak');
     fireEvent.click(screen.getByTestId('open-dispatch'));
     expect(screen.getByTestId('confirm-dispatch')).toHaveProperty('disabled', true);
     fireEvent.click(screen.getByTestId('pick-resonance'));

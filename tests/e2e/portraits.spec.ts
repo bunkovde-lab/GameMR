@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures';
+import { expect, test, openIncident } from './fixtures';
 
 // ART-005: утверждённые портреты в «Кадрах», окне отправки и отчёте.
 
@@ -35,8 +35,7 @@ test('staff: every starting employee shows a loaded portrait; dossier has a larg
 });
 
 test('dispatch: member buttons carry portraits and keep a 44 px touch target', async ({ page }, info) => {
-  if (!(await page.getByTestId('left-panel').isVisible())) await page.getByRole('button', { name: /Вызовы/ }).click();
-  await page.getByTestId('incident-bioleak').locator('.incident-title').click();
+  await openIncident(page, 'bioleak');
   await page.getByTestId('open-dispatch').click();
   await page.getByTestId('pick-axon').click();
   await page.getByTestId('mode-manual').click();

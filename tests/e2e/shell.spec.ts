@@ -32,14 +32,15 @@ test('every visible button is at least 44×44 CSS px', async ({ page }) => {
   expect(small).toEqual([]);
 });
 
-test('collapsing the incident panel does not resize the map area', async ({ page }) => {
-  // На телефоне список вызовов по умолчанию свёрнут, чтобы не закрывать карту.
-  if (!(await page.getByTestId('left-panel').isVisible())) await page.getByRole('button', { name: /Вызовы/ }).click();
-  const before = await page.getByTestId('map-stage').boundingBox();
-  await page.getByLabel('Свернуть список вызовов').click();
+test('there is no calls list panel; opening and closing a card does not resize the map area', async ({ page }) => {
   await expect(page.getByTestId('left-panel')).toHaveCount(0);
-  const after = await page.getByTestId('map-stage').boundingBox();
-  expect(after).toEqual(before);
+  const before = await page.getByTestId('map-stage').boundingBox();
+  await page.locator('.squad-list .squad').first().click();
+  await expect(page.getByTestId('right-panel')).toBeVisible();
+  expect(await page.getByTestId('map-stage').boundingBox()).toEqual(before);
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('right-panel')).toHaveCount(0);
+  expect(await page.getByTestId('map-stage').boundingBox()).toEqual(before);
 });
 
 test('keyboard: Tab reaches navigation, Enter opens a section, Escape returns', async ({ page }) => {

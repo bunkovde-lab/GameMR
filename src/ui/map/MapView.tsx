@@ -23,6 +23,8 @@ interface Props {
   previewSquadId: string | null;
   layers: Record<LayerId, boolean>;
   leftPanelOpen: boolean;
+  /** Открыта ли правая карточка (отряд/вызов/район): на широком экране карта центрируется между панелями. */
+  rightPanelOpen?: boolean;
   onSelect: (s: Selection) => void;
   onToggleLayer: (l: LayerId) => void;
   onOpenLeftPanel: () => void;
@@ -44,10 +46,10 @@ const toSvg = (p: Point) => `${p[0] * W},${p[1] * H}`;
  * Карта ART-019 (вид сверху, день/ночь) поверх геометрии W3: арт + SVG-слой геометрии в одной матрице, маркеры — в экранном слое
  * постоянного размера (44 px), позиции через worldToScreen.
  */
-export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen, onSelect, onToggleLayer, onOpenLeftPanel }: Props) {
+export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen, rightPanelOpen = false, onSelect, onToggleLayer, onOpenLeftPanel }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
-  const [fitLeft, setFitLeft] = useState(0);
+  const [fitX, setFitX] = useState({ left: 0, right: 0 });
   const [effects, setEffects] = useState<EffectsLevel>(loadEffectsLevel);
   const [, setFrame] = useState(0);
   const [cam, setCam] = useState<Camera>({ zoom: 1, panX: 0, panY: 0 });
@@ -70,13 +72,23 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
     return () => ro.disconnect();
   }, []);
 
-  // ART-019: весь город помещается в свободную часть окна (справа от открытой панели вызовов на широком экране).
+  // ART-019: весь город помещается в свободную часть окна — между открытыми боковыми панелями на широком экране,
+  // чтобы карта стояла по центру и не уходила под карточку отряда/вызова. На узком экране панели — выдвижные, поверх карты.
   useLayoutEffect(() => {
     const stage = ref.current?.getBoundingClientRect();
-    const left = leftPanelOpen && window.innerWidth >= NARROW_PX ? document.querySelector('.left-panel')?.getBoundingClientRect() : undefined;
-    setFitLeft(stage && left ? Math.max(0, Math.round(left.right - stage.left + 6)) : 0);
-  }, [leftPanelOpen, size.w, size.h]);
-  const vp = useMemo<Viewport>(() => ({ w: size.w, h: size.h, fit: { x: fitLeft, y: 0, w: Math.max(1, size.w - fitLeft), h: size.h } }), [size.w, size.h, fitLeft]);
+    const wide = window.innerWidth >= NARROW_PX;
+    const left = leftPanelOpen && wide ? document.querySelector('.left-panel')?.getBoundingClientRect() : undefined;
+    const right = rightPanelOpen && wide ? document.querySelector('.right-panel')?.getBoundingClientRect() : undefined;
+    const next = {
+      left: stage && left ? Math.max(0, Math.round(left.right - stage.left + 6)) : 0,
+      right: stage && right ? Math.max(0, Math.round(stage.right - right.left + 6)) : 0,
+    };
+    setFitX((cur) => (cur.left === next.left && cur.right === next.right ? cur : next));
+  }, [leftPanelOpen, rightPanelOpen, size.w, size.h]);
+  const vp = useMemo<Viewport>(
+    () => ({ w: size.w, h: size.h, fit: { x: fitX.left, y: 0, w: Math.max(1, size.w - fitX.left - fitX.right), h: size.h } }),
+    [size.w, size.h, fitX],
+  );
 
   useEffect(() => {
     const on = (e: Event) => setEffects((e as CustomEvent<EffectsLevel>).detail);

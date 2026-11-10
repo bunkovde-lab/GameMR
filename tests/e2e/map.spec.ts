@@ -50,6 +50,30 @@ test('ART-019: the whole city fits the free part of the map window without zoomi
   expect(errors).toEqual([]);
 });
 
+test('MAP-CENTER: with both side panels open on a wide screen the city sits centred between them, not under the card', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone-844', 'на телефоне панели выдвижные, поверх карты');
+  const errors = await start(page);
+  if (!(await page.getByTestId('left-panel').isVisible())) await page.getByRole('button', { name: /Вызовы/ }).click();
+  await page.locator('.squad').first().click();
+  await expect(page.getByTestId('right-panel')).toBeVisible();
+  const left = (await page.getByTestId('left-panel').boundingBox())!;
+  const right = (await page.getByTestId('right-panel').boundingBox())!;
+  await expect.poll(async () => (await page.getByTestId('map-image').boundingBox())!.x + (await page.getByTestId('map-image').boundingBox())!.width)
+    .toBeLessThanOrEqual(right.x + 1);
+  const img = (await page.getByTestId('map-image').boundingBox())!;
+  expect(img.x).toBeGreaterThanOrEqual(left.x + left.width - 1);
+  // отступы слева и справа от карты одинаковые
+  expect(Math.abs((img.x - (left.x + left.width)) - (right.x - (img.x + img.width)))).toBeLessThan(4);
+  // кнопки слоёв не уходят под карточку справа
+  const tools = (await page.locator('.layer-tools').boundingBox())!;
+  expect(tools.x + tools.width).toBeLessThanOrEqual(right.x + 1);
+  // карточку закрыли — карта снова занимает всё место справа от вызовов
+  await page.getByTestId('right-panel').getByRole('button', { name: /Закрыть/ }).click();
+  await expect(page.getByTestId('right-panel')).toHaveCount(0);
+  await expect.poll(async () => (await page.getByTestId('map-image').boundingBox())!.width).toBeGreaterThan(img.width + 1);
+  expect(errors).toEqual([]);
+});
+
 test('ART-019: night falls smoothly, weather, unrest and a patrol en route are drawn; effects can be turned down', async ({ page }, info) => {
   const errors = await start(page);
   await page.getByTestId('open-settings').click();

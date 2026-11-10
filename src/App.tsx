@@ -123,6 +123,7 @@ export function App() {
             previewSquadId={ui.previewSquadId}
             layers={ui.layers}
             leftPanelOpen={ui.leftPanelOpen}
+            rightPanelOpen={onMap && ui.rightPanelOpen && !!ui.selection}
             onSelect={select}
             onToggleLayer={(layer) => uiDispatch({ type: 'TOGGLE_LAYER', layer })}
             onOpenLeftPanel={toggleLeft}

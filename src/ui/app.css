@@ -234,6 +234,8 @@ svg.icon {
 .map-ambient span { padding: 3px 9px; border-radius: 999px; background: #0c1016d9; border: 1px solid var(--stroke2); color: var(--muted, #b9b0a0); }
 .map-ambient .hot { color: #ff9a6a; border-color: #8d3138; }
 .workspace:has(.left-panel) .map-ambient { left: calc(50% + var(--left-w) / 2); }
+.workspace:has(.right-panel) .map-ambient { left: calc(50% - var(--right-w) / 2); }
+.workspace:has(.left-panel):has(.right-panel) .map-ambient { left: calc(50% + (var(--left-w) - var(--right-w)) / 2); }
 .city-splash { position: fixed; inset: 0; z-index: 19; background: #05070b center / cover no-repeat; }
 .city-splash + .overlay { background: #0405078c; }
 .district-hit {
@@ -333,6 +335,8 @@ svg.icon {
 .layer-tools .btn[aria-pressed='true'] { background: linear-gradient(180deg, #8d3138, #511f27); }
 .workspace:has(.left-panel) .map-tools, .workspace:has(.left-panel) .layer-tools { left: calc(var(--left-w) + 10px); }
 .workspace:has(.right-panel) .zoom-tools { right: calc(var(--right-w) + 10px); }
+/* Кнопки слоёв не заходят под карточку справа: переносятся во второй ряд. */
+.workspace:has(.right-panel) .layer-tools { right: calc(var(--right-w) + 10px); max-width: none; }
 
 /* ---------- W3: список вызовов и карточки ---------- */
 .incident.selected { border-color: #ff8a78; box-shadow: inset 0 0 0 1px #ff8a78; }
@@ -358,9 +362,11 @@ svg.icon {
 @media (max-width: 950px) {
   .left-panel, .right-panel { width: min(var(--left-w), 86vw); }
   .workspace:has(.left-panel) .map-tools, .workspace:has(.left-panel) .layer-tools { left: 10px; }
-  .workspace:has(.left-panel) .map-ambient { left: 50%; }
+  .workspace:has(.left-panel) .map-ambient, .workspace:has(.right-panel) .map-ambient,
+  .workspace:has(.left-panel):has(.right-panel) .map-ambient { left: 50%; }
   .map-ambient { font-size: 11px; top: 6px; }
   .workspace:has(.right-panel) .zoom-tools { right: 10px; }
+  .workspace:has(.right-panel) .layer-tools { right: auto; max-width: calc(100% - 20px); }
   .layer-tools .label { display: none; }
   .district-label { font-size: 11px; }
 }

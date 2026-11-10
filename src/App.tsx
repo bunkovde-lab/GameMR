@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useState } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { IconSprite } from './ui/Icon';
 import { initialUiState, uiReducer, type Selection } from './ui/uiState';
 import { TopHud } from './ui/shell/TopHud';
@@ -39,6 +39,22 @@ export function App() {
   const [dispatchFor, setDispatchFor] = useState<{ incidentId: string; squadId: string | null } | null>(null);
   const preview = useCallback((squadId: string | null) => uiDispatch({ type: 'PREVIEW_SQUAD', squadId }), []);
   const inMenu = screen === 'menu';
+  // Пока открыто окно отправки, время стоит. Пауза снимается при закрытии/отправке,
+  // только если её поставило само окно (игрок до этого не стоял на паузе и не снимал её вручную).
+  const dispatchPausedRef = useRef(false);
+  const dispatchOpen = dispatchFor !== null;
+  useEffect(() => {
+    if (!dispatchOpen) return;
+    const g = getGame();
+    dispatchPausedRef.current = g.phase === 'ACTIVE' && !g.paused && dispatch({ type: 'PAUSE' });
+    return () => {
+      const g2 = getGame();
+      if (dispatchPausedRef.current && g2.phase === 'ACTIVE' && g2.paused) dispatch({ type: 'RESUME' });
+      dispatchPausedRef.current = false;
+    };
+  }, [dispatchOpen]);
+  // Игрок сам снял паузу при открытом окне — дальше паузой управляет он.
+  useEffect(() => { if (dispatchOpen && !getGame().paused) dispatchPausedRef.current = false; }, [dispatchOpen, game.paused]);
   // В главном меню игровое время не идёт.
   useGameLoop(!inMenu);
   // Музыка: тема меню — в главном меню, на брифинге, в отчёте о смене и в окне сохранений/настроек; на карте во время смены — фон игры.
@@ -74,6 +90,7 @@ export function App() {
     // Смена ставится на паузу явно: «Продолжить» вернёт её в том же состоянии, время само не пойдёт.
     const g = getGame();
     if (g.phase === 'ACTIVE' && !g.paused) dispatch({ type: 'PAUSE' });
+    dispatchPausedRef.current = false; // закрытие окна отправки не должно снять паузу меню
     setSettingsOpen(false);
     setDispatchFor(null);
     setConfirmEnd(false);

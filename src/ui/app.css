@@ -475,8 +475,17 @@ svg.icon {
   padding: 10px 16px; border-top: 1px solid var(--stroke2); background: var(--surface);
 }
 .dispatch-blocker { margin: 0 auto 0 0; color: var(--amber); font-size: 13px; flex: 1 1 260px; }
-.dispatch-brief { display: grid; gap: 8px; margin-bottom: 10px; }
+.dispatch-brief { display: grid; grid-template-columns: minmax(200px, 320px) minmax(0, 1fr); gap: 14px; align-items: start; margin-bottom: 12px; }
 .dispatch-brief p { margin: 0; }
+.dispatch-brief .inc-hero { aspect-ratio: 16 / 10; }
+.dispatch-brief-text { display: grid; gap: 8px; min-width: 0; }
+.dispatch-brief .stakes { margin: 0; }
+.chips > div.urgent { border-color: #e0504f; }
+.chips > div.urgent dd { color: #ff8f86; }
+.chips > div.paused-chip { border-color: var(--gold); }
+.chips > div.paused-chip dt, .chips > div.paused-chip dd { color: var(--gold); }
+@media (max-width: 700px) { .dispatch-brief { grid-template-columns: 1fr; } .dispatch-brief .inc-hero { aspect-ratio: 3 / 1; } }
+@media (max-height: 560px) { .dispatch-brief { grid-template-columns: minmax(150px, 220px) minmax(0, 1fr); gap: 10px; } .dispatch-brief .inc-hero { aspect-ratio: 4 / 3; min-height: 0; } }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
 .chips > div { display: flex; gap: 6px; padding: 3px 10px; border: 1px solid var(--stroke2); border-radius: 99px; font-size: 12px; }
 .chips dt { color: var(--muted); }
@@ -539,7 +548,6 @@ svg.icon {
   .modal.wide .modal-body { padding: 8px 12px; }
   .modal-footer { padding: 6px 12px; }
   .dispatch-blocker { flex-basis: 100%; font-size: 12px; }
-  .chips > div:nth-child(2) { display: none; }
   .footer-forecast { display: block; flex: 1 1 auto; }
   .dispatch-blocker { order: -1; }
 }

@@ -1,4 +1,7 @@
-import { houseText } from '../../core/events';
+import { houseText, lateKind, publicAftermath, templateOf } from '../../core/events';
+import { isOpen } from '../../core/selectors';
+import { INCIDENT_STATE_LABEL, SEVERITY_LABEL } from '../labels';
+import { AftermathList, IncidentHero } from '../shell/IncidentArt';
 import { useEffect, useMemo, useState } from 'react';
 import { DISPATCH_COST, ROLE_LABEL } from '../../core/content';
 import {
@@ -104,14 +107,36 @@ export function DispatchDialog({ game, incidentId, initialSquadId, onClose, onPr
         </>
       }
     >
-      <div className="dispatch-brief">
-        <p className="muted">{houseText(prof.known)}</p>
-        <dl className="chips">
-          <div><dt>Класс</dt><dd data-testid="incident-class" title={cls.hint}>{cls.label}</dd></div>
-          <div><dt>Нужны роли</dt><dd>{prof.requiredRoles.map((r) => ROLE_LABEL[r]).join(', ') || '—'}</dd></div>
-          {['new', 'acknowledged'].includes(inc.state) && <div><dt>До ухудшения</dt><dd>{Math.max(0, left)} мин</dd></div>}
-        </dl>
-      </div>
+      {/* Сведения о происшествии — те же, что в карточке на карте: картинка, описание, что на кону, состояние, таймер. */}
+      <section className="dispatch-brief" data-testid="dispatch-incident" aria-label="Происшествие">
+        <IncidentHero inc={inc} />
+        <div className="dispatch-brief-text">
+          <dl className="chips">
+            <div><dt>Состояние</dt><dd data-testid="dispatch-state">{INCIDENT_STATE_LABEL[inc.state]}</dd></div>
+            {['new', 'acknowledged'].includes(inc.state) && (
+              <div className={left <= 15 ? 'urgent' : undefined}><dt>До ухудшения</dt><dd data-testid="dispatch-timer">{Math.max(0, left)} мин</dd></div>
+            )}
+            <div><dt>Угроза</dt><dd className={`sev-text sev-${inc.severity}`}>{SEVERITY_LABEL[inc.severity]}</dd></div>
+            <div><dt>Класс</dt><dd data-testid="incident-class" title={cls.hint}>{cls.label}</dd></div>
+            <div><dt>Нужны роли</dt><dd>{prof.requiredRoles.map((r) => ROLE_LABEL[r]).join(', ') || '—'}</dd></div>
+            {game.paused && active && <div className="paused-chip" data-testid="dispatch-paused"><dt>⏸</dt><dd>Пауза, пока окно открыто</dd></div>}
+          </dl>
+          {prof.known && <p className="known" data-testid="dispatch-known">{houseText(prof.known)}</p>}
+          {(() => {
+            const t = templateOf(inc);
+            const stakes = publicAftermath(t);
+            const late = t?.lateText;
+            if (!late && !stakes.length) return null;
+            const word = { escalate: 'Если опоздать, обострится', expire: 'Если опоздать, исчезнет', branch: 'Если опоздать, станет другим событием' }[lateKind(inc)];
+            return (
+              <div className="stakes" data-testid="dispatch-stakes">
+                {late && isOpen(inc) && <p className="late"><b>{word}:</b> {houseText(late)}</p>}
+                {stakes.length > 0 && <AftermathList items={stakes} />}
+              </div>
+            );
+          })()}
+        </div>
+      </section>
 
       <div className="tabs" role="tablist" aria-label="Режим формирования">
         <button role="tab" className="btn" aria-selected={mode === 'quick'} aria-pressed={mode === 'quick'} onClick={() => setMode('quick')} data-testid="mode-quick">Быстрая отправка</button>

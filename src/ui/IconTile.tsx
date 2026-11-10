@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { Icon } from './Icon';
 
 /**
@@ -71,7 +72,7 @@ export function IconTile(t: TileProps) {
   );
 }
 
-/** Подсказка поверх всего экрана, прижатая к значку и не выходящая за края окна. */
+/** Подсказка поверх всего экрана (непрозрачная), прижатая к значку и не выходящая за края окна. */
 function FloatingTip({ anchor, id, title, desc, lines }: { anchor: HTMLElement | null; id: string; title: string; desc: string; lines: TipLine[] }) {
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
@@ -84,11 +85,13 @@ function FloatingTip({ anchor, id, title, desc, lines }: { anchor: HTMLElement |
     const top = above >= 8 ? above : Math.min(window.innerHeight - t.height - 8, a.bottom + 8);
     setPos({ left, top });
   }, [anchor, title, lines.length]);
-  return (
+  // Подсказка выносится в корень документа: так её не обрезает и не перекрывает рамка панели.
+  return createPortal(
     <div ref={ref} className="tile-tip" role="tooltip" id={`tip-${id}`} style={pos ? { left: pos.left, top: pos.top } : { left: -9999, top: 0 }}>
       <b>{title}</b>
       <span>{desc}</span>
       {lines.map((l) => <small key={l.text} className={l.tone ? `tl-${l.tone}` : undefined}>{l.tone === 'ok' ? '✓ ' : l.tone === 'no' ? '✗ ' : ''}{l.text}</small>)}
-    </div>
+    </div>,
+    document.body,
   );
 }

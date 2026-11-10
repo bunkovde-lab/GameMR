@@ -370,7 +370,7 @@ function Credits({ onClose }: { onClose: () => void }) {
           <dt>Художественная концепция, арт, механики</dt><dd>ChatGPT по заданию руководителя проекта</dd>
           <dt>Программирование, тесты, сборки</dt><dd>Claude Code</dd>
           <dt>Музыка</dt><dd>треки руководителя проекта «Меню» и «Фон к игре» (веб-копии)</dd>
-          <dt>Шрифты</dt><dd>Golos Text и Forum — SIL Open Font License</dd>
+          <dt>Шрифты</dt><dd>Golos Text и Old Standard TT — SIL Open Font License</dd>
         </dl>
         <p className="m00b-muted">
           Исходный код и документация: <a href="https://github.com/bunkovde-lab/GameMR" target="_blank" rel="noreferrer">github.com/bunkovde-lab/GameMR</a>.

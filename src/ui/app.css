@@ -180,6 +180,31 @@ svg.icon {
 .tone-grey .status { color: var(--dim); }
 .squad.tone-red { border-color: #7a3a3a; }
 
+/* Состав отряда в карточке: лица, значок ранения, полоса усталости (данные — из состояния игры). */
+.squad-text b { line-height: 1.2; }
+.squad-meta { font-size: 12px; line-height: 1.2; }
+.squad-members { display: flex; align-items: center; gap: 5px; margin-top: 4px; min-width: 0; }
+.sq-member { position: relative; flex: none; display: grid; width: 28px; }
+.sq-member .portrait.xs { width: 28px; height: 28px; }
+.sq-member.empty { height: 28px; border: 1px dashed #6b563680; border-radius: 4px; background: #0b0d1180; }
+.sq-badge {
+  position: absolute; top: -3px; right: -4px; width: 14px; height: 14px; border-radius: 50%; display: grid; place-items: center;
+  font: 700 9px/1 var(--font-ui); color: #fff; background: var(--bad); box-shadow: 0 0 0 1px #000, 0 0 4px #e84c50aa;
+}
+.hp-recovering .sq-badge { background: var(--amber); color: #1b1408; }
+.hp-recovering .portrait { border-color: var(--amber); }
+.hp-lost .sq-badge { background: #2a2d33; color: var(--muted); }
+/* Полоса усталости лежит по нижнему краю портрета — так она не заходит на рамку карточки. */
+.sq-fatigue { position: absolute; left: 2px; right: 2px; bottom: 2px; z-index: 2; height: 4px; border-radius: 2px; background: #000000cc; box-shadow: 0 0 0 1px #000c; overflow: hidden; }
+.sq-fatigue i { display: block; height: 100%; border-radius: inherit; }
+.sq-fatigue.tone-green i { background: var(--green); }
+.sq-fatigue.tone-amber i { background: var(--amber); }
+.sq-fatigue.tone-red i { background: var(--bad); }
+.sq-wounded { align-self: center; margin-left: 2px; font-size: 11px; font-weight: 600; color: var(--bad); white-space: nowrap; }
+/* Подпись «ранен» — только если карточка достаточно широкая; иначе остаётся красный значок на лице. */
+.squad-text { flex: 1; container-type: inline-size; }
+@container (max-width: 150px) { .sq-wounded { display: none; } }
+
 .overlay { position: fixed; inset: 0; z-index: 20; background: #05080dcc; display: grid; place-items: center; grid-template-columns: minmax(0, 1fr); padding: 12px; }
 .modal { width: min(560px, 100%); min-width: 0; justify-self: center; max-height: calc(100dvh - 24px); display: flex; flex-direction: column; background: var(--surface); }
 .modal-body { padding: 14px 16px; overflow-y: auto; }
@@ -216,6 +241,17 @@ svg.icon {
   .monogram { width: 32px; height: 32px; font-size: 14px; }
   .squad-text .cnt { display: none; }
   .squad-text b { font-size: 13px; }
+  /* Телефон: имя сверху, ниже лица и статус в одну строку. */
+  .squad-text { grid-template-columns: auto minmax(0, 1fr); column-gap: 6px; align-items: center; }
+  .squad-text b { grid-column: 1 / -1; line-height: 1.15; }
+  .squad-meta { grid-row: 2; grid-column: 2; font-size: 11px; }
+  .squad-members { grid-row: 2; grid-column: 1; margin-top: 1px; gap: 3px; }
+  .sq-member, .sq-member .portrait.xs, .sq-member.empty { width: 22px; }
+  .sq-member .portrait.xs, .sq-member.empty { height: 22px; font-size: 9px; }
+  .sq-fatigue { height: 3px; left: 1px; right: 1px; bottom: 1px; }
+  .sq-badge { width: 11px; height: 11px; font-size: 7px; top: -2px; right: -3px; }
+  .sq-wounded, .sq-member.empty { display: none; }
+  .squad-item { flex-basis: 156px; }
 }
 
 /* ---------- W3: карта ---------- */

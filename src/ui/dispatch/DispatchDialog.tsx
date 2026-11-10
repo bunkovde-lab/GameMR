@@ -14,7 +14,7 @@ import { Modal } from '../Modal';
 import { Portrait } from '../Portrait';
 import { groupMods } from '../../core/career';
 import { SQUAD_STATUS } from '../labels';
-import { SquadMember, memberSummary } from '../shell/SquadStrip';
+import { ReadySquad } from '../shell/ReadySquad';
 import { PERMIT_NAME, POLITICS, emergencyRisk, legalRequirement, permitBlocker, requestBlocker, riskWord } from '../../core/politics';
 
 interface Props {
@@ -35,6 +35,8 @@ const pct = (v: number) => `${Math.round(v * 100)}%`;
 export function DispatchDialog({ game, incidentId, initialSquadId, onClose, onPreview }: Props) {
   const inc = game.incidents.find((i) => i.id === incidentId);
   const [mode, setMode] = useState<Mode>('quick');
+  /** Какой отряд раскрыт для просмотра статуса (только просмотр, на выбор не влияет). */
+  const [statusOpen, setStatusOpen] = useState<string | null>(null);
   const [draft, setDraft] = useState<DispatchDraft | null>(() => (initialSquadId ? defaultDraft(game, initialSquadId, incidentId) : null));
 
   useEffect(() => { onPreview(draft?.squadId ?? null); }, [draft?.squadId, onPreview]);
@@ -126,20 +128,13 @@ export function DispatchDialog({ game, incidentId, initialSquadId, onClose, onPr
               const r = q.status === 'ready' ? buildRoute(q.currentNodeId, district.serviceNode, game.roadClosures) : null;
               const fit = q.memberIds.filter((id) => !memberBlocker(game, id, q.id)).length;
               const why = q.status !== 'ready' ? SQUAD_STATUS[q.status].label : !r ? 'нет маршрута' : null;
-              const members = q.memberIds.map((id) => game.staff.find((p) => p.id === id)).filter((p): p is NonNullable<typeof p> => !!p);
               return (
-                <li key={q.id}>
-                  <button className="btn pick squad-pick" aria-pressed={draft?.squadId === q.id} disabled={!!why} onClick={() => pickSquad(q.id)} data-testid={`pick-${q.id}`}>
-                    <span className={`monogram banner-${q.id}`} aria-hidden="true" />
-                    <span className="squad-pick-text">
-                      <b>«{q.name}»</b>
-                      <small>{why ?? `${fit} чел. · ≈${etaMinutes(r!, 0)} мин`}</small>
-                    </span>
-                    <span className="squad-members" data-testid={`pick-members-${q.id}`}>
-                      {members.map((p) => <SquadMember key={p.id} p={p} testPrefix="pick-member" />)}
-                    </span>
-                    <span className="visually-hidden">. Состав: {members.length ? members.map(memberSummary).join('; ') : 'нет бойцов'}.</span>
-                  </button>
+                <li key={q.id} className={statusOpen === q.id ? 'rs-open' : undefined}>
+                  <ReadySquad
+                    game={game} squad={q} testId={`pick-${q.id}`} subtitle={why ?? `${fit} чел. · ≈${etaMinutes(r!, 0)} мин`}
+                    disabled={!!why} pressed={draft?.squadId === q.id} onPick={() => pickSquad(q.id)}
+                    expanded={statusOpen === q.id} onToggle={() => setStatusOpen(statusOpen === q.id ? null : q.id)}
+                  />
                 </li>
               );
             })}

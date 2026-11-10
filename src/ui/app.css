@@ -470,6 +470,16 @@ svg.icon {
 .squad-pick .sq-member, .squad-pick .sq-member .portrait.xs { width: 34px; }
 .squad-pick .sq-member .portrait.xs { height: 34px; box-shadow: 0 0 0 1px #000; }
 .btn.pick.squad-pick:disabled .squad-members { opacity: .75; }
+/* Строка готового отряда с кнопкой раскрытия статуса (сводка как в карточке «Отряд»). */
+.rs-row { display: flex; gap: 4px; align-items: stretch; }
+.rs-row > .squad-pick { flex: 1; min-width: 0; }
+.btn.rs-toggle { flex: none; width: 40px; min-width: 40px; padding: 0; font-size: 16px; justify-content: center; }
+.btn.rs-toggle[aria-expanded='true'] { color: var(--gold-light, #e6c58d); }
+.dispatch-list > li, .pick-list > li { display: grid; gap: 6px; align-content: start; }
+.pick-list > li.rs-open { grid-column: 1 / -1; }
+.pick-list:has(.rs-row) { grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); }
+.qs-summary .small { color: var(--muted); font-size: 12px; margin: 0; }
+.pick-list > li.rs-open .rs-row { max-width: 100%; }
 @media (max-height: 560px) {
   .btn.pick.squad-pick { min-height: 48px; gap: 8px; }
   .squad-pick .monogram[class*='banner-'] { width: 26px; min-height: 36px; display: block; }
@@ -873,8 +883,8 @@ td.bad { color: var(--bad); }
 .qs-stats li { display: grid; grid-template-columns: 80px 1fr 28px; align-items: center; gap: 8px; font-size: 13px; }
 .qs-stats li > span:first-child { color: var(--muted); }
 .qs-stats b { text-align: right; }
-.squad-card .bar { display: block; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.08); overflow: hidden; }
-.squad-card .bar i { display: block; height: 100%; background: var(--gold); }
+.squad-card .bar, .qs-summary .bar { display: block; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.08); overflow: hidden; }
+.squad-card .bar i, .qs-summary .bar i { display: block; height: 100%; background: var(--gold); }
 .qs-warnings { color: var(--amber); font-size: 12px; display: grid; gap: 2px; }
 .warn-text { color: var(--amber); }
 .qs-members { display: grid; gap: 8px; }

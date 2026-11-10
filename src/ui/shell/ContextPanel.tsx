@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { dispatchBlocker } from '../../core/reduce';
 import { DISPATCH_RULES, forecastWord, incidentProfile, tacticById } from '../../core/dispatch';
 import { buildRoute, etaMinutes } from '../../core/map/graph';
@@ -11,6 +12,7 @@ import { Icon } from '../Icon';
 import { INCIDENT_STATE_LABEL, SEVERITY_LABEL, SQUAD_STATUS } from '../labels';
 import type { Selection } from '../uiState';
 import { SquadCard } from './SquadCard';
+import { ReadySquad } from './ReadySquad';
 
 interface Props {
   game: GameState;
@@ -40,6 +42,7 @@ export function ContextPanel({ game, selection, onClose, onSelect, onPreview, on
 }
 
 function IncidentCard({ game, id, onPreview, onSelect, onOpenDispatch, onOpenCase }: { game: GameState; id: string; onPreview: Props['onPreview']; onSelect: Props['onSelect']; onOpenDispatch: Props['onOpenDispatch']; onOpenCase?: Props['onOpenCase'] }) {
+  const [statusOpen, setStatusOpen] = useState<string | null>(null);
   const inc = game.incidents.find((i) => i.id === id);
   if (!inc) return <p className="empty">Вызов закрыт или не найден.</p>;
   const district = districtById(inc.districtId)!;
@@ -108,17 +111,14 @@ function IncidentCard({ game, id, onPreview, onSelect, onOpenDispatch, onOpenCas
               const r = !reason ? buildRoute(q.currentNodeId, district.serviceNode, game.roadClosures) : null;
               return (
                 <li key={q.id}>
-                  <button
-                    className="btn dispatch-option"
+                  <ReadySquad
+                    game={game} squad={q} testId={`dispatch-${q.id}`}
+                    subtitle={r ? `≈${etaMinutes(r, 0)} мин · 1,25 РЕ` : reason ?? SQUAD_STATUS[q.status].label}
                     disabled={!!reason || game.phase !== 'ACTIVE'}
-                    onPointerEnter={() => onPreview(r ? q.id : null)}
-                    onFocus={() => onPreview(r ? q.id : null)}
-                    onClick={() => onOpenDispatch(inc.id, q.id)}
-                    data-testid={`dispatch-${q.id}`}
-                  >
-                    <b>«{q.name}»</b>
-                    <small>{r ? `≈${etaMinutes(r, 0)} мин · 1,25 РЕ` : reason ?? SQUAD_STATUS[q.status].label}</small>
-                  </button>
+                    onPointerEnter={() => onPreview(r ? q.id : null)} onFocus={() => onPreview(r ? q.id : null)}
+                    onPick={() => onOpenDispatch(inc.id, q.id)}
+                    expanded={statusOpen === q.id} onToggle={() => setStatusOpen(statusOpen === q.id ? null : q.id)}
+                  />
                 </li>
               );
             })}

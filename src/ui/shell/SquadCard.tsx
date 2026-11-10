@@ -6,7 +6,7 @@ import { etaMinutes } from '../../core/map/graph';
 import { formatRe } from '../../core/selectors';
 import { PLAN_IDS, PLANS, TREATABLE, patientOf, treatmentForecast } from '../../core/staff';
 import { STAT_KEYS, reserveOptions, squadSummary } from '../../core/squadSummary';
-import type { GameState, Stats } from '../../core/types';
+import type { GameState, Squad, Stats } from '../../core/types';
 import { dispatch } from '../../store';
 import { SQUAD_STATUS } from '../labels';
 import { Portrait } from '../Portrait';
@@ -43,29 +43,7 @@ export function SquadCard({ game, id, onSelect }: { game: GameState; id: string;
         {q.movement && (<><dt>Прибытие</dt><dd>≈{etaMinutes(q.movement.route, q.movement.elapsed)} мин</dd></>)}
       </dl>
 
-      <section className="qs-summary" aria-label="Сводка отряда" data-testid="squad-summary">
-        <div className="qs-chips">
-          <div><b data-testid="squad-fit">{sum.fit}/{sum.total}</b><small>годны к выезду</small></div>
-          <div><b className={sum.avgFatigue >= exhausted ? 'warn-text' : ''} data-testid="squad-fatigue">{sum.avgFatigue}%</b><small>усталость</small></div>
-          <div><b>{sum.needTreatment}</b><small>ждут лечения</small></div>
-        </div>
-        <ul className="qs-stats" data-testid="squad-stats">
-          {STAT_KEYS.map((k) => (
-            <li key={k}>
-              <span>{STAT_LABEL[k]}</span>
-              <span className="bar" aria-hidden="true"><i style={{ width: `${(sum.stats[k] / 5) * 100}%` }} /></span>
-              <b>{sum.stats[k].toFixed(1)}</b>
-            </li>
-          ))}
-        </ul>
-        <p className="muted small">
-          Роли: {sum.roles.length ? sum.roles.map((r) => ROLE_LABEL[r]).join(', ') : '—'}
-          {sum.commander && <> · командир: {sum.commander.name}</>}
-        </p>
-        {sum.warnings.length > 0 && (
-          <ul className="plain-list qs-warnings" data-testid="squad-warnings">{sum.warnings.map((w) => <li key={w}>{w}</li>)}</ul>
-        )}
-      </section>
+      <SquadSummary game={game} squad={q} />
 
       <h4 className="section-title">Состав · {sum.total}/{sum.max}</h4>
       {sum.locked && <p className="hint">Отряд на задании: состав и лечение — после возвращения.</p>}
@@ -154,5 +132,38 @@ function ReservePick({ game, testid, onPick }: { game: GameState; testid: string
         </li>
       ))}
     </ul>
+  );
+}
+
+/** Сводка отряда: годны к выезду, усталость, ждут лечения, пять характеристик, роли и командир. Общая для карточки «Отряд» и списков готовых отрядов. */
+export function SquadSummary({ game, squad, testId }: { game: GameState; squad: Squad; testId?: string }) {
+  const sum = squadSummary(game, squad);
+  const exhausted = DISPATCH_RULES.squad.exhaustedFatigue;
+  // Идентификаторы для тестов — только у карточки «Отряд», чтобы в списках не было повторов.
+  const tid = (name: string) => (testId ? undefined : name);
+  return (
+    <section className="qs-summary" aria-label={`Сводка отряда «${squad.name}»`} data-testid={testId ?? 'squad-summary'}>
+      <div className="qs-chips">
+        <div><b data-testid={tid('squad-fit')}>{sum.fit}/{sum.total}</b><small>годны к выезду</small></div>
+        <div><b className={sum.avgFatigue >= exhausted ? 'warn-text' : ''} data-testid={tid('squad-fatigue')}>{sum.avgFatigue}%</b><small>усталость</small></div>
+        <div><b>{sum.needTreatment}</b><small>ждут лечения</small></div>
+      </div>
+      <ul className="qs-stats" data-testid={tid('squad-stats')}>
+        {STAT_KEYS.map((k) => (
+          <li key={k}>
+            <span>{STAT_LABEL[k]}</span>
+            <span className="bar" aria-hidden="true"><i style={{ width: `${(sum.stats[k] / 5) * 100}%` }} /></span>
+            <b>{sum.stats[k].toFixed(1)}</b>
+          </li>
+        ))}
+      </ul>
+      <p className="muted small">
+        Роли: {sum.roles.length ? sum.roles.map((r) => ROLE_LABEL[r]).join(', ') : '—'}
+        {sum.commander && <> · командир: {sum.commander.name}</>}
+      </p>
+      {sum.warnings.length > 0 && (
+        <ul className="plain-list qs-warnings" data-testid={tid('squad-warnings')}>{sum.warnings.map((w) => <li key={w}>{w}</li>)}</ul>
+      )}
+    </section>
   );
 }

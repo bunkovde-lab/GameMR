@@ -44,7 +44,7 @@ test('dispatch window: ready squads show banner and member faces like the main s
   await page.getByTestId('open-dispatch').click();
   const pick = page.getByTestId('pick-axon');
   await expect(pick.locator('.monogram.banner-axon')).toBeVisible();
-  const faces = page.getByTestId('pick-members-axon').locator('[data-testid^="pick-member-"]');
+  const faces = page.getByTestId('pick-axon-members').locator('[data-testid^="pick-axon-member-"]');
   expect(await faces.count()).toBeGreaterThanOrEqual(1);
   await expect(faces.first().locator('.sq-fatigue i')).toHaveAttribute('style', /width: \d+%/);
   const box = (await pick.boundingBox())!;
@@ -54,4 +54,28 @@ test('dispatch window: ready squads show banner and member faces like the main s
   await pick.click();
   await expect(pick).toHaveAttribute('aria-pressed', 'true');
   await page.screenshot({ path: `test-results/screens/dispatch-squads-${info.project.name}.png` });
+});
+
+test('ready squads expand to show squad status in the incident card and the dispatch window', async ({ page }) => {
+  if (!(await page.getByTestId('left-panel').isVisible())) await page.getByRole('button', { name: /Вызовы/ }).click();
+  await page.getByTestId('incident-missing').locator('.incident-title').click();
+  // Карточка происшествия: вымпел и лица, раскрытие статуса.
+  const row = page.getByTestId('dispatch-axon');
+  await expect(row.locator('.monogram.banner-axon')).toBeVisible();
+  await expect(page.getByTestId('dispatch-axon-members').locator('.sq-member').first()).toBeVisible();
+  const toggle = page.getByTestId('dispatch-axon-status');
+  expect((await toggle.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await toggle.click();
+  const sum = page.getByTestId('dispatch-axon-summary');
+  await expect(sum).toContainText('годны к выезду');
+  await expect(sum).toContainText('ждут лечения');
+  await expect(sum.locator('.qs-stats li')).toHaveCount(5);
+  await expect(sum).toContainText('Роли:');
+  await toggle.click();
+  await expect(sum).toHaveCount(0);
+  // Окно отправки: раскрытие статуса не выбирает отряд.
+  await page.getByTestId('open-dispatch').click();
+  await page.getByTestId('pick-axon-status').click();
+  await expect(page.getByTestId('pick-axon-summary')).toContainText('усталость');
+  await expect(page.getByTestId('pick-axon')).not.toHaveAttribute('aria-pressed', 'true');
 });

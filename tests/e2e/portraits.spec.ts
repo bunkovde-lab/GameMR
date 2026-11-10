@@ -24,13 +24,13 @@ test('staff: every starting employee shows a loaded portrait; dossier has a larg
   await page.getByTestId('staff-tab-roster').click();
   await expect(page.getByTestId('roster').locator('.portrait.sm').first()).toBeVisible();
   await page.screenshot({ path: `test-results/screens/art005-roster-${info.project.name}.png` });
-  await page.getByTestId('staff-tab-history').click();
-  await page.getByTestId('group-toggle-resonance').click();
-  await page.getByTestId('person-p9').click();
-  const big = page.locator('.person-head').getByTestId('portrait-p9');
+  await page.getByTestId('staff-tab-summary').click();
+  await page.getByTestId('open-p9').click();
+  await page.getByTestId('cab-tab-history').click();
+  const big = page.getByTestId('dossier').getByTestId('portrait-p9');
   await expect(big.locator('img')).toHaveAttribute('alt', 'Портрет: Сели Ренн');
   await expect.poll(() => loaded(big.locator('img'))).toBe(true);
-  await page.locator('.person-head').screenshot({ path: `test-results/screens/art005-head-${info.project.name}.png` });
+  await page.getByTestId('dossier').screenshot({ path: `test-results/screens/art005-head-${info.project.name}.png` });
   expect((await page.getByTestId('person-p9').boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await page.screenshot({ path: `test-results/screens/art005-dossier-${info.project.name}.png` });
 });

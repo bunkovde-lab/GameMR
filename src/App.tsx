@@ -140,10 +140,11 @@ export function App() {
               onSelect={select}
               onPreview={preview}
               onOpenDispatch={(incidentId, squadId) => setDispatchFor({ incidentId, squadId })}
+              onOpenCase={(caseId) => uiDispatch({ type: 'OPEN_VIEW', view: 'investigations', caseId })}
             />
           )}
           {ui.view === 'staff' && <StaffScreen game={game} onClose={() => uiDispatch({ type: 'OPEN_VIEW', view: 'map' })} />}
-          {ui.view === 'investigations' && <InvestigationsScreen game={game} onClose={() => uiDispatch({ type: 'OPEN_VIEW', view: 'map' })} />}
+          {ui.view === 'investigations' && <InvestigationsScreen game={game} focusCaseId={ui.focusCaseId ?? null} onClose={() => uiDispatch({ type: 'OPEN_VIEW', view: 'map' })} />}
           {ui.view === 'directorate' && <DirectorateScreen game={game} onClose={() => uiDispatch({ type: 'OPEN_VIEW', view: 'map' })} />}
         </main>
         <SquadStrip game={game} selectedId={ui.selection?.kind === 'squad' ? ui.selection.id : null} onSelect={(id) => select({ kind: 'squad', id })} />

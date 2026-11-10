@@ -13,10 +13,12 @@ export interface UiState {
   /** Отряд, маршрут которого показываем в превью (наведение в карточке вызова) */
   previewSquadId: string | null;
   layers: Record<LayerId, boolean>;
+  /** Какое дело открыть на экране расследований (переход из карточки вызова) */
+  focusCaseId?: string | null;
 }
 
 export type UiAction =
-  | { type: 'OPEN_VIEW'; view: ViewId }
+  | { type: 'OPEN_VIEW'; view: ViewId; caseId?: string }
   | { type: 'TOGGLE_LEFT_PANEL' }
   | { type: 'SELECT'; selection: Selection; narrow?: boolean }
   | { type: 'CLOSE_RIGHT_PANEL' }
@@ -47,7 +49,8 @@ export const NARROW_PX = 950;
 export function uiReducer(state: UiState, action: UiAction): UiState {
   switch (action.type) {
     case 'OPEN_VIEW':
-      return state.view === action.view ? state : { ...state, view: action.view };
+      if (action.caseId !== undefined) return { ...state, view: action.view, focusCaseId: action.caseId };
+      return state.view === action.view ? state : { ...state, view: action.view, focusCaseId: null };
     case 'TOGGLE_LEFT_PANEL':
       return { ...state, leftPanelOpen: !state.leftPanelOpen };
     case 'SELECT':

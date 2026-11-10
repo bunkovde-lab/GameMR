@@ -16,6 +16,10 @@ export const test = base.extend({
     await page.addLocatorHandler(page.getByTestId('operation-report'), async () => {
       await page.getByTestId('ack-report').click();
     });
+    // Страница «Как вести дело» открывается сама при первом деле; в проверках других сценариев закрываем её «как игрок».
+    await page.addLocatorHandler(page.getByTestId('case-help'), async () => {
+      await page.getByTestId('case-help-close').click();
+    });
     await provide(page);
   },
 });

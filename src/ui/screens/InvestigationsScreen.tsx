@@ -14,6 +14,10 @@ import { artUrl, evidenceIconUrl } from '../art';
 import { Icon, type IconName } from '../Icon';
 import { Portrait } from '../Portrait';
 import { CampaignPanel } from './CampaignPanel';
+import { CAMPAIGN } from '../../core/campaign';
+import { houseText } from '../../core/events';
+import { caseNextStep, caseTraining } from '../../core/caseGuide';
+import { Modal } from '../Modal';
 
 /** W9: расследования (ТЗ §11, сценарий «Неисполненный жребий»). Экран читает только ядро: скрытая истина в интерфейс не попадает. */
 
@@ -50,10 +54,18 @@ const bg = (key: string) => {
   return url ? { backgroundImage: `linear-gradient(rgba(10,12,16,.72), rgba(10,12,16,.72)), url(${url})`, backgroundSize: 'cover' } : undefined;
 };
 
-export function InvestigationsScreen({ game, onClose }: { game: GameState; onClose: () => void }) {
+const HELP_SEEN_KEY = 'gamemr.caseHelpSeen';
+const TRAINING_KEY = 'gamemr.caseTrainingHidden';
+const readFlag = (k: string) => { try { return window.localStorage.getItem(k) === '1'; } catch { return false; } };
+const writeFlag = (k: string, v: boolean) => { try { window.localStorage.setItem(k, v ? '1' : '0'); } catch { /* приватный режим */ } };
+
+export function InvestigationsScreen({ game, onClose, focusCaseId = null }: { game: GameState; onClose: () => void; focusCaseId?: string | null }) {
   const files = game.investigations.cases;
-  const [tab, setTab] = useState<string>(files.find((f) => f.status === 'open')?.id ?? files[0]?.id ?? 'campaign');
+  const [tab, setTab] = useState<string>((focusCaseId && files.some((f) => f.id === focusCaseId) ? focusCaseId : null) ?? files.find((f) => f.status === 'open')?.id ?? files[0]?.id ?? 'campaign');
   const current = files.find((f) => f.id === tab);
+  // Первое открытое дело: сначала короткая страница «Как вести дело».
+  const [help, setHelp] = useState(() => files.length > 0 && !readFlag(HELP_SEEN_KEY));
+  const closeHelp = () => { writeFlag(HELP_SEEN_KEY, true); setHelp(false); };
   return (
     <section className="panel screen" role="region" aria-label="Расследования" data-testid="investigations-screen">
       <div className="panel-header">
@@ -69,11 +81,18 @@ export function InvestigationsScreen({ game, onClose }: { game: GameState; onClo
             );
           })}
         </div>
+        <button className="btn" onClick={() => setHelp(true)} data-testid="case-help-open"><Icon name="book" /> <span className="label">Как вести дело</span></button>
         <button className="btn icon-only" onClick={onClose} aria-label="Вернуться к карте"><Icon name="close" /></button>
       </div>
       <div className="panel-body">
         {current ? <CaseView key={current.id} game={game} f={current} /> : <CampaignPanel game={game} />}
+        {!files.length && tab === 'campaign' && (
+          <p className="hint" data-testid="no-cases-hint">
+            Дел пока нет. Первое дело откроется после выезда на вызов, отмеченный на карте золотым ярлыком «№…». <button className="link" onClick={() => setHelp(true)}>Как устроены расследования</button>
+          </p>
+        )}
       </div>
+      {help && <CaseHelp onClose={closeHelp} />}
     </section>
   );
 }
@@ -81,7 +100,10 @@ export function InvestigationsScreen({ game, onClose }: { game: GameState; onClo
 function CaseView({ game, f }: { game: GameState; f: CaseFile }) {
   const d = caseDef(f.id)!;
   const [tab, setTab] = useState<Tab>('board');
+  const [focus, setFocus] = useState<string | null>(null);
+  const go = (t: Tab, target?: string) => { setTab(t); setFocus(target ?? null); };
   const loc = artUrl(CASE_ART[f.id] ?? '');
+  const chronicle = CAMPAIGN.nodes.filter((n) => n.shift >= d.fromShift && n.shift <= Math.min(game.shift, d.toShift));
   return (
     <div className="career case-view" data-testid={`case-${f.id}`}>
       <header className={`case-head${loc ? ' with-art' : ''}`} style={loc ? { backgroundImage: `linear-gradient(90deg, rgba(10,12,16,.92) 40%, rgba(10,12,16,.4)), url(${loc})` } : undefined} data-art={CASE_ART[f.id]}>
@@ -89,13 +111,22 @@ function CaseView({ game, f }: { game: GameState; f: CaseFile }) {
         <small className="muted">
           Открыто в смену {f.openedShift} · объект в ведении: {houseById(d.houseId)?.label} · улик: {f.evidence.length} · <b data-testid="case-status">{caseStatusWord(f)}</b>
         </small>
+        {chronicle.length > 0 && (
+          <details className="case-back" data-testid="case-chronicle">
+            <summary>Предыстория и ход дела по сменам</summary>
+            <ul className="plain-list">
+              {chronicle.map((n) => <li key={n.shift}><b>Смена {n.shift}. {n.title}.</b> {houseText(n.text)}</li>)}
+            </ul>
+          </details>
+        )}
       </header>
+      <CaseGuide game={game} f={f} tab={tab} onGo={go} />
       <div className="tabs case-tabs" role="tablist" aria-label="Режимы дела">
         {TABS.map((t) => (
-          <button key={t.id} role="tab" className="btn" aria-selected={tab === t.id} onClick={() => setTab(t.id)} data-testid={`case-mode-${t.id}`}>{t.label}</button>
+          <button key={t.id} role="tab" className="btn" aria-selected={tab === t.id} onClick={() => go(t.id)} data-testid={`case-mode-${t.id}`}>{t.label}</button>
         ))}
       </div>
-      {tab === 'board' && <Board game={game} f={f} d={d} />}
+      {tab === 'board' && <Board key={focus ?? 'board'} game={game} f={f} d={d} initialSel={focus} />}
       {tab === 'actions' && <Actions game={game} f={f} d={d} />}
       {tab === 'timeline' && <Timeline f={f} d={d} />}
       {tab === 'interviews' && <Interviews game={game} f={f} d={d} />}
@@ -146,8 +177,8 @@ function pinnedRefs(game: GameState, d: CaseDef): string[] {
 
 // ---------- Доска ----------
 
-function Board({ game, f, d }: { game: GameState; f: CaseFile; d: CaseDef }) {
-  const [sel, setSel] = useState<string | null>(null);
+function Board({ game, f, d, initialSel = null }: { game: GameState; f: CaseFile; d: CaseDef; initialSel?: string | null }) {
+  const [sel, setSel] = useState<string | null>(initialSel && f.evidence.some((e) => e.id === initialSel) ? initialSel : null);
   const boardRef = useRef<HTMLDivElement>(null);
   type Line = { key: string; x1: number; y1: number; x2: number; y2: number; status: LinkStatus; pair: boolean };
   const [lines, setLines] = useState<Line[]>([]);
@@ -647,5 +678,63 @@ function Conclusion({ game, f, d, onContinue }: { game: GameState; f: CaseFile; 
       )}
       {f.tasks.length > 0 && <p className="muted"><small>Идёт работа по делу: {f.tasks.length}. Решение будет доступно после её окончания.</small></p>}
     </div>
+  );
+}
+
+// ---------- Обучение ----------
+
+/** Подсказка «что дальше» и шесть учебных шагов (отмечаются по настоящим действиям; обучение можно скрыть). */
+function CaseGuide({ game, f, tab, onGo }: { game: GameState; f: CaseFile; tab: Tab; onGo: (t: Tab, target?: string) => void }) {
+  const [hidden, setHidden] = useState(() => readFlag(TRAINING_KEY));
+  const next = caseNextStep(game, f);
+  const steps = caseTraining(f);
+  const done = steps.filter((x) => x.done).length;
+  if (!next && (hidden || done === steps.length)) return null;
+  const toggle = () => { writeFlag(TRAINING_KEY, !hidden); setHidden(!hidden); };
+  return (
+    <section className="case-guide" aria-label="Подсказка по делу" data-testid="case-guide">
+      <header>
+        <Icon name="search" /> <b>{next ? 'Следующий шаг' : 'Дело решено'}</b>
+        <span className="spacer" />
+        {!hidden && <small className="muted" data-testid="training-progress">Обучение: {done} из {steps.length}</small>}
+        <button className="btn" onClick={toggle} data-testid="training-toggle">{hidden ? 'Показать обучение' : 'Скрыть обучение'}</button>
+      </header>
+      {next && (
+        <p className="next" data-testid="case-next">
+          {next.text}{' '}
+          {next.tab !== tab || next.target ? <button className="btn primary" onClick={() => onGo(next.tab, next.target)} data-testid="case-next-go">Перейти</button> : null}
+        </p>
+      )}
+      {!hidden && (
+        <ol className="training-steps" data-testid="training-steps">
+          {steps.map((x, i) => (
+            <li key={x.id} className={x.done ? 'done' : ''}>
+              <button className="btn" onClick={() => onGo(x.tab)} title={x.hint} data-testid={`training-${x.id}`} aria-label={`${x.label}${x.done ? ' — выполнено' : ''}. ${x.hint}`}>
+                <span className="num">{x.done ? '✓' : i + 1}</span> {x.label}
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
+  );
+}
+
+/** Страница «Как вести дело»: открывается сама при первом деле и по кнопке в заголовке. */
+function CaseHelp({ onClose }: { onClose: () => void }) {
+  return (
+    <Modal title="Как вести дело" subtitle="Расследования: коротко и по шагам" onClose={onClose} testId="case-help" className="wide case-help"
+      footer={<button className="btn primary" onClick={onClose} data-testid="case-help-close">Понятно</button>}>
+      <ol>
+        <li><b>Выезд на вызов открывает дело.</b> Вызовы, связанные с делом, отмечены на карте золотым ярлыком «№…». Задача операции «Сохранность улик» решает, сколько улик с места дойдёт до дела.</li>
+        <li><b>Проверьте улики.</b> На доске нажмите на улику и выберите следователя, аналитика или биокриминалиста. Проверка идёт 45–90 игровых минут и иногда бывает неубедительной: тогда её повторяют, повторная точнее.</li>
+        <li><b>Добывайте новые сведения.</b> «Действия» — выезды и запросы (некоторым нужен ордер суда или допуск Дома). «Допросы» — люди отвечают на вопросы, когда у вас есть улики, на которые можно сослаться. Усиленный допрос быстрее, но суд может исключить такие показания.</li>
+        <li><b>Стройте связи на доске.</b> Свяжите улику с версией. Пока улика не проверена, связь только «предложена». Доска не говорит, какая версия верна: решаете вы.</li>
+        <li><b>Усильте дело (по желанию).</b> Сопоставьте две улики между собой и восстановите порядок событий в «Реконструкции». Это повышает шансы в суде.</li>
+        <li><b>Вынесите заключение.</b> Для обвинения нужно минимум 3 проверенные и допустимые улики, подтверждающие одну версию. Суд может вернуть обвинение, а ошибочное решение может вскрыться через пару смен.</li>
+      </ol>
+      <p className="note"><b>Сколько времени.</b> Дело не нужно раскрывать за одну смену: оно остаётся открытым, а начатая работа доделывается к следующей смене. Подгоняют только события кампании: предложения Домов и сроки особых операций.</p>
+      <p className="note">Внутри дела всегда есть подсказка «Следующий шаг» и шесть учебных шагов первого дела. Обучение можно скрыть.</p>
+    </Modal>
   );
 }

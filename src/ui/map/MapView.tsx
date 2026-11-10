@@ -14,6 +14,7 @@ import { MOOD_LABEL, WEATHER_LABEL, districtMood, loadEffectsLevel, nightLevel, 
 import { MapLife } from './MapLife';
 import { DEFAULT_SAFE, clampCamera, ensureVisible, transform, worldToScreen, zoomAt, type Camera, type Viewport, W, H } from './camera';
 import { MarkerIcon, markerArtUrl } from '../art';
+import { incidentCaseLink } from '../../core/caseGuide';
 import { CLUSTER_MARKER, INCIDENT_ICON, INCIDENT_MARKER, SQUAD_MARKER, incidentPoint, squadPoint } from './entities';
 import { layoutMarkers } from './markerLayout';
 
@@ -365,17 +366,19 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
                   const inc = byId.get(m.id)!;
                   const selected = selection?.kind === 'incident' && selection.id === inc.id;
                   const art = markerArtUrl(INCIDENT_MARKER[inc.templateId] ?? '');
+                  const link = incidentCaseLink(game, inc);
                   return (
                     <button
                       key={inc.id}
-                      className={`marker incident sev-${inc.severity} st-${inc.state}${selected ? ' selected' : ''}${art ? ' shield' : ''}`}
+                      className={`marker incident sev-${inc.severity} st-${inc.state}${selected ? ' selected' : ''}${art ? ' shield' : ''}${link ? ' case-link' : ''}`}
                       style={{ left: m.x, top: m.y }}
                       onClick={() => onSelect({ kind: 'incident', id: inc.id })}
-                      aria-label={`Вызов: ${inc.title}`}
+                      aria-label={`Вызов: ${inc.title}${link ? `. Связан с делом №${link.number}` : ''}`}
                       aria-pressed={selected}
                       data-testid={`marker-incident-${inc.id}`}
                     >
                       {art ? <img src={art} alt="" draggable={false} /> : <Icon name={INCIDENT_ICON[inc.templateId] ?? 'warning'} />}
+                      {link && <span className="case-badge" data-testid={`case-badge-${inc.id}`}><Icon name="search" />№{link.number}</span>}
                     </button>
                   );
                 })}

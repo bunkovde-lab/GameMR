@@ -71,7 +71,8 @@ export function reduce(state: GameState, command: Command): CommandResult {
       if (!Number.isInteger(command.minutes) || command.minutes < 1) return reject('Некорректный шаг времени.');
       if (pendingDecision(s)) return reject('Ожидается решение по операции.');
       if (activeOp(s)) return reject(`Идёт особая операция «${opDef(activeOp(s)!.id)!.title}»: примите решение.`);
-      for (let i = 0; i < command.minutes && s.phase === 'ACTIVE' && !pendingDecision(s); i++) advanceMinute(s);
+      // Новый вызов ставит игру на паузу (s.paused) — оставшиеся минуты этого шага не идут.
+      for (let i = 0; i < command.minutes && s.phase === 'ACTIVE' && !s.paused && !pendingDecision(s); i++) advanceMinute(s);
       return { ok: true, state: s };
     }
     case 'CHOOSE_OPTION': {
@@ -531,6 +532,8 @@ export function reduce(state: GameState, command: Command): CommandResult {
       if (s.phase !== 'ACTIVE' && s.phase !== 'REVIEW_PENDING') return reject('Сейчас нельзя завершить смену.');
       if (pendingDecision(s)) return reject('Сначала примите решение по операции.');
       if (activeOp(s)) return reject('Сначала завершите особую операцию.');
+      // Вызовы, не успевшие поступить (смену закрыли раньше), всё равно приходят и переносятся на следующую смену.
+      while (s.incoming.length) receiveCall(s);
       // Начало смены — до её первой транзакции (платежи между сменами относятся к новой смене).
       const opening = s.economy.balance - s.economy.ledger.filter((t) => t.shift === s.shift).reduce((x, t) => x + t.amount, 0);
       post(s, 'funding', toCents(BALANCE.fundingPerShift), 'Финансирование смены');
@@ -709,6 +712,11 @@ function moveSquads(s: GameState): Set<string> {
 
 function advanceMinute(s: GameState) {
   s.minute += 1;
+  if (s.incoming[0] && s.incoming[0].at <= s.minute) {
+    while (s.incoming[0] && s.incoming[0].at <= s.minute) receiveCall(s);
+    // Автопауза: игрок сам решает, кого отправить (ТЗ: пауза при решениях).
+    s.paused = true;
+  }
   const arrived = moveSquads(s);
   for (const sq of s.squads) {
     if (sq.status !== 'on_scene' || !sq.operation || arrived.has(sq.id)) continue;
@@ -753,7 +761,20 @@ function advanceMinute(s: GameState) {
   }
 }
 
+/** Первый вызов из очереди дня поступает на карту. */
+function receiveCall(s: GameState) {
+  const { incident } = s.incoming.shift()!;
+  s.incidents.push(incident);
+  log(s, 'incident_created', `Новый вызов: ${incident.title}.`);
+}
+
+/**
+ * Вызовы смены: первый — к брифингу, остальные приходят в течение дня (CALLS.firstMinute…lastMinute от начала смены).
+ * Срок каждого отсчитывается от поступления, поэтому запас времени у игрока тот же, что и раньше.
+ */
+const CALLS = { firstMinute: 60, lastMinute: 540 };
 function spawnIncidents(s: GameState, count: number) {
+  const made: Incident[] = [];
   for (let k = 0; k < count; k++) {
     let idx: number, spawn: number, jitter: number;
     [idx, s.rng] = nextInt(s.rng, RANDOM_POOL.length);
@@ -772,9 +793,24 @@ function spawnIncidents(s: GameState, count: number) {
       deadlineMinute: 60 + t.deadlineMinutes + jitter + earlyWarning(s),
       createdShift: s.shift,
     };
-    s.incidents.push(inc);
-    log(s, 'incident_created', `Новый вызов: ${inc.title}.`);
+    made.push(inc);
   }
+  const [first, ...later] = made;
+  if (first) {
+    s.incidents.push(first);
+    log(s, 'incident_created', `Новый вызов: ${first.title}.`);
+  }
+  const times: number[] = [];
+  for (let k = 0; k < later.length; k++) {
+    let t: number;
+    [t, s.rng] = nextInt(s.rng, CALLS.lastMinute - CALLS.firstMinute + 1);
+    times.push(CALLS.firstMinute + t);
+  }
+  times.sort((a, b) => a - b);
+  later.forEach((inc, k) => {
+    inc.deadlineMinute += times[k]!;
+    s.incoming.push({ at: times[k]!, incident: inc });
+  });
 }
 
 function post(s: GameState, kind: TransactionKind, amount: number, note: string) {

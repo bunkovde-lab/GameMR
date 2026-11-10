@@ -41,7 +41,12 @@ export function dispatch(command: Command): boolean {
     if (command.type !== 'TICK') notify('bad', result.reason);
     return false;
   }
+  const before = snapshot.game;
   set({ game: result.state });
+  if (command.type === 'TICK' && result.state.paused && result.state.incidents.length > before.incidents.length) {
+    const fresh = result.state.incidents.slice(before.incidents.length).map((i) => i.title).join(', ');
+    notify('good', `Новый вызов: ${fresh}. Игра на паузе — решите, кого отправить.`);
+  }
   if (AUTOSAVE_AFTER.includes(command.type)) {
     saveToSlot('auto', result.state).catch((e: Error) => notify('bad', `Автосохранение не удалось: ${e.message}`));
   }

@@ -2,7 +2,7 @@
  * Доменная модель W2 — подмножество ТЗ §5.2, необходимое для одной смены.
  * Деньги хранятся целым числом в сотых долях РЕ (cents), чтобы избежать ошибок округления.
  */
-export const SCHEMA_VERSION = 10;
+export const SCHEMA_VERSION = 11;
 
 import type { Route } from './map/graph';
 
@@ -421,6 +421,8 @@ export interface GameState {
   staff: Staff[];
   squads: Squad[];
   incidents: Incident[];
+  /** Вызовы смены, которые ещё не поступили: приходят в течение дня в минуту `at` (срок отсчитывается от поступления) */
+  incoming: { at: number; incident: Incident }[];
   /** Закрытые рёбра дорожного графа (дорожные ограничения) */
   roadClosures: string[];
   equipment: EquipmentUnit[];

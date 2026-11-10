@@ -77,6 +77,7 @@ export function createInitialState(seed: number = DEFAULT_SEED): GameState {
       commanderId: null,
     })),
     incidents,
+    incoming: [],
     roadClosures: [],
     equipment: initialEquipment(),
     log: [{ id: 1, shift: 1, minute: 0, type: 'campaign_started', text: 'Вы приняли руководство Городской дирекцией безопасности.' }],

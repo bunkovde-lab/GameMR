@@ -137,24 +137,47 @@ function CaseView({ game, f }: { game: GameState; f: CaseFile }) {
 
 // ---------- Общие элементы ----------
 
-function StaffPick({ game, roles, why, value, onChange, testid }: {
-  game: GameState; roles: StaffRole[]; why: (id: string) => string | null; value: string; onChange: (id: string) => void; testid: string;
+function StaffPick({ game, roles, why, value, onChange, testid, label = 'Назначить следователя' }: {
+  game: GameState; roles: StaffRole[]; why: (id: string) => string | null; value: string; onChange: (id: string) => void; testid: string; label?: string;
 }) {
+  const [open, setOpen] = useState(false);
   const people = game.staff.filter((p) => roles.includes(p.role) && p.health !== 'dead');
+  const rows = people.map((p) => ({ p, w: workerBlocker(game, p.id, roles) }));
+  // Сначала свободные (сильнейший анализ выше), затем занятые.
+  rows.sort((a, b) => Number(!!a.w) - Number(!!b.w) || b.p.stats.analysis - a.p.stats.analysis);
+  const best = rows.find((r) => !r.w)?.p.id;
+  const cur = people.find((p) => p.id === value);
+  const none = rows.every((r) => r.w);
   return (
     <>
-      <div className="seg wrap" role="group" aria-label="Кто выполняет">
-        {people.map((p) => {
-          const w = workerBlocker(game, p.id, roles);
-          return (
-            <button key={p.id} className="btn staff-pick" aria-pressed={value === p.id} disabled={!!w} title={w ?? undefined} onClick={() => onChange(p.id)} data-testid={`${testid}-${p.id}`}>
-              <Portrait id={p.id} name={p.name} health={p.health} size="xs" /> {p.name} · {ROLE_LABEL[p.role].toLowerCase()} · анализ {p.stats.analysis}
-            </button>
-          );
-        })}
+      <div className="staff-assign">
+        {cur ? (
+          <span className="staff-assign-cur" data-testid={`${testid}-current`}>
+            <Portrait id={cur.id} name={cur.name} health={cur.health} size="xs" />
+            <span className="staff-pick-text"><b>{cur.name}</b><small>{ROLE_LABEL[cur.role].toLowerCase()} · анализ {cur.stats.analysis}</small></span>
+          </span>
+        ) : <small className="muted">Никто не назначен</small>}
+        <button className="btn" disabled={!people.length} onClick={() => setOpen(true)} data-testid={`${testid}-open`}>
+          {cur ? 'Сменить' : label} ▾
+        </button>
       </div>
-      {people.every((p) => workerBlocker(game, p.id, roles)) && <small className="why">Нет свободных: нужен {roles.map((r) => ROLE_LABEL[r].toLowerCase()).join(' или ')}.</small>}
+      {none && <small className="why">Нет свободных: нужен {roles.map((r) => ROLE_LABEL[r].toLowerCase()).join(' или ')}.</small>}
       {value && why(value) && <small className="why">{why(value)}</small>}
+      {open && (
+        <Modal title={label} onClose={() => setOpen(false)} className="staff-pick-modal" testId={`${testid}-list`}>
+          <small className="muted">Подходит: {roles.map((r) => ROLE_LABEL[r].toLowerCase()).join(', ')}. Сверху — свободные, с самым сильным анализом.</small>
+          <div className="staff-pick-list" role="listbox" aria-label="Кто выполняет">
+            {rows.map(({ p, w }) => (
+              <button key={p.id} role="option" className={`btn staff-pick${p.id === best ? ' best' : ''}`} aria-selected={value === p.id} aria-pressed={value === p.id} disabled={!!w} title={w ?? undefined}
+                onClick={() => { onChange(p.id); setOpen(false); }} data-testid={`${testid}-${p.id}`}>
+                <Portrait id={p.id} name={p.name} health={p.health} size="xs" />
+                <span className="staff-pick-text"><b>{p.name}</b><small>{ROLE_LABEL[p.role].toLowerCase()} · анализ {p.stats.analysis}</small></span>
+                {w ? <small className="staff-pick-why">{w}</small> : p.id === best ? <small className="staff-pick-best">лучший</small> : null}
+              </button>
+            ))}
+          </div>
+        </Modal>
+      )}
     </>
   );
 }
@@ -377,7 +400,7 @@ function EvidencePanel({ game, f, d, id, pinned, onClose }: { game: GameState; f
           {task ? <p className="tag">идёт: {game.staff.find((p) => p.id === task.staffId)?.name}, осталось {minutesLeft(game, task.doneAt)} мин</p> : (
             <>
               <small className="muted">≈{analysisMinutes(game, def)} мин{A.reagents ? ` · реагентов: ${A.reagents} (есть ${game.resources.reagents})` : ''}. Результат зависит от сотрудника; повторная проверка точнее.</small>
-              <StaffPick game={game} roles={A.roles} value={who} onChange={setWho} why={(sid) => analysisBlocker(game, f.id, id, sid)} testid="analyst" />
+              <StaffPick game={game} roles={A.roles} value={who} onChange={setWho} why={(sid) => analysisBlocker(game, f.id, id, sid)} testid="analyst" label="Назначить проверяющего" />
               <button className="btn primary" disabled={!who || !!analysisBlocker(game, f.id, id, who)} onClick={() => dispatch({ type: 'ANALYZE_EVIDENCE', caseId: f.id, evidenceId: id, staffId: who })} data-testid="analyze">
                 Начать проверку
               </button>
@@ -540,7 +563,6 @@ function Interviews({ game, f, d }: { game: GameState; f: CaseFile; d: CaseDef }
   return (
     <div className="career interviews" data-testid="interviews" style={bg('interrogation_room_bg')} data-art="interrogation_room_bg">
       <p className="hint">Вопросы открываются, когда в деле есть улики, на которые можно сослаться. Предъявлять можно только проверенное. Самый жёсткий метод не самый верный.</p>
-      {f.status === 'open' && <StaffPick game={game} roles={roles} value={who} onChange={setWho} why={() => null} testid="interrogator" />}
       <div className="card-grid">
         {d.persons.map((p) => {
           const avail = personAvailable(game, f, p);
@@ -563,6 +585,7 @@ function Interviews({ game, f, d }: { game: GameState; f: CaseFile; d: CaseDef }
               {task && <span className="tag">идёт допрос · {minutesLeft(game, task.doneAt)} мин</span>}
               {avail && f.status === 'open' && !task && (
                 <div className="method-list">
+                  {open.length > 0 && <StaffPick game={game} roles={roles} value={who} onChange={setWho} why={() => null} testid={`interrogator-${p.id}`} />}
                   {open.map((l) => {
                     const why = interrogationBlocker(game, f.id, p.id, l.id, who || undefined);
                     return (

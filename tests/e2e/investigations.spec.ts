@@ -38,7 +38,9 @@ test('board: links to versions, a comparison of two items, analysis by a chosen 
   await expect(page.getByTestId('link-e01-h1b')).toContainText('предложена');
   await page.getByTestId('pair-with-e02').click();
   await expect(page.getByTestId('pair-list')).toContainText('ждёт проверки');
+  await page.getByTestId('analyst-open').click();
   await page.getByTestId('analyst-p8').click();
+  await expect(page.getByTestId('analyst-current')).toBeVisible();
   await page.getByTestId('analyze').click();
   await expect(page.getByTestId('ev-e01')).toContainText('в работе');
   if (/^(pc|tablet)/.test(info.project.name)) {
@@ -57,7 +59,9 @@ test('actions: closed House records need a permit; the request costs a fee and w
   await page.getByTestId('permit-req-a_list').click();
   await expect(page.getByTestId('permit-a_list')).toContainText('рассматривается');
   await expect(page.getByTestId('action-a_search')).toContainText('✗ «Маршрут контейнера»');
+  await page.getByTestId('actor-a_pay-open').click();
   await page.getByTestId('actor-a_pay-p8').click();
+  await expect(page.getByTestId('actor-a_pay-current')).toBeVisible();
   await expect(page.getByTestId('action-start-a_pay')).toBeEnabled();
   await shot(page, 'actions', info.project.name);
 });
@@ -67,7 +71,9 @@ test('interrogation: questions open with evidence; presenting refers to specific
   await page.getByTestId('case-mode-interviews').click();
   await expect(page.getByTestId('person-p1')).toContainText('Фигурант пока неизвестен');
   await expect(page.getByTestId('person-p3')).toContainText('найти человека');
-  await page.getByTestId('interrogator-p9').click();
+  await page.getByTestId('interrogator-p2-open').click();
+  await page.getByTestId('interrogator-p2-p9').click();
+  await expect(page.getByTestId('interrogator-p2-current')).toBeVisible();
   await expect(page.getByTestId('ask-p2-l2')).toHaveCount(0); // нужна «Показания Бо Этты»
   await page.getByTestId('ask-p2-l1').click();
   await expect(page.getByTestId('person-p2')).toContainText('идёт допрос');
@@ -166,7 +172,7 @@ test('ART-011: interrogation room background and faces of known persons; unknown
   await page.getByTestId('case-mode-interviews').click();
   const room = page.getByTestId('interviews');
   await expect(room).toHaveAttribute('style', /interrogation_room_bg/);
-  const imgs = room.locator('.person-card img');
+  const imgs = room.locator('.person-card .face-row img');
   await expect(imgs.first()).toBeVisible();
   // Маленькие webp Vite встраивает как data:-адрес, поэтому проверяем число лиц: по одному на каждого известного фигуранта.
   const unknown = room.locator('.person-card', { hasText: 'Фигурант пока неизвестен' });
@@ -253,3 +259,23 @@ for (const id of ['order', 'cost', 'collapse'] as const) {
     }
   });
 }
+
+test('compact staff assignment: one button opens the list, best free person is marked, busy people show why', async ({ page }, info) => {
+  await load(page, 'case_c1');
+  await page.getByTestId('case-mode-actions').click();
+  await expect(page.locator('[data-testid^="actor-a_pay-p"]')).toHaveCount(0); // список скрыт, пока не нажали кнопку
+  await tall(page, 'actor-a_pay-open');
+  await page.getByTestId('action-a_pay').scrollIntoViewIfNeeded();
+  await shot(page, 'assign-closed', info.project.name);
+  await page.getByTestId('actor-a_pay-open').click();
+  const list = page.getByTestId('actor-a_pay-list');
+  await expect(list.locator('.staff-pick.best')).toHaveCount(1);
+  await expect(list.locator('.staff-pick').first()).toHaveClass(/best/);
+  await shot(page, 'assign-open', info.project.name);
+  await page.keyboard.press('Escape');
+  await expect(list).toHaveCount(0);
+  await page.getByTestId('case-mode-interviews').click();
+  await expect(page.locator('[data-testid^="interrogator-p2-p"]')).toHaveCount(0);
+  await page.getByTestId('person-p2').scrollIntoViewIfNeeded();
+  await shot(page, 'assign-interviews', info.project.name);
+});

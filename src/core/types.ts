@@ -134,7 +134,12 @@ export interface Staff {
   implants: string[];
   /** W6.2: преданность государству / Дому / дирекции, 0…100 (ТЗ §7.5) */
   allegiance: { state: number; house: number; directorate: number };
+  /** Постоянное место в отряде, пока сотрудник временно выбыл (лечение, курс, орган, исследование). */
+  home?: StaffHome | null;
 }
+
+/** Куда вернуть сотрудника: отряд, позиция в составе, был ли командиром, кто подменяет. */
+export interface StaffHome { squadId: string; slot: number; commander: boolean; standInId: string | null }
 
 /** ТЗ §7.5: связь двух сотрудников, шкалы −5…+5 */
 export interface Relation { a: string; b: string; trust: number; teamwork: number; loyalty: number }

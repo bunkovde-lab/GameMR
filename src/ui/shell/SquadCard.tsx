@@ -6,6 +6,7 @@ import { etaMinutes } from '../../core/map/graph';
 import { formatRe } from '../../core/selectors';
 import { PLAN_IDS, PLANS, TREATABLE, patientOf, treatmentForecast } from '../../core/staff';
 import { STAT_KEYS, reserveOptions, squadSummary } from '../../core/squadSummary';
+import { awayLine, homeStatus } from '../../core/squadHome';
 import type { GameState, Stats } from '../../core/types';
 import { dispatch } from '../../store';
 import { SQUAD_STATUS } from '../labels';
@@ -121,6 +122,7 @@ export function SquadCard({ game, id, onSelect }: { game: GameState; id: string;
           );
         })}
       </ul>
+      {awayLine(game, q.id) && <p className="hint" data-testid="squad-away">Временно выбыли: {awayLine(game, q.id)}. Вернутся на свои места сами.</p>}
       {sum.total < sum.max && !sum.locked && (
         <>
           <button className="btn wide" disabled={!pool.length} aria-expanded={adding} onClick={() => setAdding(!adding)} data-testid="sq-add">
@@ -147,7 +149,7 @@ function ReservePick({ game, testid, onPick }: { game: GameState; testid: string
               <Portrait id={r.id} name={r.name} health={r.health} size="sm" />
               <span className="pick-text">
                 <b>{r.name}</b>
-                <small>{ROLE_LABEL[r.role]} · усталость {r.fatigue}%{blocker ? ` · ${blocker}` : ' · готов(а)'}</small>
+                <small>{ROLE_LABEL[r.role]} · усталость {r.fatigue}%{blocker ? ` · ${blocker}` : ' · готов(а)'}{homeStatus(game, r) ? ` · ${homeStatus(game, r)!.text}` : ''}</small>
               </span>
             </span>
           </button>

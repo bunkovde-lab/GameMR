@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { ROLE_LABEL } from '../../core/content';
 import { memberBlocker } from '../../core/dispatch';
+import { awayLine, homeStatus } from '../../core/squadHome';
 import { HEALTH_LOG } from '../../core/healthText';
 import { formatRe } from '../../core/selectors';
 import {
@@ -108,6 +109,7 @@ function Roster({ game, open: openPerson }: { game: GameState; open: Open }) {
                 ))}
               </ul>
               {busy && <p className="hint">На задании: переводы после возвращения.</p>}
+              {awayLine(game, q.id) && <p className="hint" data-testid={`roster-away-${q.id}`}>Временно выбыли: {awayLine(game, q.id)}. Вернутся сами.</p>}
             </article>
           );
         })}
@@ -117,7 +119,7 @@ function Roster({ game, open: openPerson }: { game: GameState; open: Open }) {
           <ul className="plain-list member-rows">
             {res.map((p) => (
               <li key={p.id}>
-                <span className="face-row"><PersonLink game={game} id={p.id} open={openPerson} size="sm"><span className="sr-only">{p.name}</span></PersonLink><span className="pick-text">{p.name}<small>{ROLE_LABEL[p.role]} · {HEALTH_LOG[p.health]}{memberBlocker(game, p.id, '') ? ` · ${memberBlocker(game, p.id, '')}` : ''}</small></span></span>
+                <span className="face-row"><PersonLink game={game} id={p.id} open={openPerson} size="sm"><span className="sr-only">{p.name}</span></PersonLink><span className="pick-text">{p.name}<small>{ROLE_LABEL[p.role]} · {HEALTH_LOG[p.health]}{memberBlocker(game, p.id, '') ? ` · ${memberBlocker(game, p.id, '')}` : ''}{homeStatus(game, p) ? ` · ${homeStatus(game, p)!.text}` : ''}</small></span></span>
                 <span className="row-actions wrap">
                   {game.squads.filter((q) => q.status === 'ready' && q.memberIds.length < 3).map((q) => (
                     <button key={q.id} className="btn" onClick={() => dispatch({ type: 'ASSIGN_STAFF', staffId: p.id, squadId: q.id })} data-testid={`assign-${p.id}-${q.id}`}>→ «{q.name}»</button>

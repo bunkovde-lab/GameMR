@@ -1137,3 +1137,52 @@ img.nav-art { width: 36px; height: 36px; margin: -6px 0; object-fit: contain; fl
 .case-help li b { color: var(--gold-light); }
 .case-help .note { border-left: 3px solid var(--gold); padding-left: 10px; }
 .tab-attn { box-shadow: inset 0 -3px 0 var(--gold-light); }
+
+/* ---------- ART-023: карточка происшествия ---------- */
+/* Фон: арт incident_card_bg (если есть) под затемнением. Пустое место под текстом занимает бледный герб Дирекции
+   (только если место есть: при длинной карточке он исчезает и не ложится под текст). */
+.right-panel.kind-incident .panel-body {
+  background: linear-gradient(180deg, #0b1016f0 0%, #0b1016d9 55%, #0b1016e6 100%), var(--inc-card-bg, none) center / cover no-repeat;
+}
+.right-panel.kind-incident .card-body { display: flex; flex-direction: column; }
+.incident-card { display: flex; flex-direction: column; gap: 10px; flex: 1 0 auto; }
+.incident-card::after {
+  content: ''; flex: 1 1 0; min-height: 0; max-height: 260px; margin-top: 8px;
+  background: url('../../assets/ui/kit_v2/crest_directorate.png') center / contain no-repeat; opacity: .07;
+}
+.incident-card > * { margin: 0; }
+.inc-hero {
+  position: relative; aspect-ratio: 2 / 1; min-height: 120px; border-radius: 10px; overflow: hidden;
+  background-size: cover; background-position: center; border: 1px solid var(--stroke2);
+  box-shadow: inset 0 -40px 40px -20px #000a;
+}
+.inc-hero.placeholder {
+  background: radial-gradient(ellipse at 50% 60%, #2a1418 0%, #12161e 70%), #12161e;
+  display: grid; place-items: center; border-style: dashed;
+}
+.inc-hero-type { display: grid; justify-items: center; gap: 2px; color: var(--muted); font-size: 13px; }
+.inc-hero-type .icon { width: 28px; height: 28px; color: var(--gold); opacity: .7; }
+.inc-hero-type small { color: var(--dim); font-size: 11px; }
+@media (max-height: 560px) { .inc-hero { aspect-ratio: 3 / 1; min-height: 84px; } .inc-stamp { font-size: 14px; } }
+.inc-stamp {
+  position: absolute; right: 10px; bottom: 10px; transform: rotate(-8deg);
+  padding: 3px 10px; border: 3px double currentColor; border-radius: 6px;
+  font-family: var(--font-title); font-weight: 700; font-size: 18px; letter-spacing: 2px; text-transform: uppercase;
+  background: #0b1016b3; box-shadow: 0 0 0 1px #0006; pointer-events: none;
+}
+.inc-stamp.has-art { width: 42%; aspect-ratio: 2 / 1; padding: 0; border: 0; background: currentColor; box-shadow: none; mask-size: contain; mask-repeat: no-repeat; mask-position: center; -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; filter: drop-shadow(0 1px 2px #000); }
+.inc-stamp.tone-good { color: #7fc79a; }
+.inc-stamp.tone-mid { color: var(--amber); }
+.inc-stamp.tone-bad { color: #e0504f; }
+.inc-stamp.tone-dim { color: var(--dim); }
+.aftermath-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.aftermath-list li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start; line-height: 1.35; }
+.aftermath-list b { color: var(--text); font-weight: 600; }
+.aft-ico { width: 20px; height: 20px; margin-top: 1px; color: var(--gold); display: inline-grid; place-items: center; }
+.aft-ico .icon { width: 18px; height: 18px; }
+.aft-ico.cat-people { color: #e08a7a; }
+.aft-ico.cat-city { color: var(--gold); }
+.aft-ico.cat-law { color: #c9b27a; }
+.aft-ico.cat-politics { color: #c07ad0; }
+.aft-ico.cat-staff { color: #8fc0d8; }
+.aft-ico.cat-science { color: #69c1d0; }

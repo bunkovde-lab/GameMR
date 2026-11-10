@@ -783,6 +783,42 @@ td.bad { color: var(--bad); }
 .music-volume input[type='range'] { width: 100%; min-height: var(--tap); accent-color: var(--gold); touch-action: pan-x; }
 .music-hint { color: var(--muted); }
 
+/* ---------- Цели над картой (вкладка «Обзор» Дирекции, раскрывается кнопкой слева сверху) ---------- */
+.workspace { --goals-w: 128px; }
+.goals-dock {
+  position: absolute; top: 10px; left: 10px; bottom: 10px; z-index: 3;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+  pointer-events: none;
+}
+.goals-dock > * { pointer-events: auto; }
+.goals-toggle { width: var(--goals-w); justify-content: space-between; background: #141a22e8; }
+.goals-toggle .count.bad { background: var(--bad, #c4413f); }
+.goals-toggle .chev { font-size: 11px; color: var(--muted); }
+.goals-dock.open .goals-toggle { border-color: #c96a68; }
+.goals-panel {
+  width: min(400px, calc(100vw - 40px)); flex: 0 1 auto; min-height: 0;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.goals-panel .panel-body { padding: 12px 14px; }
+.goals-foot { display: flex; gap: 6px; justify-content: flex-end; padding: 8px 10px; border-top: 1px solid var(--stroke2); }
+.workspace:has(.goals-dock) .map-tools { left: calc(10px + var(--goals-w) + 6px); }
+.workspace:has(.left-panel) .goals-dock { left: calc(var(--left-w) + 10px); }
+@media (max-width: 950px) {
+  .workspace { --goals-w: 92px; }
+  .goals-toggle .label { display: none; }
+  .workspace:has(.left-panel) .goals-dock, .workspace:has(.right-panel) .goals-dock { display: none; }
+  .workspace:has(.goals-dock) .map-tools { left: calc(10px + var(--goals-w) + 6px); }
+}
+@media (max-height: 560px) {
+  /* Телефон: окно карты низкое — раскрытая панель ложится поверх ленты отрядов до нижней навигации. */
+  .goals-dock .goals-panel {
+    position: fixed; z-index: 12; left: 10px; width: min(440px, calc(100vw - 20px));
+    top: calc(var(--hud-h) + 62px); bottom: calc(var(--nav-h) + 12px);
+  }
+  .goals-panel .panel-body { padding: 8px 10px; }
+  .goals-foot { padding: 6px 8px; }
+}
+
 /* ---------- Личный кабинет сотрудника ---------- */
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .btn.person-link { min-height: var(--tap); padding: 4px 10px 4px 4px; gap: 8px; justify-content: flex-start; text-align: left; background: transparent; border-color: transparent; box-shadow: none; }

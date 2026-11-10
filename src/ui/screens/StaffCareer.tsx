@@ -8,10 +8,9 @@ import { HEALTH_LOG } from '../../core/healthText';
 import { clockLabel, formatRe } from '../../core/selectors';
 import type { GameState, Staff } from '../../core/types';
 import { dispatch } from '../../store';
-import { Icon, type IconName } from '../Icon';
 import { IconTile, type TileState, type TipLine } from '../IconTile';
 import { Portrait } from '../Portrait';
-import { SkillArt } from '../skillArt';
+import { OrganArt, SkillArt } from '../skillArt';
 import { StatusFace } from '../StatusFace';
 import { staffGroups } from './staffGroups';
 
@@ -133,44 +132,61 @@ export function Development({ game, p }: { game: GameState; p: Staff }) {
   );
 }
 
-const ORGAN_ICON: Record<string, IconName> = { org_scent: 'search', org_trace: 'beaker', org_dermal: 'shield', org_adapt: 'heart' };
+/** Ветки модификаций по системам организма — только раскладка экрана, на правила не влияет. */
+const ORGAN_BRANCHES: { id: string; label: string; hint: string; organs: string[] }[] = [
+  { id: 'senses', label: 'Чувства', hint: 'след, запах, биоматериал', organs: ['org_scent', 'org_trace'] },
+  { id: 'defense', label: 'Защита', hint: 'выживаемость группы', organs: ['org_dermal'] },
+  { id: 'nerves', label: 'Нервная система', hint: 'реакция и захват', organs: ['org_adapt'] },
+];
 
-/** Модификации (UI-09): органы значками; установка нажатием, извлечение — двойным нажатием. */
+/** Модификации (UI-09): панель как у развития — значки по ветвям; установка нажатием, извлечение двойным нажатием. */
 export function Modifications({ game, p }: { game: GameState; p: Staff }) {
   const m = metabolic(p);
   const rehab = game.medical.patients.find((x) => x.staffId === p.id && x.kind === 'implant');
+  const organTile = (id: string) => {
+    const o = organById(id);
+    if (!o) return null;
+    const installed = p.implants.includes(o.id);
+    const inRehab = rehab?.organId === o.id;
+    const why = installed || inRehab ? null : organBlocker(game, p.id, o.id);
+    const st: TileState = installed ? 'learned' : inRehab ? 'studying' : why ? 'locked' : 'open';
+    const lines: TipLine[] = [
+      { tone: 'cost', text: `Установка: ${o.cost} РЕ · нагрузка ${o.load} · реабилитация ${o.shifts} смен.` },
+      { text: `${o.ability}.${o.removable ? '' : ' Не извлекается.'}` },
+      ...(installed ? [{ tone: 'ok' as const, text: 'Установлен' }] : []),
+      ...(why ? [{ tone: 'no' as const, text: why }] : []),
+    ];
+    const action = st === 'open'
+      ? { run: () => dispatch({ type: 'INSTALL_ORGAN', staffId: p.id, organId: o.id }), hint: 'установить' }
+      : installed && o.removable ? { run: () => dispatch({ type: 'REMOVE_ORGAN', staffId: p.id, organId: o.id }), hint: 'извлечь', confirm: true } : null;
+    return <IconTile key={o.id} id={o.id} state={st} label={o.label} desc={o.desc} lines={lines} art={<OrganArt id={o.id} />} action={action} testId={`install-${o.id}`} />;
+  };
+  const pct = Math.min(100, Math.round((m.used / Math.max(1, m.capacity)) * 100));
   return (
-    <section className="cab-sec" data-testid="modifications" aria-label="Модификации">
+    <section className="cab-sec cab-mods" data-testid="modifications" aria-label="Модификации">
       <header className="cab-sec-head">
         <h4>Модификации</h4>
-        <small>Нагрузка: <b data-testid="metabolic">{m.used} из {m.capacity}</b></small>
+        <small>Запас организма: <b data-testid="metabolic">{m.used} из {m.capacity}</b></small>
       </header>
+      <span className="meter load-meter" title="Занято врождёнными системами и органами; растёт со стойкостью"><span style={{ width: `${pct}%` }} /></span>
       {rehab && <p className="cab-note">Реабилитация: «{organById(rehab.organId!)?.label}», ещё {rehab.shiftsLeft} смен.</p>}
-      <ol className="tile-row">
-        {innateSystems(p.role).map((x) => (
-          <IconTile key={x.id} id={x.id} state="innate" label={x.label} desc={x.desc} lines={[{ text: `Нагрузка ${x.load}. Врождённая система, не удаляется.` }]}
-            art={<span className="skill-ph"><Icon name="person" /></span>} action={null} testId={`innate-${x.id}`} caption={false} />
+      <div className="skill-tree mods-tree">
+        <section className="skill-branch innate" data-testid="mods-innate">
+          <header><b>Врождённое</b></header>
+          <ol className="skill-path loose">
+            {innateSystems(p.role).map((x) => (
+              <IconTile key={x.id} id={x.id} state="innate" label={x.label} desc={x.desc} lines={[{ text: `Нагрузка ${x.load}. Не удаляется.` }]}
+                art={<OrganArt id={x.id} />} action={null} testId={`innate-${x.id}`} />
+            ))}
+          </ol>
+        </section>
+        {ORGAN_BRANCHES.map((b) => (
+          <section key={b.id} className="skill-branch" title={b.hint} data-testid={`mods-${b.id}`}>
+            <header><b>{b.label}</b></header>
+            <ol className="skill-path loose">{b.organs.map(organTile)}</ol>
+          </section>
         ))}
-        {ORGANS.map((o) => {
-          const installed = p.implants.includes(o.id);
-          const inRehab = rehab?.organId === o.id;
-          const why = installed || inRehab ? null : organBlocker(game, p.id, o.id);
-          const st: TileState = installed ? 'learned' : inRehab ? 'studying' : why ? 'locked' : 'open';
-          const lines: TipLine[] = [
-            { tone: 'cost', text: `Установка: ${o.cost} РЕ · нагрузка ${o.load} · реабилитация ${o.shifts} смен.` },
-            { text: `${o.ability}.${o.removable ? '' : ' Не извлекается.'}` },
-            ...(installed ? [{ tone: 'ok' as const, text: 'Установлен' }] : []),
-            ...(why ? [{ tone: 'no' as const, text: why }] : []),
-          ];
-          const action = st === 'open'
-            ? { run: () => dispatch({ type: 'INSTALL_ORGAN', staffId: p.id, organId: o.id }), hint: 'установить' }
-            : installed && o.removable ? { run: () => dispatch({ type: 'REMOVE_ORGAN', staffId: p.id, organId: o.id }), hint: 'извлечь', confirm: true } : null;
-          return (
-            <IconTile key={o.id} id={o.id} state={st} label={o.label} desc={o.desc} lines={lines}
-              art={<span className="skill-ph"><Icon name={ORGAN_ICON[o.id] ?? 'beaker'} /></span>} action={action} testId={`install-${o.id}`} caption={false} />
-          );
-        })}
-      </ol>
+      </div>
       {/* Причины недоступности — и текстом, чтобы их было видно без наведения. */}
       <ul className="plain-list cab-why">
         {ORGANS.filter((o) => !p.implants.includes(o.id) && rehab?.organId !== o.id).map((o) => {

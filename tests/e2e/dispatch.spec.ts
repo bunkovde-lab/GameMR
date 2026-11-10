@@ -70,3 +70,38 @@ test('dialog fits the screen, the send button is reachable without page scroll, 
   await expect(page.getByTestId('dispatch-dialog')).toHaveCount(0);
   await expect(page.getByTestId('incident-card')).toBeVisible();
 });
+
+test('dispatch window shows the incident (art, text, stakes, state, timer) and pauses the game while open', async ({ page }, info) => {
+  await openBioleak(page);
+  const brief = page.getByTestId('dispatch-incident');
+  await expect(brief.getByTestId('inc-hero')).toBeVisible();
+  await expect(page.getByTestId('dispatch-known')).not.toBeEmpty();
+  await expect(page.getByTestId('dispatch-stakes')).toBeVisible();
+  await expect(page.getByTestId('dispatch-state')).not.toBeEmpty();
+  await expect(page.getByTestId('dispatch-timer')).toContainText('мин');
+  // Окно поставило паузу: часы стоят.
+  await expect(page.getByTestId('dispatch-paused')).toBeVisible();
+  await expect(page.getByTestId('toggle-pause')).toHaveAttribute('aria-label', 'Продолжить');
+  const clock = await page.getByTestId('clock').textContent();
+  await page.waitForTimeout(1500);
+  await expect(page.getByTestId('clock')).toHaveText(clock!);
+  await page.screenshot({ path: `test-results/screens/dispatch-incident-${info.project.name}.png` });
+  // Закрыли — время снова идёт.
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('dispatch-dialog')).toHaveCount(0);
+  await expect(page.getByTestId('toggle-pause')).toHaveAttribute('aria-label', 'Пауза');
+});
+
+test('dispatch window keeps the pause the player set before opening it', async ({ page }) => {
+  await page.goto('/');
+  await page.getByTestId('start-shift').click();
+  await page.getByTestId('toggle-pause').click();
+  await expect(page.getByTestId('toggle-pause')).toHaveAttribute('aria-label', 'Продолжить');
+  await openIncident(page, 'bioleak');
+  await page.getByTestId('open-dispatch').click();
+  await expect(page.getByTestId('dispatch-dialog')).toBeVisible();
+  await page.getByTestId('pick-resonance').click();
+  await page.getByTestId('confirm-dispatch').click();
+  await expect(page.getByTestId('dispatch-dialog')).toHaveCount(0);
+  await expect(page.getByTestId('toggle-pause')).toHaveAttribute('aria-label', 'Продолжить');
+});

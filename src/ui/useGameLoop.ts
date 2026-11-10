@@ -8,10 +8,12 @@ export const getSubMinute = () => subMinute;
 
 /**
  * Единственный источник хода времени: requestAnimationFrame копит реальные миллисекунды
- * и отправляет в ядро целые игровые минуты командой TICK. При паузе ничего не копится.
+ * и отправляет в ядро целые игровые минуты командой TICK. При паузе и в главном меню ничего не копится.
  */
-export function useGameLoop() {
+export function useGameLoop(enabled = true) {
   useEffect(() => {
+    // Главное меню открыто: игровое время не идёт, накопитель обнуляется (новый эффект начнёт с нуля).
+    if (!enabled) return;
     let acc = 0;
     let last = performance.now();
     let frame = 0;
@@ -45,5 +47,5 @@ export function useGameLoop() {
       cancelAnimationFrame(frame);
       document.removeEventListener('visibilitychange', onHide);
     };
-  }, []);
+  }, [enabled]);
 }

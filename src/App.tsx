@@ -21,7 +21,8 @@ import { useGameLoop } from './ui/useGameLoop';
 // Прежний утверждённый арт города (W3) — с ART-019 только заставка перед сменой.
 import citySplashUrl from '../assets/map/web/city_splash_legacy.webp';
 import { useMusicScene } from './ui/audio/useMusic';
-import { dispatch, getGame, useGame } from './store';
+import { bootResult, dispatch, getGame, useGame } from './store';
+import { MainMenu } from './ui/menu/MainMenu';
 import { pendingDecision } from './core/operations';
 
 const LAYERS_KEY = 'gamemr-map-layers';
@@ -36,16 +37,24 @@ function initUi(): UiState {
   return { ...initialUiState, layers, leftPanelOpen: !isNarrow() };
 }
 
+/** Главное меню показывается при каждом запуске; e2e/unit-тесты игровых экранов могут его пропустить. */
+const startsInMenu = () => !(globalThis as { __GAMEMR_SKIP_MENU__?: boolean }).__GAMEMR_SKIP_MENU__;
+
 export function App() {
   const [ui, uiDispatch] = useReducer(uiReducer, undefined, initUi);
   const { game, notice } = useGame();
+  const [screen, setScreen] = useState<'menu' | 'game'>(() => (startsInMenu() ? 'menu' : 'game'));
+  // Кампания в этой вкладке: восстановлена из автосохранения или уже открывалась из меню.
+  const [sessionLive, setSessionLive] = useState(() => bootResult().restored);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [dispatchFor, setDispatchFor] = useState<{ incidentId: string; squadId: string | null } | null>(null);
   const preview = useCallback((squadId: string | null) => uiDispatch({ type: 'PREVIEW_SQUAD', squadId }), []);
-  useGameLoop();
-  // Музыка: тема меню — на брифинге, в отчёте о смене и в окне сохранений/настроек; на карте во время смены — фон игры.
-  useMusicScene(settingsOpen || game.phase === 'BRIEFING' || game.phase === 'SHIFT_REPORT' ? 'menu' : 'game');
+  const inMenu = screen === 'menu';
+  // В главном меню игровое время не идёт.
+  useGameLoop(!inMenu);
+  // Музыка: тема меню — в главном меню, на брифинге, в отчёте о смене и в окне сохранений/настроек; на карте во время смены — фон игры.
+  useMusicScene(inMenu || settingsOpen || game.phase === 'BRIEFING' || game.phase === 'SHIFT_REPORT' ? 'menu' : 'game');
 
   useEffect(() => {
     try { localStorage.setItem(LAYERS_KEY, JSON.stringify(ui.layers)); } catch { /* не критично */ }
@@ -53,7 +62,7 @@ export function App() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.defaultPrevented) return;
+      if (e.defaultPrevented || document.querySelector('[data-testid="main-menu"]')) return;
       if (e.key === 'Escape') uiDispatch({ type: 'ESCAPE' });
       const tag = (document.activeElement as HTMLElement | null)?.tagName;
       if (e.code === 'Space' && !['BUTTON', 'INPUT', 'SELECT', 'TEXTAREA', 'polygon'].includes(tag ?? '')) {
@@ -75,6 +84,31 @@ export function App() {
   };
   const canEndShift = game.phase === 'ACTIVE' || game.phase === 'REVIEW_PENDING';
   const onMap = ui.view === 'map';
+
+  const enterGame = () => {
+    setSessionLive(true);
+    setSettingsOpen(false);
+    setScreen('game');
+  };
+  const toMainMenu = () => {
+    // Смена ставится на паузу явно: «Продолжить» вернёт её в том же состоянии, время само не пойдёт.
+    const g = getGame();
+    if (g.phase === 'ACTIVE' && !g.paused) dispatch({ type: 'PAUSE' });
+    setSettingsOpen(false);
+    setDispatchFor(null);
+    setConfirmEnd(false);
+    setScreen('menu');
+  };
+
+  if (inMenu) {
+    return (
+      <>
+        <IconSprite />
+        <MainMenu sessionLive={sessionLive} onEnterGame={enterGame} />
+        <Toast notice={notice} />
+      </>
+    );
+  }
 
   return (
     <>
@@ -124,7 +158,7 @@ export function App() {
       {game.phase !== 'BRIEFING' && !settingsOpen && !activeOp(game) && unseenOpReport(game) && <SpecialOpReportDialog game={game} />}
       {game.phase !== 'BRIEFING' && !settingsOpen && !dispatchFor && <DecisionDialog game={game} />}
       {game.phase !== 'BRIEFING' && !settingsOpen && !dispatchFor && !pendingDecision(game) && <OperationReportDialog game={game} />}
-      {settingsOpen && <SettingsDialog onClose={() => setSettingsOpen(false)} />}
+      {settingsOpen && <SettingsDialog onClose={() => setSettingsOpen(false)} onMainMenu={toMainMenu} />}
       <Toast notice={notice} />
     </>
   );

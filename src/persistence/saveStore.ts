@@ -9,6 +9,8 @@ export const SLOTS: { id: SlotId; label: string }[] = [
   { id: 'slot3', label: 'Слот 3' },
 ];
 
+export const EMPTY_SLOT = 'Слот пуст.';
+
 const DB = 'gamemr';
 const STORE = 'saves';
 
@@ -43,12 +45,18 @@ export async function saveToSlot(slot: SlotId, state: GameState): Promise<void> 
 }
 
 export async function loadFromSlot(slot: SlotId): Promise<LoadResult> {
+  let raw: SaveFile | undefined;
   try {
-    const raw = await tx<SaveFile | undefined>('readonly', (st) => st.get(slot));
-    if (!raw) return { ok: false, reason: 'Слот пуст.' };
-    return parseSave(raw);
+    raw = await tx<SaveFile | undefined>('readonly', (st) => st.get(slot));
   } catch (e) {
     return { ok: false, reason: `Хранилище браузера недоступно: ${(e as Error).message}` };
+  }
+  if (!raw) return { ok: false, reason: EMPTY_SLOT };
+  try {
+    return parseSave(raw);
+  } catch (e) {
+    // Битые данные внутри слота (миграция упала) — это повреждённое сохранение, а не отказ хранилища.
+    return { ok: false, reason: `Сохранение повреждено: ${(e as Error).message}` };
   }
 }
 

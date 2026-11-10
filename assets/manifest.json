@@ -2367,6 +2367,126 @@
       "webCopies": [
         "assets/research/web/research_mirror_m.webp"
       ]
+    },
+    {
+      "id": "M00B_CLEAN_MASTER_1672X941",
+      "file": "assets/menu/m00b/background/m00b_clean_master_1672x941.png",
+      "category": "menu",
+      "role": "Чистый фон без UI — основа меню, утверждённое направление",
+      "status": "review",
+      "alpha": false,
+      "sha256": "688845bf8847867a1c98b36ebe5800c553b986f18fe6d29778546b2343eeb8bf",
+      "source": "GameMR_M00B_Claude_Handoff_v1.zip (главный художник, 2026-11-09), импорт scripts/import_m00b_assets.py",
+      "approvedBy": null,
+      "notes": "Статус в пакете: concept-approved. Утверждённая концепция M00-B; реализация меню ждёт приёмки."
+    },
+    {
+      "id": "M00B_LOGO_SOURCE",
+      "file": "assets/menu/m00b/logo/m00b_logo_source.png",
+      "category": "menu",
+      "role": "Логотип с прозрачностью; отражает заявленный референс",
+      "status": "review",
+      "alpha": true,
+      "sha256": "8fc762c8d47900ea69ae73daaf325faa8b0ccde49a177eebc2ef154b2d6b2501",
+      "source": "GameMR_M00B_Claude_Handoff_v1.zip (главный художник, 2026-11-09), импорт scripts/import_m00b_assets.py",
+      "approvedBy": null,
+      "notes": "Статус в пакете: concept-approved. Утверждённая концепция M00-B; реализация меню ждёт приёмки."
+    },
+    {
+      "id": "M00B_RAIN_GLASS_ORIGINAL_RGBA",
+      "file": "assets/menu/m00b/fx/rain_glass_original_rgba.png",
+      "category": "menu",
+      "role": "Прозрачный дождь по стеклу",
+      "status": "review",
+      "alpha": true,
+      "sha256": "88ca600da9d4b6a41b6e230cb1b00a185da8dd4ef4e751af39e8c7e0daa1c9ad",
+      "source": "GameMR_M00B_Claude_Handoff_v1.zip (главный художник, 2026-11-09), импорт scripts/import_m00b_assets.py",
+      "approvedBy": null,
+      "notes": "Статус в пакете: concept-approved. Утверждённая концепция M00-B; реализация меню ждёт приёмки."
+    },
+    {
+      "id": "M00B_DUST_WARM_ORIGINAL_RGBA",
+      "file": "assets/menu/m00b/fx/dust_warm_original_rgba.png",
+      "category": "menu",
+      "role": "Пыль в лучах тёплого света",
+      "status": "review",
+      "alpha": true,
+      "sha256": "4c005fa63456eec4afe594fedc495d307da51bd310ccd76a01bbd1cf48a8c5f1",
+      "source": "GameMR_M00B_Claude_Handoff_v1.zip (главный художник, 2026-11-09), импорт scripts/import_m00b_assets.py",
+      "approvedBy": null,
+      "notes": "Статус в пакете: concept-approved. Утверждённая концепция M00-B; реализация меню ждёт приёмки."
+    },
+    {
+      "id": "M00B_LIGHTNING_ORIGINAL_RGBA",
+      "file": "assets/menu/m00b/fx/lightning_original_rgba.png",
+      "category": "menu",
+      "role": "Молния, прозрачный FX-оверлей",
+      "status": "review",
+      "alpha": true,
+      "sha256": "7af41bdcc32fd16ae113c8b8e3f4f2adeeb34e0f7f706f3eb2602a9b3835bdcf",
+      "source": "GameMR_M00B_Claude_Handoff_v1.zip (главный художник, 2026-11-09), импорт scripts/import_m00b_assets.py",
+      "approvedBy": null,
+      "notes": "Статус в пакете: concept-approved. Утверждённая концепция M00-B; реализация меню ждёт приёмки."
+    },
+    {
+      "id": "M00B_BUTTON_SHEET_ORIGINAL",
+      "file": "assets/menu/m00b/ui/buttons/m00b_button_sheet_original.png",
+      "category": "menu",
+      "role": "Исходный лист кнопок",
+      "status": "review",
+      "alpha": true,
+      "sha256": "7838104e98bd3e1c658582fb623468b0e04b68620648b8cb72addc5e61525a75",
+      "source": "GameMR_M00B_Claude_Handoff_v1.zip (главный художник, 2026-11-09), импорт scripts/import_m00b_assets.py",
+      "approvedBy": null,
+      "notes": "Статус в пакете: concept-approved. Утверждённая концепция M00-B; реализация меню ждёт приёмки."
+    },
+    {
+      "id": "M00B_BTN_NORMAL",
+      "file": "assets/menu/m00b/ui/buttons/m00b_normal.png",
+      "category": "menu",
+      "role": "Кнопка normal (обрезка из общего листа, требуется визуальная проверка CSS-размера)",
+      "status": "review",
+      "alpha": true,
+      "sha256": "d022ce3f9c5f1eb72a261ff81dc5c4125c9a32f6404595bcc11e92e31a0f8464",
+      "source": "GameMR_M00B_Claude_Handoff_v1.zip (главный художник, 2026-11-09), импорт scripts/import_m00b_assets.py",
+      "approvedBy": null,
+      "notes": "Статус в пакете: draft. Утверждённая концепция M00-B; реализация меню ждёт приёмки."
+    },
+    {
+      "id": "M00B_BTN_HOVER",
+      "file": "assets/menu/m00b/ui/buttons/m00b_hover.png",
+      "category": "menu",
+      "role": "Кнопка hover (обрезка из общего листа, требуется визуальная проверка CSS-размера)",
+      "status": "review",
+      "alpha": true,
+      "sha256": "344d70ea5e266bb0fab53edea1d2d1337b0a176d686dec25e013811506b33d0f",
+      "source": "GameMR_M00B_Claude_Handoff_v1.zip (главный художник, 2026-11-09), импорт scripts/import_m00b_assets.py",
+      "approvedBy": null,
+      "notes": "Статус в пакете: draft. Утверждённая концепция M00-B; реализация меню ждёт приёмки."
+    },
+    {
+      "id": "M00B_BTN_SELECTED",
+      "file": "assets/menu/m00b/ui/buttons/m00b_selected.png",
+      "category": "menu",
+      "role": "Кнопка selected (обрезка из общего листа, требуется визуальная проверка CSS-размера)",
+      "status": "review",
+      "alpha": true,
+      "sha256": "ddff555c1719532438761e5f477399cc529838b1f43517963bae94346eff62ac",
+      "source": "GameMR_M00B_Claude_Handoff_v1.zip (главный художник, 2026-11-09), импорт scripts/import_m00b_assets.py",
+      "approvedBy": null,
+      "notes": "Статус в пакете: draft. Утверждённая концепция M00-B; реализация меню ждёт приёмки."
+    },
+    {
+      "id": "M00B_BTN_DISABLED",
+      "file": "assets/menu/m00b/ui/buttons/m00b_disabled.png",
+      "category": "menu",
+      "role": "Кнопка disabled (обрезка из общего листа, требуется визуальная проверка CSS-размера)",
+      "status": "review",
+      "alpha": true,
+      "sha256": "fd7f3da45d735fd2a14dcc096414f2850e4c0ebbadc69a187b3a54b3d1f7b28a",
+      "source": "GameMR_M00B_Claude_Handoff_v1.zip (главный художник, 2026-11-09), импорт scripts/import_m00b_assets.py",
+      "approvedBy": null,
+      "notes": "Статус в пакете: draft. Утверждённая концепция M00-B; реализация меню ждёт приёмки."
     }
   ]
 }

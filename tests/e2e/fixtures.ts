@@ -8,6 +8,8 @@ export { expect } from '@playwright/test';
  */
 export const test = base.extend({
   page: async ({ page }, provide) => {
+    // Проверки игровых экранов начинают сразу с игры; главное меню проверяется в menu.spec.ts (testWithMenu).
+    await page.addInitScript(() => { (window as unknown as { __GAMEMR_SKIP_MENU__: boolean }).__GAMEMR_SKIP_MENU__ = true; });
     await page.addLocatorHandler(page.getByTestId('decision-dialog'), async () => {
       await page.locator('[data-testid^="option-"]').first().click();
     });
@@ -17,3 +19,6 @@ export const test = base.extend({
     await provide(page);
   },
 });
+
+/** Запуск как у игрока: с главного меню. */
+export const testWithMenu = base;

@@ -838,6 +838,35 @@ td.bad { color: var(--bad); }
 .music-volume input[type='range'] { width: 100%; min-height: var(--tap); accent-color: var(--gold); touch-action: pan-x; }
 .music-hint { color: var(--muted); }
 
+/* Карточка «Отряд» на карте: сводка и быстрые действия по бойцам */
+.squad-card { display: grid; gap: 10px; }
+.squad-card .kv dd.tone-green { color: var(--green); }
+.squad-card .kv dd.tone-cyan { color: var(--cyan); }
+.squad-card .kv dd.tone-amber { color: var(--amber); }
+.squad-card .kv dd.tone-red { color: var(--bad); }
+.squad-card .kv dd.tone-grey { color: var(--dim); }
+.qs-summary { border: 1px solid var(--stroke2); border-radius: 10px; background: var(--raised); padding: 8px 10px; display: grid; gap: 8px; }
+.qs-chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center; }
+.qs-chips > div { display: grid; gap: 1px; }
+.qs-chips b { font-size: 18px; }
+.qs-chips small, .squad-card .small { color: var(--muted); font-size: 12px; margin: 0; }
+.qs-stats { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.qs-stats li { display: grid; grid-template-columns: 80px 1fr 28px; align-items: center; gap: 8px; font-size: 13px; }
+.qs-stats li > span:first-child { color: var(--muted); }
+.qs-stats b { text-align: right; }
+.squad-card .bar { display: block; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.08); overflow: hidden; }
+.squad-card .bar i { display: block; height: 100%; background: var(--gold); }
+.qs-warnings { color: var(--amber); font-size: 12px; display: grid; gap: 2px; }
+.warn-text { color: var(--amber); }
+.qs-members { display: grid; gap: 8px; }
+.qs-member { border-top: 1px solid var(--stroke2); padding-top: 8px; display: grid; gap: 6px; }
+.qs-member .face-row { align-items: flex-start; }
+.qs-member .fatigue { display: grid; grid-template-columns: 70px auto; align-items: center; gap: 6px; }
+.qs-member .fatigue.tone-green .bar i { background: var(--green); }
+.qs-member .fatigue.tone-amber .bar i { background: var(--amber); }
+.qs-member .fatigue.tone-red .bar i { background: var(--bad); }
+.qs-member .row-actions .btn { flex: 1 1 auto; }
+.reserve-pick .btn.pick { padding: 6px 8px; }
 /* ---------- Цели над картой (вкладка «Обзор» Дирекции, раскрывается кнопкой слева сверху) ---------- */
 .workspace { --goals-w: 128px; }
 .goals-dock {

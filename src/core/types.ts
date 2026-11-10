@@ -464,6 +464,8 @@ export type Command =
   | { type: 'SET_ROAD_ENABLED'; edgeId: string; enabled: boolean }
   | { type: 'CHOOSE_OPTION'; squadId: string; optionId: string }
   | { type: 'UNASSIGN_STAFF'; staffId: string }
+  /** Быстрая замена в карточке отряда: staffId уходит в резерв, withId из резерва занимает его место */
+  | { type: 'SWAP_STAFF'; staffId: string; withId: string }
   | { type: 'SET_COMMANDER'; squadId: string; staffId: string }
   | { type: 'START_TREATMENT'; staffId: string; plan: MedicalPlanId }
   | { type: 'DEEP_CHECK'; candidateId: string }

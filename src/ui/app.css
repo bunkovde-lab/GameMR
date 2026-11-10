@@ -180,15 +180,21 @@ svg.icon {
 .tone-grey .status { color: var(--dim); }
 .squad.tone-red { border-color: #7a3a3a; }
 
-/* Состав отряда в карточке: лица, значок ранения, полоса усталости (данные — из состояния игры). */
-.squad-text b { line-height: 1.2; }
-.squad-meta { font-size: 12px; line-height: 1.2; }
-.squad-members { display: flex; align-items: center; gap: 5px; margin-top: 4px; min-width: 0; }
-.sq-member { position: relative; flex: none; display: grid; width: 28px; }
-.sq-member .portrait.xs { width: 28px; height: 28px; }
-.sq-member.empty { height: 28px; border: 1px dashed #6b563680; border-radius: 4px; background: #0b0d1180; }
+/* Состав отряда: лица бойцов стоят на самой карточке справа, на свободном месте (данные — из состояния игры). */
+.squad-item { container: squad / inline-size; }
+.squad-list .squad {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: 1fr 1fr; column-gap: 10px; row-gap: 1px;
+  grid-template-areas: 'banner name members' 'banner meta members';
+}
+.squad-text { display: contents; }
+.squad .monogram { grid-area: banner; align-self: stretch; }
+.squad-text b { grid-area: name; align-self: end; line-height: 1.2; }
+.squad-meta { grid-area: meta; align-self: start; font-size: 12px; line-height: 1.2; }
+.squad-members { grid-area: members; align-self: center; display: flex; align-items: center; gap: 5px; min-width: 0; }
+.sq-member { position: relative; flex: none; display: grid; width: 40px; }
+.sq-member .portrait.xs { width: 40px; height: 40px; font-size: 14px; }
 .sq-badge {
-  position: absolute; top: -3px; right: -4px; width: 14px; height: 14px; border-radius: 50%; display: grid; place-items: center;
+  position: absolute; top: -3px; right: -4px; z-index: 3; width: 15px; height: 15px; border-radius: 50%; display: grid; place-items: center;
   font: 700 9px/1 var(--font-ui); color: #fff; background: var(--bad); box-shadow: 0 0 0 1px #000, 0 0 4px #e84c50aa;
 }
 .hp-recovering .sq-badge { background: var(--amber); color: #1b1408; }
@@ -200,10 +206,25 @@ svg.icon {
 .sq-fatigue.tone-green i { background: var(--green); }
 .sq-fatigue.tone-amber i { background: var(--amber); }
 .sq-fatigue.tone-red i { background: var(--bad); }
-.sq-wounded { align-self: center; margin-left: 2px; font-size: 11px; font-weight: 600; color: var(--bad); white-space: nowrap; }
-/* Подпись «ранен» — только если карточка достаточно широкая; иначе остаётся красный значок на лице. */
-.squad-text { flex: 1; container-type: inline-size; }
-@container (max-width: 150px) { .sq-wounded { display: none; } }
+.sq-wounded { color: var(--bad); font-weight: 600; }
+/* Узкая карточка (ПК 1366, планшет): лица меньше и наезжают друг на друга, но остаются на кнопке справа. */
+@container squad (max-width: 250px) {
+  .squad-list .squad { column-gap: 8px; }
+  .squad-members { gap: 0; }
+  .sq-member + .sq-member { margin-left: -8px; }
+  .sq-member, .sq-member .portrait.xs { width: 30px; }
+  .sq-member .portrait.xs { height: 30px; box-shadow: 0 0 0 1px #000; }
+  .squad-meta .cnt, .sq-wounded { display: none; }
+}
+/* Самая узкая карточка (планшет): стяг уже, лица мельче — чтобы название отряда читалось целиком. */
+@container squad (max-width: 200px) {
+  .squad-list .squad { column-gap: 6px; padding-right: 8px; }
+  .squad-list .squad .monogram.monogram[class*='banner-'] { width: 34px; }
+  .sq-member, .sq-member .portrait.xs { width: 26px; }
+  .sq-member .portrait.xs { height: 26px; }
+  .sq-member + .sq-member { margin-left: -9px; }
+  .squad-text b { font-size: 14px; }
+}
 
 .overlay { position: fixed; inset: 0; z-index: 20; background: #05080dcc; display: grid; place-items: center; grid-template-columns: minmax(0, 1fr); padding: 12px; }
 .modal { width: min(560px, 100%); min-width: 0; justify-self: center; max-height: calc(100dvh - 24px); display: flex; flex-direction: column; background: var(--surface); }
@@ -241,16 +262,14 @@ svg.icon {
   .monogram { width: 32px; height: 32px; font-size: 14px; }
   .squad-text .cnt { display: none; }
   .squad-text b { font-size: 13px; }
-  /* Телефон: имя сверху, ниже лица и статус в одну строку. */
-  .squad-text { grid-template-columns: auto minmax(0, 1fr); column-gap: 6px; align-items: center; }
-  .squad-text b { grid-column: 1 / -1; line-height: 1.15; }
-  .squad-meta { grid-row: 2; grid-column: 2; font-size: 11px; }
-  .squad-members { grid-row: 2; grid-column: 1; margin-top: 1px; gap: 3px; }
-  .sq-member, .sq-member .portrait.xs, .sq-member.empty { width: 22px; }
-  .sq-member .portrait.xs, .sq-member.empty { height: 22px; font-size: 9px; }
+  /* Телефон: имя сверху, ниже статус; лица справа на кнопке. */
+  .squad-list .squad { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'name members' 'meta members'; column-gap: 6px; }
+  .squad-meta { font-size: 11px; }
+  .sq-member, .sq-member .portrait.xs { width: 24px; }
+  .sq-member .portrait.xs { height: 24px; font-size: 9px; }
   .sq-fatigue { height: 3px; left: 1px; right: 1px; bottom: 1px; }
   .sq-badge { width: 11px; height: 11px; font-size: 7px; top: -2px; right: -3px; }
-  .sq-wounded, .sq-member.empty { display: none; }
+  .sq-wounded { display: none; }
   .squad-item { flex-basis: 156px; }
 }
 

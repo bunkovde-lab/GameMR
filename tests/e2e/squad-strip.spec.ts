@@ -26,6 +26,11 @@ test('squad cards show member faces with fatigue bars and stay tappable', async 
   const face = (await page.getByTestId('squad-members-axon').locator('.sq-member').first().boundingBox())!;
   expect(face.y + face.height).toBeLessThanOrEqual(card.y + card.height);
   expect(card.height).toBeGreaterThanOrEqual(44);
+  // Лица стоят на самой кнопке справа от названия, а не под ним; пустых рамок нет.
+  const name = (await page.getByTestId('squad-axon').locator('b').boundingBox())!;
+  expect(face.x).toBeGreaterThanOrEqual(name.x + name.width - 1);
+  expect(face.x + face.width).toBeLessThanOrEqual(card.x + card.width);
+  await expect(strip.locator('.sq-member.empty')).toHaveCount(0);
   // Касание по карточке (в т. ч. по лицу бойца) по-прежнему выбирает отряд.
   if (info.project.use.hasTouch) await page.getByTestId('squad-members-axon').locator('.sq-member').first().tap();
   else await page.getByTestId('squad-members-axon').locator('.sq-member').first().click();

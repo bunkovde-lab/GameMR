@@ -1,4 +1,5 @@
 import { expect, test as base } from '@playwright/test';
+import { openIncident } from './fixtures';
 
 // Проверки начинают сразу с игры, минуя главное меню (оно проверяется в menu.spec.ts).
 const test = base.extend({
@@ -49,7 +50,7 @@ test('routine dispatch resolves by itself; staff and shift report show the conse
   await page.goto('/');
   await page.getByTestId('start-shift').click();
   await page.getByTestId('toggle-pause').click();
-  await page.getByTestId('incident-missing').locator('.incident-title').click();
+  await openIncident(page, 'missing');
   await page.getByTestId('dispatch-axon').click();
   await page.getByTestId('confirm-dispatch').click();
   await page.getByTestId('toggle-pause').click();

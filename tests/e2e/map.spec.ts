@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import type { Page } from '@playwright/test';
-import { expect, test } from './fixtures';
+import { expect, openIncident as openMarker, test } from './fixtures';
 
 // W3: утверждённая карта, районы, маркеры, маршрут и движение (docs/map/W3_ACCEPTANCE_TESTS.md).
 
@@ -15,10 +15,9 @@ async function start(page: Page) {
   return errors;
 }
 
-/** Выбор вызова из списка — камера сама подводит метку в видимую зону. */
+/** Выбор вызова меткой на карте (списка вызовов нет). */
 async function openIncident(page: Page, id: string) {
-  if (!(await page.getByTestId('left-panel').isVisible())) await page.getByRole('button', { name: /Вызовы/ }).click();
-  await page.getByTestId(`incident-${id}`).locator('.incident-title').click();
+  await openMarker(page, id);
   await expect(page.getByTestId('incident-card')).toBeVisible();
 }
 
@@ -38,43 +37,59 @@ test('ART-019: the whole city fits the free part of the map window without zoomi
   expect(img.y).toBeGreaterThanOrEqual(stage.y - 1);
   expect(img.x + img.width).toBeLessThanOrEqual(stage.x + stage.width + 1);
   expect(img.y + img.height).toBeLessThanOrEqual(stage.y + stage.height + 1);
-  // карта занимает свободное место целиком по одной из сторон
-  const left = (await page.getByTestId('left-panel').count()) ? await page.getByTestId('left-panel').boundingBox() : null;
-  // на широком экране область карты закреплена между местами обеих панелей (открыты они или нет)
-  const wide = info.project.name !== 'phone-844';
-  const rightW = wide ? await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--right-w'))) : 0;
-  const freeW = stage.width - (left && wide ? left.x + left.width - stage.x : 0) - rightW;
-  expect(Math.max(img.width / freeW, img.height / stage.height)).toBeGreaterThan(0.97);
-  if (left) expect(img.x).toBeGreaterThanOrEqual(left.x + left.width - 1);
+  // город вписан в окно карты целиком и прижат к его левому краю; пустых полос почти нет
+  expect(Math.abs(img.x - stage.x)).toBeLessThan(2);
+  expect(Math.max(img.width / stage.width, img.height / stage.height)).toBeGreaterThan(0.97);
+  // ПК 16:9 и телефон лёжа: группы колонкой справа — окно карты почти 16:9, город заполняет его по обеим сторонам
+  if (info.project.name !== 'tablet-1194') expect(Math.min(img.width / stage.width, img.height / stage.height)).toBeGreaterThan(0.9);
+  await expect(page.getByTestId('left-panel')).toHaveCount(0);
   // все вызовы видны без прокрутки
-  for (const id of ['medriot', 'bioleak', 'raid', 'missing', 'illegal']) await expect(page.getByTestId(`marker-incident-${id}`)).toBeInViewport();
+  for (const id of ['medriot', 'bioleak', 'raid', 'missing', 'illegal']) {
+    const where = page.locator(`[data-testid="marker-incident-${id}"], [data-testid="marker-cluster"][data-ids~="${id}"]`).first();
+    await expect(where).toBeInViewport({ ratio: 0.9 });
+  }
   await expect(page.getByTestId('map-life')).toBeAttached();
   await expect(page.getByTestId('map-ambient')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
-test('MAP-CENTER: on a wide screen the city is pinned between the side panels — centred, never under the card, and it does not move when panels close', async ({ page }, info) => {
-  test.skip(info.project.name === 'phone-844', 'на телефоне панели выдвижные, поверх карты');
+test('MAP-CENTER: the city is pinned to the left edge and does not move when the card on the right opens or closes', async ({ page }) => {
   const errors = await start(page);
-  if (!(await page.getByTestId('left-panel').isVisible())) await page.getByRole('button', { name: /Вызовы/ }).click();
-  await page.locator('.squad').first().click();
-  await expect(page.getByTestId('right-panel')).toBeVisible();
-  const left = (await page.getByTestId('left-panel').boundingBox())!;
-  const right = (await page.getByTestId('right-panel').boundingBox())!;
-  await expect.poll(async () => (await page.getByTestId('map-image').boundingBox())!.x + (await page.getByTestId('map-image').boundingBox())!.width)
-    .toBeLessThanOrEqual(right.x + 1);
   const img = (await page.getByTestId('map-image').boundingBox())!;
-  expect(img.x).toBeGreaterThanOrEqual(left.x + left.width - 1);
-  // отступы слева и справа от карты одинаковые
-  expect(Math.abs((img.x - (left.x + left.width)) - (right.x - (img.x + img.width)))).toBeLessThan(4);
-  // карточку и панель вызовов закрыли — карта остаётся на месте и того же размера (область закреплена)
+  await page.locator('.squad-list .squad').first().click();
+  await expect(page.getByTestId('right-panel')).toBeVisible();
+  await page.waitForTimeout(200);
+  const open = (await page.getByTestId('map-image').boundingBox())!;
+  for (const k of ['x', 'y', 'width', 'height'] as const) expect(Math.abs(open[k] - img[k])).toBeLessThan(1.5);
   await page.getByTestId('right-panel').getByRole('button', { name: /Закрыть/ }).click();
   await expect(page.getByTestId('right-panel')).toHaveCount(0);
-  await page.getByTestId('left-panel').getByRole('button', { name: /Свернуть|Закрыть/ }).first().click();
-  await expect(page.getByTestId('left-panel')).toHaveCount(0);
   await page.waitForTimeout(200);
   const after = (await page.getByTestId('map-image').boundingBox())!;
   for (const k of ['x', 'y', 'width', 'height'] as const) expect(Math.abs(after[k] - img[k])).toBeLessThan(1.5);
+  expect(errors).toEqual([]);
+});
+
+test('calls list is gone: each call marker shows a timer, case calls also show the case number', async ({ page }, info) => {
+  const errors = await start(page);
+  await expect(page.getByTestId('left-panel')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /^Вызовы/ })).toHaveCount(0);
+  await expect(page.getByTestId('incident-count')).toContainText('Вызовы: 5');
+  // таймер — над щитом
+  const marker = page.getByTestId('marker-incident-bioleak');
+  const timer = page.getByTestId('timer-bioleak');
+  await expect(timer).toHaveText(/\d+ мин/);
+  const mb = (await marker.boundingBox())!, tb = (await timer.boundingBox())!;
+  expect(tb.y + tb.height).toBeLessThanOrEqual(mb.y + 2);
+  // вызов по делу: время и номер дела, золотое свечение
+  const caseNo = page.locator('[data-testid^="case-badge-"]').first();
+  await expect(caseNo).toHaveText(/^№\d+$/);
+  await expect(caseNo.locator('xpath=..')).toHaveClass(/case/);
+  await expect(page.locator('.marker.incident.case-link').first()).toBeVisible();
+  // щит вызова вдвое крупнее прежнего (56/64 px; на телефоне — 64 px)
+  const h = mb.height;
+  if (info.project.name === 'phone-844') expect(h).toBeGreaterThanOrEqual(62);
+  else expect(h).toBeGreaterThanOrEqual(110);
+  await page.screenshot({ path: `test-results/screens/map-timers-${info.project.name}.png` });
   expect(errors).toEqual([]);
 });
 
@@ -133,14 +148,17 @@ test('MAP-006/007: district click opens the district card', async ({ page }) => 
   await expect(page.getByTestId('district-card')).toHaveAttribute('data-district', 'admin');
 });
 
-test('MAP-008: marker and list select the same incident', async ({ page }) => {
+test('MAP-008: markers select incidents; choosing another marker moves the selection', async ({ page }) => {
   await start(page);
   await page.getByTestId('marker-incident-missing').click();
   await expect(page.getByTestId('incident-card')).toContainText('Пропажа регистратора');
   await expect(page.getByTestId('marker-incident-missing')).toHaveAttribute('aria-pressed', 'true');
-  if (!(await page.getByTestId('left-panel').isVisible())) await page.getByRole('button', { name: /Вызовы/ }).click();
-  await page.getByTestId('incident-bioleak').getByRole('button', { name: 'Утечка биоматериала' }).click();
+  await openMarker(page, 'bioleak');
   await expect(page.getByTestId('incident-card')).toContainText('Утечка биоматериала');
+  // карточка ложится на колонку групп, а не на город: метка выбранного вызова не под ней
+  const card = (await page.getByTestId('right-panel').boundingBox())!;
+  const mk = (await page.getByTestId('marker-incident-bioleak').boundingBox())!;
+  if (page.viewportSize()!.width / page.viewportSize()!.height >= 1.5) expect(mk.x + mk.width).toBeLessThanOrEqual(card.x + 1);
   await expect(page.getByTestId('marker-incident-bioleak')).toHaveAttribute('aria-pressed', 'true');
   // На телефоне камера могла увести прежнюю метку за край — тогда её просто нет.
   await expect(page.locator('[data-testid="marker-incident-missing"][aria-pressed="true"]')).toHaveCount(0);
@@ -150,14 +168,17 @@ test('MAP-012/013: zoom keeps the marker anchored to the same map point', async 
   await start(page);
   const img = (await page.getByTestId('map-image').boundingBox())!;
   const rel = (p: { x: number; y: number }, b: typeof img) => ({ u: (p.x - b.x) / b.width, v: (p.y - b.y) / b.height });
-  const before = rel(await centerOf(page, 'marker-incident-missing'), img);
+  // метка в середине города: у края окна метки сдвигаются внутрь (с линией к точке), там якорь проверять нельзя
+  await expect(page.getByTestId('marker-incident-illegal')).not.toHaveAttribute('data-moved', /./);
+  const before = rel(await centerOf(page, 'marker-incident-illegal'), img);
   await page.getByTestId('zoom-in').click();
   await page.getByTestId('zoom-in').click();
   await expect(page.getByTestId('camera-zoom')).toHaveText('1.56');
   const img2 = (await page.getByTestId('map-image').boundingBox())!;
   expect(img2.width).toBeGreaterThan(img.width * 1.5);
-  if (await page.getByTestId('marker-incident-missing').isVisible()) {
-    const after = rel(await centerOf(page, 'marker-incident-missing'), img2);
+  // у края окна метка сдвигается внутрь (data-moved) — тогда якорь сверять не с чем
+  if (await page.getByTestId('marker-incident-illegal').isVisible() && !(await page.getByTestId('marker-incident-illegal').getAttribute('data-moved'))) {
+    const after = rel(await centerOf(page, 'marker-incident-illegal'), img2);
     expect(Math.abs(after.u - before.u)).toBeLessThan(0.003);
     expect(Math.abs(after.v - before.v)).toBeLessThan(0.003);
   }
@@ -244,13 +265,11 @@ test('district: no border or fill; hover highlights the district name', async ({
   await page.screenshot({ path: `test-results/screens/district-hover-${info.project.name}.png` });
 });
 
-test('MAP-030: on a phone the card replaces the list instead of covering the map twice', async ({ page }, info) => {
+test('MAP-030: on a phone the card opens by tapping a marker and does not cover the whole screen', async ({ page }, info) => {
   test.skip(info.project.name !== 'phone-844', 'только телефон');
   await start(page);
-  await expect(page.getByTestId('left-panel')).toHaveCount(0);
   await page.getByTestId('marker-incident-missing').tap();
   await expect(page.getByTestId('incident-card')).toBeVisible();
-  await expect(page.getByTestId('left-panel')).toHaveCount(0);
   const card = (await page.getByTestId('right-panel').boundingBox())!;
   expect(card.width).toBeLessThan(844 * 0.9);
 });
@@ -263,7 +282,7 @@ test('W3 screenshots', async ({ page }, info) => {
   await page.screenshot({ path: `test-results/screens/w3-${info.project.name}.png` });
 });
 
-test('ART-003/004: map markers are the approved shields; list and legend use the small icons', async ({ page }, info) => {
+test('ART-003/004: map markers are the approved shields', async ({ page }, info) => {
   const errors = await start(page);
   const inc = page.getByTestId('marker-incident-missing');
   await expect(inc).toHaveClass(/shield/);
@@ -280,9 +299,6 @@ test('ART-003/004: map markers are the approved shields; list and legend use the
     const b = (await el.boundingBox())!;
     expect(Math.min(b.width, b.height)).toBeGreaterThanOrEqual(44);
   }
-  // Значок 24×24 в списке вызовов.
-  if (!(await page.getByTestId('left-panel').isVisible())) await page.getByRole('button', { name: /Вызовы/ }).click();
-  await expect(page.getByTestId('incident-missing').getByTestId('mk-icon-marker_incident_search')).toBeVisible();
   await page.screenshot({ path: `test-results/screens/art034-${info.project.name}.png` });
   expect(errors).toEqual([]);
 });

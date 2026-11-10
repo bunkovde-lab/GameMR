@@ -32,9 +32,14 @@ test('W10: routine event card shows what happens if late and what is at stake, n
   await loadW10(page);
   await page.getByTestId('decision-dialog').getByTestId('option-talk').click();
   await expect(page.getByTestId('decision-dialog')).toHaveCount(0);
-  if (!(await page.getByTestId('left-panel').isVisible())) await page.getByRole('button', { name: /Вызовы/ }).click();
-  const row = page.locator('[data-testid^="incident-"]', { hasText: 'Третий поток сортировки' }).first();
-  await row.locator('.incident-title').click();
+  // Списка вызовов нет — ищем метку по названию; если она в кластере, раскрываем кластеры по очереди.
+  const marker = page.locator('[data-testid^="marker-incident-"][aria-label*="Третий поток сортировки"]').first();
+  for (let i = 0; !(await marker.count()) && i < 6; i++) {
+    const clusters = page.getByTestId('marker-cluster');
+    if (!(await clusters.count())) break;
+    await clusters.nth(i % (await clusters.count())).click();
+  }
+  await marker.click();
   const card = page.getByTestId('incident-card');
   await expect(card).toContainText('Третий поток сортировки');
   const stakes = card.getByTestId('card-stakes');

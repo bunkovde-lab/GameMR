@@ -92,14 +92,17 @@ svg.icon {
   background: #070a0f;
   touch-action: none; user-select: none; -webkit-user-select: none;
 }
-.map-tools { position: absolute; top: 10px; left: 10px; display: flex; gap: 6px; z-index: 1; }
 
-.left-panel, .right-panel {
+.right-panel {
   position: absolute; top: 0; bottom: 0; z-index: 2;
   display: flex; flex-direction: column;
 }
-.left-panel { left: 0; width: var(--left-w); }
 .right-panel { right: 0; width: var(--right-w); }
+/* Широкий экран: карточка занимает всю свободную полосу справа от города (но не уже --right-w и не шире --right-max-w). */
+.workspace { --right-max-w: 520px; }
+@media (min-width: 951px) {
+  .right-panel { width: clamp(var(--right-w), var(--map-free-right, 0px), var(--right-max-w)); }
+}
 .panel-body { overflow-y: auto; min-height: 0; flex: 1; }
 
 /* ---------- Лента отрядов ---------- */
@@ -145,21 +148,36 @@ svg.icon {
 
 /* ---------- W2: данные из ядра ---------- */
 .count { min-width: 24px; padding: 1px 7px; border-radius: 99px; background: var(--red-deep); font-size: 12px; text-align: center; }
-.incident-list { list-style: none; margin: 0; padding: 8px; display: grid; gap: 8px; }
-.incident {
-  border: 1px solid var(--stroke2); border-left: 3px solid var(--cyan); border-radius: 10px;
-  padding: 8px 10px; background: var(--raised); display: grid; gap: 4px;
-}
-.incident.sev-critical { border-left-color: var(--red); }
-.incident.sev-high { border-left-color: var(--amber); }
-.incident.st-escalated { background: linear-gradient(90deg, #5a1f2633, var(--raised)); }
-.incident-head { display: flex; justify-content: space-between; gap: 8px; }
-.incident small { color: var(--muted); }
-.deadline { color: var(--amber); font-weight: 600; white-space: nowrap; }
-.st-escalated .deadline { color: var(--bad); }
 .small-action { justify-self: start; margin-top: 2px; }
 
 .ready-count { color: var(--green); font-size: 12px; }
+/* Вытянутый экран (ПК 16:9, телефон лёжа): оперативные группы — колонкой справа от карты, а не лентой под ней.
+   Ширина колонки = всё, что остаётся справа от города 16:9 во всю высоту окна карты (200…360 px),
+   так город заполняет окно карты без пустых полос (просьба Дмитрия 2026-11-10). Планшет 4:3 — лента внизу, как раньше. */
+@media (min-aspect-ratio: 3/2) {
+  .app-shell {
+    --squads-col-w: clamp(200px, calc(min(100vw, 2350px) - 3 * var(--gap) - (100dvh - var(--hud-h) - var(--nav-h) - 3 * var(--gap)) * 16 / 9), 360px);
+    grid-template-columns: minmax(0, 1fr) var(--squads-col-w);
+    grid-template-rows: var(--hud-h) minmax(0, 1fr) var(--nav-h);
+    grid-template-areas: 'hud hud' 'work squads' 'nav nav';
+  }
+  .app-shell > .hud { grid-area: hud; }
+  .app-shell > .workspace { grid-area: work; }
+  .app-shell > .squads { grid-area: squads; }
+  .app-shell > .nav { grid-area: nav; }
+  .squads .panel-header { flex-wrap: wrap; padding-top: 8px; }
+  .squad-list { flex-direction: column; overflow-x: hidden; overflow-y: auto; padding: 6px 8px 8px; }
+  .squad-list > .squad-item { flex: 1 1 0; min-height: 60px; max-height: 120px; }
+  .squad-list .squad { align-self: stretch; }
+  /* Карточка справа ложится поверх колонки групп (и лишь краем — на карту), а не на город. */
+  .app-shell > .workspace { z-index: 4; } /* рамка панели групп — z-index 3; карточка, заходящая на колонку групп, — поверх её рамки */
+  .workspace > .right-panel { right: calc(-1 * (var(--squads-col-w) + var(--gap))); width: max(var(--right-w), calc(var(--squads-col-w) + var(--gap))); }
+  body .toast { bottom: calc(var(--nav-h) + 20px); }
+}
+@media (min-aspect-ratio: 3/2) and (max-height: 560px) {
+  .squad-list { gap: 4px; padding: 4px; }
+  .squad-list > .squad-item { min-height: 44px; }
+}
 .squad-list { list-style: none; margin: 0; padding: 4px 8px 8px; display: flex; gap: 8px; overflow-x: auto; flex: 1; }
 .squad-item { flex: 1 0 150px; display: flex; }
 .squad {
@@ -283,15 +301,14 @@ svg.icon {
 .map-backdrop { position: absolute; inset: -40px; width: calc(100% + 80px); height: calc(100% + 80px); object-fit: cover; filter: blur(22px) brightness(0.4) saturate(0.7); pointer-events: none; }
 .map-life { position: absolute; left: 0; top: 0; pointer-events: none; }
 .map-ambient {
-  position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1;
+  position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); z-index: 1;
   display: flex; gap: 6px; pointer-events: auto; font-size: 12px; white-space: nowrap;
 }
 .map-ambient span { padding: 3px 9px; border-radius: 999px; background: #0c1016d9; border: 1px solid var(--stroke2); color: var(--muted, #b9b0a0); }
 .map-ambient .hot { color: #ff9a6a; border-color: #8d3138; }
 /* Широкий экран: подпись — по центру закреплённой области карты между местами панелей (открыты они или нет). */
-@media (min-width: 951px) {
-  .map-ambient { left: calc(50% + (var(--left-w) - var(--right-w)) / 2); }
-}
+/* Подпись — по центру города (он прижат к левому краю окна). */
+.map-ambient { left: calc((100% - var(--map-free-right, 0px)) / 2); }
 .city-splash { position: fixed; inset: 0; z-index: 19; background: #05070b center / cover no-repeat; }
 .city-splash + .overlay { background: #0405078c; }
 .district-hit {
@@ -365,6 +382,29 @@ svg.icon {
   transform: translate(-50%, -97%); filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 4px var(--glow)) drop-shadow(0 3px 5px #000);
 }
 @media (min-width: 1400px) { .marker.shield { --mk-h: 64px; } }
+/* Щиты вызовов вдвое крупнее прежних (56/64 px → 112/128 px); на низком окне телефона — 64 px, иначе закрыли бы полкарты. */
+.map-stage { --mk-inc: 112px; }
+@media (min-width: 1400px) { .map-stage { --mk-inc: 128px; } }
+@media (max-height: 560px) { .map-stage { --mk-inc: 64px; } }
+.marker.incident.shield, .marker.cluster.shield { --mk-h: var(--mk-inc); }
+.marker.cluster.shield > b { font-size: calc(var(--mk-inc) * 0.3); }
+/* Таймер над щитом вызова: время до ухудшения, у вызовов по делу — ещё и номер дела. */
+.mk-timer {
+  position: absolute; left: 50%; bottom: calc(100% + 3px); transform: translateX(-50%); white-space: nowrap; pointer-events: none;
+  display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px 2px 6px; border-radius: 99px;
+  font: 700 14px/20px var(--font-ui, inherit); font-variant-numeric: tabular-nums; letter-spacing: 0.2px;
+  color: #f4e7c8; background: #0c1016f0; border: 1px solid #8c785a; box-shadow: 0 1px 6px #000d;
+}
+.mk-timer svg.icon { width: 14px; height: 14px; }
+.mk-timer.tone-urgent { color: #ffd2cc; border-color: var(--bad); background: #4a1a20f2; }
+.mk-timer.tone-state { color: var(--muted); font-weight: 600; }
+.mk-timer.case { border-color: var(--gold-light); box-shadow: 0 0 8px #e6c58d88, 0 1px 6px #000d; }
+.mk-timer .case-no { margin-left: 2px; padding: 0 7px; border-radius: 99px; color: #1a1408; background: var(--gold-light); }
+.marker.incident.st-new .mk-timer { border-color: #f4e7c8; }
+@media (max-height: 560px) {
+  .mk-timer { font-size: 11px; line-height: 15px; padding: 1px 6px 1px 4px; gap: 2px; }
+  .mk-timer svg.icon { width: 11px; height: 11px; }
+}
 .marker.shield > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; }
 .marker.shield::after { content: ''; position: absolute; inset: -4px -1px; } /* запас для пальца ≥ 44×60 */
 .marker.shield.sev-high { --glow: var(--amber); }
@@ -387,27 +427,19 @@ svg.icon {
   filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 2px #fff) drop-shadow(0 0 8px #ff8a78) drop-shadow(0 3px 5px #000);
 }
 .mk-icon { display: inline-block; flex: none; vertical-align: -3px; background: currentColor; mask-size: contain; mask-repeat: no-repeat; mask-position: center; -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; }
-.incident-title .mk-icon { margin-right: 6px; color: var(--gold-light); }
 
 .map-warning {
   position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 2; max-width: min(560px, 90%);
   padding: 10px 14px; border-radius: 10px; background: #3a1418f2; border: 1px solid var(--bad);
 }
-.zoom-tools { position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; gap: 6px; z-index: 1; }
-.zoom-tools .btn, .map-tools .btn { background: #141a22e8; }
-.workspace:has(.left-panel) .map-tools { left: calc(var(--left-w) + 10px); }
+.zoom-tools { position: absolute; left: 10px; bottom: 10px; display: flex; flex-direction: column; gap: 6px; z-index: 1; }
+.zoom-tools .btn { background: #141a22e8; }
 /* Широкий экран: масштаб и слои всегда у краёв закреплённой области карты — не прыгают при открытии/закрытии панелей;
    кнопки слоёв не заходят под карточку справа, а переносятся во второй ряд. */
-@media (min-width: 951px) {
-  .zoom-tools { right: calc(var(--right-w) + 10px); }
-}
+/* Кнопки масштаба — у правого края города; если полоса справа уже карточки — у края места карточки, чтобы не уходить под неё. */
+/* Масштаб — в левом нижнем углу карты (.zoom-tools выше): не уходит под карточку справа и не закрывает метки у верхнего края. */
 
 /* ---------- W3: список вызовов и карточки ---------- */
-.incident.selected { border-color: #ff8a78; box-shadow: inset 0 0 0 1px #ff8a78; }
-.incident-title {
-  background: none; border: 0; padding: 0; text-align: left; font-weight: 700; min-height: var(--tap);
-  text-decoration: underline dotted #ffffff55; text-underline-offset: 3px;
-}
 .squad.selected { border-color: #ff8a78; box-shadow: inset 0 0 0 1px #ff8a78; }
 .card-body { padding: 12px 14px; display: grid; gap: 10px; align-content: start; }
 .card-title { margin: 0; font-size: 17px; }
@@ -424,9 +456,8 @@ svg.icon {
 .link { background: none; border: 0; padding: 0; color: var(--cyan); text-decoration: underline; min-height: var(--tap); }
 
 @media (max-width: 950px) {
-  .left-panel, .right-panel { width: min(var(--left-w), 86vw); }
-  .workspace:has(.left-panel) .map-tools { left: 10px; }
-  .map-ambient { font-size: 11px; top: 6px; }
+  .right-panel { width: min(var(--right-w), 86vw); }
+  .map-ambient { font-size: 11px; bottom: 6px; }
   .map-screen .district-label { font-size: 10px; letter-spacing: 0.6px; padding: 1px 5px; }
 }
 @media (max-height: 560px) {
@@ -908,14 +939,11 @@ td.bad { color: var(--bad); }
 }
 .goals-panel .panel-body { padding: 12px 14px; }
 .goals-foot { display: flex; gap: 6px; justify-content: flex-end; padding: 8px 10px; border-top: 1px solid var(--stroke2); }
-.workspace:has(.goals-dock) .map-tools { left: calc(10px + var(--goals-w) + 6px); }
-.workspace:has(.left-panel) .goals-dock { left: calc(var(--left-w) + 10px); }
 @media (max-width: 950px) {
   .workspace { --goals-w: 92px; }
   .goals-toggle .label { display: none; }
-  .workspace:has(.left-panel) .goals-dock, .workspace:has(.right-panel) .goals-dock { display: none; }
-  .workspace:has(.goals-dock) .map-tools { left: calc(10px + var(--goals-w) + 6px); }
-}
+  .workspace:has(.right-panel) .goals-dock { display: none; }
+  }
 @media (max-height: 560px) {
   /* Телефон: окно карты низкое — раскрытая панель ложится поверх ленты отрядов до нижней навигации. */
   .goals-dock .goals-panel {
@@ -1108,17 +1136,8 @@ img.nav-art { width: 36px; height: 36px; margin: -6px 0; object-fit: contain; fl
 .marker.incident.case-link { border-color: var(--gold-light); box-shadow: 0 0 0 3px #0b1118, 0 0 0 5px var(--gold-light), 0 2px 10px #000c; animation: case-glow 2.2s ease-in-out infinite; }
 .marker.incident.shield.case-link { --glow: var(--gold-light); box-shadow: none; filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 6px var(--glow)) drop-shadow(0 0 3px var(--glow)) drop-shadow(0 3px 5px #000); animation: none; }
 .marker.incident.case-link.selected:not(.shield) { box-shadow: 0 0 0 3px #0b1118, 0 0 0 6px #ff8a78, 0 2px 12px #000; }
-.case-badge {
-  position: absolute; left: 50%; bottom: calc(100% + 2px); transform: translateX(-50%); white-space: nowrap; pointer-events: none;
-  display: inline-flex; align-items: center; gap: 3px; padding: 1px 7px 1px 5px; border-radius: 99px;
-  font: 600 12px/18px var(--font-ui, inherit); color: #1a1408; background: var(--gold-light); border: 1px solid #0b1118; box-shadow: 0 1px 4px #000c;
-}
-.marker .case-badge svg.icon { width: 12px; height: 12px; }
 @keyframes case-glow { 50% { box-shadow: 0 0 0 3px #0b1118, 0 0 0 9px #e6c58d55, 0 2px 10px #000c; } }
 @media (prefers-reduced-motion: reduce) { .marker.incident.case-link { animation: none; } }
-.case-chip { display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; padding: 0 7px; border-radius: 99px; font-size: 12px; font-weight: 600; color: #1a1408; background: var(--gold-light); vertical-align: middle; }
-.case-chip svg.icon { width: 12px; height: 12px; }
-.incident.case-link { box-shadow: inset 3px 0 0 var(--gold-light); }
 .case-link-box { margin: 8px 0; padding: 10px 12px; border: 1px solid var(--gold); border-radius: 8px; background: linear-gradient(180deg, #2a2216cc, #14110ccc); }
 .case-link-box h4 { margin: 0 0 6px; display: flex; align-items: center; gap: 6px; color: var(--gold-light); font-family: var(--font-title); font-weight: 400; font-size: 15px; letter-spacing: 0.5px; }
 .case-link-box p { margin: 4px 0; }

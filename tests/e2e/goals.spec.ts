@@ -17,15 +17,10 @@ test('goals dock: collapsed by default, expands with the Directorate overview, d
   expect(box.height).toBeGreaterThanOrEqual(44);
   expect(box.width).toBeGreaterThanOrEqual(44);
   const stage = (await page.getByTestId('map-stage').boundingBox())!;
-  // Слева сверху карты; если открыт список вызовов — сразу справа от него.
-  const left = page.getByTestId('left-panel');
-  const leftEdge = (await left.count()) ? (await left.boundingBox())!.x + (await left.boundingBox())!.width : stage.x;
-  expect(box.x).toBeGreaterThanOrEqual(leftEdge);
-  expect(box.x - leftEdge).toBeLessThan(40);
+  // Слева сверху карты (списка вызовов слева больше нет).
+  expect(box.x).toBeGreaterThanOrEqual(stage.x);
+  expect(box.x - stage.x).toBeLessThan(40);
   expect(box.y - stage.y).toBeLessThan(40);
-  // Кнопка «Вызовы» (когда список свёрнут) стоит рядом и не перекрывается.
-  const callsBtn = page.locator('.map-tools .btn').first();
-  if (await callsBtn.count()) expect((await callsBtn.boundingBox())!.x).toBeGreaterThanOrEqual(box.x + box.width);
   await page.screenshot({ path: `test-results/screens/goals-closed-${info.project.name}.png` });
 
   await toggle.click();

@@ -1,13 +1,12 @@
 import type { Page } from '@playwright/test';
-import { expect, test } from './fixtures';
+import { expect, test, openIncident } from './fixtures';
 
 // W4: быстрая отправка и ручная настройка (ТЗ §6.2–6.4, UI-03/UI-04).
 
 async function openBioleak(page: Page) {
   await page.goto('/');
   await page.getByTestId('start-shift').click();
-  if (!(await page.getByTestId('left-panel').isVisible())) await page.getByRole('button', { name: /Вызовы/ }).click();
-  await page.getByTestId('incident-bioleak').locator('.incident-title').click();
+  await openIncident(page, 'bioleak');
   await expect(page.getByTestId('card-class')).toHaveText('Сложное');
   await page.getByTestId('open-dispatch').click();
   await expect(page.getByTestId('dispatch-dialog')).toBeVisible();
@@ -53,6 +52,8 @@ test('manual setup: blocked tactic shows a reason, gear and members change the f
   await page.screenshot({ path: `test-results/screens/w4-manual-${info.project.name}.png` });
   await page.getByTestId('confirm-dispatch').click();
   await expect(page.getByTestId('card-state')).toContainText('в пути');
+  // на ПК карточка вызова лежит поверх колонки групп — закрываем её, чтобы выбрать группу
+  await page.keyboard.press('Escape');
   await page.getByTestId('squad-resonance').click();
   await expect(page.getByTestId('squad-card')).toBeVisible();
 });

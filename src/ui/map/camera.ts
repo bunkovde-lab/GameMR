@@ -9,7 +9,8 @@ import { MAP, type Point } from '../../core/map/mapConfig';
 export interface Camera { zoom: number; panX: number; panY: number }
 /** Свободная от панелей часть окна карты (в пикселях окна карты). */
 export interface FitRect { x: number; y: number; w: number; h: number }
-export interface Viewport { w: number; h: number; fit?: FitRect }
+/** alignLeft: пока город уже окна по ширине, он прижат к левому краю, а не стоит по центру. */
+export interface Viewport { w: number; h: number; fit?: FitRect; alignLeft?: boolean }
 
 export const W = MAP.art.width;
 export const H = MAP.art.height;
@@ -19,10 +20,16 @@ export const ZOOM_MAX = MAP.view.zoomMax;
 export const fitOf = (v: Viewport): FitRect => v.fit ?? { x: 0, y: 0, w: v.w, h: v.h };
 export const baseScale = (v: Viewport) => { const f = fitOf(v); return Math.min(f.w / W, f.h / H); };
 
+/** Положение карты без сдвига камеры: по центру свободной части или (alignLeft) у её левого края, пока карта уже окна. */
+const baseOffX = (f: FitRect, v: Viewport, scale: number) => {
+  const slack = f.w - W * scale;
+  return f.x + (v.alignLeft ? Math.min(0, slack) : slack) / 2;
+};
+
 export function transform(cam: Camera, v: Viewport) {
   const f = fitOf(v);
   const scale = baseScale(v) * cam.zoom;
-  return { scale, offX: f.x + (f.w - W * scale) / 2 + cam.panX, offY: f.y + (f.h - H * scale) / 2 + cam.panY };
+  return { scale, offX: baseOffX(f, v, scale) + cam.panX, offY: f.y + (f.h - H * scale) / 2 + cam.panY };
 }
 
 export function clampCamera(cam: Camera, v: Viewport): Camera {
@@ -47,7 +54,7 @@ export function zoomAt(cam: Camera, v: Viewport, nextZoom: number, sx: number, s
   const wy = (sy - t.offY) / t.scale;
   const zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, nextZoom));
   const scale = baseScale(v) * zoom;
-  const centerOffX = f.x + (f.w - W * scale) / 2;
+  const centerOffX = baseOffX(f, v, scale);
   const centerOffY = f.y + (f.h - H * scale) / 2;
   return clampCamera({ zoom, panX: sx - wx * scale - centerOffX, panY: sy - wy * scale - centerOffY }, v);
 }

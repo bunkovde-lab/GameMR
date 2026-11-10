@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useReducer, useState } from 'react';
 import { IconSprite } from './ui/Icon';
-import { NARROW_PX, initialUiState, uiReducer, type Selection, type UiState } from './ui/uiState';
+import { initialUiState, uiReducer, type Selection } from './ui/uiState';
 import { TopHud } from './ui/shell/TopHud';
-import { IncidentPanel } from './ui/shell/IncidentPanel';
 import { ContextPanel } from './ui/shell/ContextPanel';
 import { MapView } from './ui/map/MapView';
 import { DispatchDialog } from './ui/dispatch/DispatchDialog';
@@ -26,17 +25,11 @@ import { bootResult, dispatch, getGame, useGame } from './store';
 import { MainMenu } from './ui/menu/MainMenu';
 import { pendingDecision } from './core/operations';
 
-const isNarrow = () => typeof window !== 'undefined' && window.innerWidth < NARROW_PX;
-
-function initUi(): UiState {
-  return { ...initialUiState, leftPanelOpen: !isNarrow() };
-}
-
 /** Главное меню показывается при каждом запуске; e2e/unit-тесты игровых экранов могут его пропустить. */
 const startsInMenu = () => !(globalThis as { __GAMEMR_SKIP_MENU__?: boolean }).__GAMEMR_SKIP_MENU__;
 
 export function App() {
-  const [ui, uiDispatch] = useReducer(uiReducer, undefined, initUi);
+  const [ui, uiDispatch] = useReducer(uiReducer, initialUiState);
   const { game, notice } = useGame();
   const [screen, setScreen] = useState<'menu' | 'game'>(() => (startsInMenu() ? 'menu' : 'game'));
   // Кампания в этой вкладке: восстановлена из автосохранения или уже открывалась из меню.
@@ -68,11 +61,7 @@ export function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const select = (selection: Selection) => uiDispatch({ type: 'SELECT', selection, narrow: isNarrow() });
-  const toggleLeft = () => {
-    if (isNarrow() && !ui.leftPanelOpen && ui.rightPanelOpen) uiDispatch({ type: 'CLOSE_RIGHT_PANEL' });
-    uiDispatch({ type: 'TOGGLE_LEFT_PANEL' });
-  };
+  const select = (selection: Selection) => uiDispatch({ type: 'SELECT', selection });
   const canEndShift = game.phase === 'ACTIVE' || game.phase === 'REVIEW_PENDING';
   const onMap = ui.view === 'map';
 
@@ -112,13 +101,8 @@ export function App() {
             game={game}
             selection={ui.selection}
             previewSquadId={ui.previewSquadId}
-            leftPanelOpen={ui.leftPanelOpen}
             onSelect={select}
-            onOpenLeftPanel={toggleLeft}
           />
-          {onMap && ui.leftPanelOpen && (
-            <IncidentPanel game={game} selectedId={ui.selection?.kind === 'incident' ? ui.selection.id : null} onSelect={(id) => select({ kind: 'incident', id })} onCollapse={toggleLeft} />
-          )}
           {onMap && <GoalsDock game={game} onOpenDirectorate={() => uiDispatch({ type: 'OPEN_VIEW', view: 'directorate' })} />}
           {onMap && ui.rightPanelOpen && ui.selection && (
             <ContextPanel

@@ -1,11 +1,10 @@
 import type { Page } from '@playwright/test';
-import { expect, test } from './fixtures';
+import { expect, openIncident as openMarker, test } from './fixtures';
 
 // ART-023: иллюстрация, значки «что на кону» и штамп итога в карточке происшествия.
 
 async function openIncident(page: Page, id: string) {
-  if (!(await page.getByTestId('left-panel').isVisible())) await page.getByRole('button', { name: /Вызовы/ }).click();
-  await page.getByTestId(`incident-${id}`).locator('.incident-title').click();
+  await openMarker(page, id);
   await expect(page.getByTestId('incident-card')).toBeVisible();
 }
 

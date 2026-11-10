@@ -26,3 +26,22 @@ export const test = base.extend({
 
 /** Запуск как у игрока: с главного меню. */
 export const testWithMenu = base;
+
+/**
+ * Открыть карточку вызова «как игрок»: списка вызовов нет (2026-11-10), вызов открывается только меткой на карте.
+ * Если метка собрана в кластер — сначала раскрываем кластер.
+ */
+export async function openIncident(page: import('@playwright/test').Page, id: string) {
+  const marker = page.getByTestId(`marker-incident-${id}`);
+  // Открытая карточка справа может лечь краем на метку — игрок сначала закрывает её.
+  if (await page.getByTestId('right-panel').count()) {
+    await page.getByTestId('right-panel').getByRole('button', { name: /Закрыть/ }).first().click();
+    await page.getByTestId('right-panel').waitFor({ state: 'detached' });
+  }
+  if (!(await marker.count())) {
+    const cluster = page.locator(`[data-testid="marker-cluster"][data-ids~="${id}"]`);
+    if (await cluster.count()) await cluster.click();
+  }
+  await marker.click();
+  await page.getByTestId('incident-card').waitFor();
+}

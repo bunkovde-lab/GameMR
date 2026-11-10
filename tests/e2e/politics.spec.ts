@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures';
+import { expect, test, openIncident } from './fixtures';
 
 // W8: полномочия (UI-19), политика Домов (UI-20), документ или чрезвычайное основание в окне отправки.
 
@@ -24,8 +24,7 @@ test('authorities: four levels, a case that needs a court order, a request goes 
 });
 
 test('dispatch: arrest without an order is blocked until the director takes emergency responsibility', async ({ page }, info) => {
-  if (!(await page.getByTestId('left-panel').isVisible())) await page.getByRole('button', { name: /Вызовы/ }).click();
-  await page.getByTestId('incident-illegal').locator('.incident-title').click();
+  await openIncident(page, 'illegal');
   await page.getByTestId('open-dispatch').click();
   await page.getByTestId('pick-resonance').click();
   await page.getByTestId('tactic-arrest').click();

@@ -8,11 +8,11 @@ import type { GameState } from '../../core/types';
 import { Icon } from '../Icon';
 import { SQUAD_STATUS } from '../labels';
 import { BALANCE } from '../../core/content';
-import { MAP_LAYERS, NARROW_PX, type Selection } from '../uiState';
+import { MAP_LAYERS, type Selection } from '../uiState';
 import { getSubMinute } from '../useGameLoop';
 import { MOOD_LABEL, WEATHER_LABEL, districtMood, loadEffectsLevel, nightLevel, weatherForShift, weatherIntensity, type EffectsLevel } from './cityLife';
 import { MapLife } from './MapLife';
-import { DEFAULT_SAFE, clampCamera, ensureVisible, transform, worldToScreen, zoomAt, type Camera, type Viewport, W, H } from './camera';
+import { DEFAULT_SAFE, baseScale, clampCamera, ensureVisible, transform, worldToScreen, zoomAt, type Camera, type Viewport, W, H } from './camera';
 import { markerArtUrl } from '../art';
 import { incidentCaseLink } from '../../core/caseGuide';
 import { CLUSTER_MARKER, INCIDENT_ICON, INCIDENT_MARKER, SQUAD_MARKER, incidentPoint, squadPoint } from './entities';
@@ -22,9 +22,7 @@ interface Props {
   game: GameState;
   selection: Selection;
   previewSquadId: string | null;
-  leftPanelOpen: boolean;
   onSelect: (s: Selection) => void;
-  onOpenLeftPanel: () => void;
 }
 
 const layers = MAP_LAYERS;
@@ -32,16 +30,35 @@ const MOVING: string[] = ['en_route', 'on_scene', 'returning'];
 
 interface DragState { pointers: Map<number, Point>; start: Point; cam: Camera; moved: boolean; pinch?: { dist: number; zoom: number } }
 
+/** Над щитом у верхнего края остаётся место для таймера (≈28 px). */
+const TOP_BAR = 28;
+/** Сколько минут до ухудшения считать «горит»: таймер краснеет. Порог интерфейса, не баланс. */
+const URGENT_MIN = 15;
+const formatLeft = (min: number) => {
+  const m = Math.max(0, Math.round(min));
+  return m < 60 ? `${m} мин` : `${Math.floor(m / 60)} ч ${String(m % 60).padStart(2, '0')}`;
+};
+const STATE_SHORT: Partial<Record<string, string>> = { escalated: 'ухудшение', assigned: 'назначен', en_route: 'в пути', on_scene: 'на месте' };
+/** Ярлык над меткой вызова: время до ухудшения, пока вызов ждёт отряд, иначе — короткое состояние. */
+function incidentTimer(inc: GameState['incidents'][number], minute: number): { text: string; tone: 'time' | 'urgent' | 'state' } {
+  if (['new', 'acknowledged'].includes(inc.state)) {
+    const left = inc.deadlineMinute - minute;
+    return { text: formatLeft(left), tone: left <= URGENT_MIN ? 'urgent' : 'time' };
+  }
+  return { text: STATE_SHORT[inc.state] ?? '', tone: inc.state === 'escalated' ? 'urgent' : 'state' };
+}
+
 const toSvg = (p: Point) => `${p[0] * W},${p[1] * H}`;
 
 /**
  * Карта ART-019 (вид сверху, день/ночь) поверх геометрии W3: арт + SVG-слой геометрии в одной матрице, маркеры — в экранном слое
  * постоянного размера (44 px), позиции через worldToScreen.
  */
-export function MapView({ game, selection, previewSquadId, leftPanelOpen, onSelect, onOpenLeftPanel }: Props) {
+export function MapView({ game, selection, previewSquadId, onSelect }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
-  const [fitX, setFitX] = useState({ left: 0, right: 0 });
+  // Высота щита вызова (CSS --mk-inc): от неё зависят раздвижка меток и отступ от краёв окна.
+  const [markerH, setMarkerH] = useState(112);
   const [effects, setEffects] = useState<EffectsLevel>(loadEffectsLevel);
   const [, setFrame] = useState(0);
   const [cam, setCam] = useState<Camera>({ zoom: 1, panX: 0, panY: 0 });
@@ -64,20 +81,19 @@ export function MapView({ game, selection, previewSquadId, leftPanelOpen, onSele
     return () => ro.disconnect();
   }, []);
 
-  // ART-019: на широком экране область карты закреплена между местами боковых панелей (--left-w / --right-w),
-  // открыты они или нет: город стоит по центру и не сдвигается и не меняет размер при открытии/закрытии панелей.
-  // На узком экране панели — выдвижные, поверх карты, и карта занимает всё окно.
   useLayoutEffect(() => {
-    const wide = window.innerWidth >= NARROW_PX;
-    const css = getComputedStyle(ref.current ?? document.documentElement);
-    const px = (name: string) => parseFloat(css.getPropertyValue(name)) || 0;
-    const next = wide ? { left: Math.round(px('--left-w') + 6), right: Math.round(px('--right-w') + 6) } : { left: 0, right: 0 };
-    setFitX((cur) => (cur.left === next.left && cur.right === next.right ? cur : next));
+    const h = parseFloat(getComputedStyle(ref.current!).getPropertyValue('--mk-inc')) || 112;
+    setMarkerH((cur) => (cur === h ? cur : h));
   }, [size.w, size.h]);
-  const vp = useMemo<Viewport>(
-    () => ({ w: size.w, h: size.h, fit: { x: fitX.left, y: 0, w: Math.max(1, size.w - fitX.left - fitX.right), h: size.h } }),
-    [size.w, size.h, fitX],
-  );
+  // Город прижат к левому краю окна карты и вписан в него целиком; панелей слева нет. Карточка справа открывается
+  // поверх свободной полосы справа от города: карта не сдвигается и не меняет размер при открытии/закрытии карточки.
+  const vp = useMemo<Viewport>(() => ({ w: size.w, h: size.h, alignLeft: true }), [size.w, size.h]);
+  // Ширина свободной полосы справа от города (при zoom 1) — для карточки справа и кнопок масштаба (CSS --map-free-right).
+  const freeRight = vp.w ? Math.max(0, Math.round(vp.w - W * baseScale(vp))) : 0;
+  useLayoutEffect(() => {
+    const host = ref.current?.parentElement;
+    host?.style.setProperty('--map-free-right', `${freeRight}px`);
+  }, [freeRight]);
 
   useEffect(() => {
     const on = (e: Event) => setEffects((e as CustomEvent<EffectsLevel>).detail);
@@ -114,11 +130,10 @@ export function MapView({ game, selection, previewSquadId, leftPanelOpen, onSele
     if (!selectedPoint || !vp.w) return;
     // Безопасная зона с учётом открытых панелей поверх карты.
     const stage = ref.current?.getBoundingClientRect();
-    const left = document.querySelector('.left-panel')?.getBoundingClientRect();
     const right = document.querySelector('.right-panel')?.getBoundingClientRect();
     const safe = {
       ...DEFAULT_SAFE,
-      left: stage && left ? left.right - stage.left + 40 : DEFAULT_SAFE.left,
+      top: Math.max(DEFAULT_SAFE.top, markerH + TOP_BAR),
       right: stage && right ? stage.right - right.left + 40 : DEFAULT_SAFE.right,
     };
     setCam((c) => ensureVisible(c, vp, selectedPoint, safe));
@@ -374,7 +389,12 @@ export function MapView({ game, selection, previewSquadId, leftPanelOpen, onSele
               const [x, y] = screen(p);
               return onStage([x, y]) ? [{ id: inc.id, x, y, severity: inc.severity }] : [];
             });
-            const lay = layoutMarkers(items, expandedCluster);
+            // Щит стоит кончиком в точке вызова, над ним — таймер: точку держим так, чтобы оба целиком были в окне.
+            const mw = markerH * 0.8;
+            const lay = layoutMarkers(items, expandedCluster, {
+              width: mw,
+              bounds: { minX: mw / 2 + 4, maxX: Math.max(mw / 2 + 4, vp.w - mw / 2 - 4), minY: markerH + TOP_BAR, maxY: Math.max(markerH + TOP_BAR, vp.h - 6) },
+            });
             const byId = new Map(openIncidents.map((i) => [i.id, i]));
             return (
               <>
@@ -389,6 +409,7 @@ export function MapView({ game, selection, previewSquadId, leftPanelOpen, onSele
                   const selected = selection?.kind === 'incident' && selection.id === inc.id;
                   const art = markerArtUrl(INCIDENT_MARKER[inc.templateId] ?? '');
                   const link = incidentCaseLink(game, inc);
+                  const timer = incidentTimer(inc, game.minute);
                   return (
                     <button
                       key={inc.id}
@@ -398,13 +419,21 @@ export function MapView({ game, selection, previewSquadId, leftPanelOpen, onSele
                       aria-label={`Вызов: ${inc.title}${link ? `. Связан с делом №${link.number}` : ''}`}
                       aria-pressed={selected}
                       data-testid={`marker-incident-${inc.id}`}
+                      data-moved={m.moved || undefined}
                     >
                       {art ? <img src={art} alt="" draggable={false} /> : <Icon name={INCIDENT_ICON[inc.templateId] ?? 'warning'} />}
-                      {link && <span className="case-badge" data-testid={`case-badge-${inc.id}`}><Icon name="search" />№{link.number}</span>}
+                      <span className={`mk-timer tone-${timer.tone}${link ? ' case' : ''}`} data-testid={`timer-${inc.id}`}>
+                        {timer.tone !== 'state' && <Icon name="clock" />}
+                        <span className="t">{timer.text}</span>
+                        {link && <span className="case-no" data-testid={`case-badge-${inc.id}`}>№{link.number}</span>}
+                      </span>
                     </button>
                   );
                 })}
-                {lay.clusters.map((c) => (
+                {lay.clusters.map((c) => {
+                  const soonest = c.ids.map((id) => byId.get(id)!).filter((i) => ['new', 'acknowledged'].includes(i.state))
+                    .reduce<number | null>((min, i) => Math.min(min ?? Infinity, i.deadlineMinute - game.minute), null);
+                  return (
                   <button
                     key={c.key}
                     className={`marker cluster sev-${c.top}${markerArtUrl(CLUSTER_MARKER) ? ' shield' : ''}`}
@@ -412,11 +441,16 @@ export function MapView({ game, selection, previewSquadId, leftPanelOpen, onSele
                     onClick={() => setExpandedCluster(c.key)}
                     aria-label={`Вызовов рядом: ${c.ids.length}. Развернуть`}
                     data-testid="marker-cluster"
+                    data-ids={c.ids.join(' ')}
                   >
                     {markerArtUrl(CLUSTER_MARKER) && <img src={markerArtUrl(CLUSTER_MARKER)} alt="" draggable={false} />}
                     <b>{c.ids.length}</b>
+                    {soonest !== null && (
+                      <span className={`mk-timer tone-${soonest <= URGENT_MIN ? 'urgent' : 'time'}`}><Icon name="clock" /><span className="t">{formatLeft(soonest)}</span></span>
+                    )}
                   </button>
-                ))}
+                  );
+                })}
               </>
             );
           })()}
@@ -425,6 +459,7 @@ export function MapView({ game, selection, previewSquadId, leftPanelOpen, onSele
       )}
 
       <div className="map-ambient" data-testid="map-ambient" aria-live="off">
+        <span className="calls" data-testid="incident-count" title="Открытых вызовов на карте">Вызовы: {openIncidents.length}</span>
         <span>{night > 0.6 ? 'Ночь' : night > 0.15 ? (game.minute < 120 ? 'Рассвет' : 'Сумерки') : 'День'}</span>
         {weatherOn && <span data-testid="map-weather">{WEATHER_LABEL[weather.kind]}</span>}
         {hot.length > 0 && <span className="hot" title={hot.map((d) => `${d.name}: ${MOOD_LABEL[districtMood(d.safety)]}`).join('\n')}>Неспокойно: {hot.length}</span>}
@@ -434,13 +469,6 @@ export function MapView({ game, selection, previewSquadId, leftPanelOpen, onSele
         <button className="btn cluster-collapse" onClick={() => setExpandedCluster(null)} data-testid="cluster-collapse">Свернуть группу вызовов</button>
       )}
 
-      {!leftPanelOpen && (
-        <div className="map-tools">
-          <button className="btn" onClick={onOpenLeftPanel} aria-controls="incident-panel" aria-expanded={false}>
-            <Icon name="list" /> <span className="label">Вызовы</span> <span className="count">{openIncidents.length}</span>
-          </button>
-        </div>
-      )}
       <div className="zoom-tools" role="group" aria-label="Масштаб карты">
         <button className="btn icon-only" onClick={() => zoomBy(1.25)} aria-label="Приблизить" data-testid="zoom-in"><Icon name="plus" /></button>
         <button className="btn icon-only" onClick={() => zoomBy(0.8)} aria-label="Отдалить" data-testid="zoom-out"><Icon name="minus" /></button>

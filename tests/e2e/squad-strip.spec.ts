@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures';
+import { expect, test, openIncident } from './fixtures';
 
 // Карточки «Оперативные группы»: лица бойцов, полоса усталости и состояние здоровья из состояния игры.
 
@@ -39,8 +39,7 @@ test('squad cards show member faces with fatigue bars and stay tappable', async 
 });
 
 test('dispatch window: ready squads show banner and member faces like the main screen', async ({ page }, info) => {
-  if (!(await page.getByTestId('left-panel').isVisible())) await page.getByRole('button', { name: /Вызовы/ }).click();
-  await page.getByTestId('incident-missing').locator('.incident-title').click();
+  await openIncident(page, 'missing');
   await page.getByTestId('open-dispatch').click();
   const pick = page.getByTestId('pick-axon');
   await expect(pick.locator('.monogram.banner-axon')).toBeVisible();

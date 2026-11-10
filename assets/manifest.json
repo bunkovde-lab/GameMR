@@ -2773,6 +2773,185 @@
       "source": "GameMR_ART022_7_organ_icons_REVIEW.zip; 2026-11-10",
       "approvedBy": "Дмитрий",
       "notes": "Исходный PNG без изменений, передан Дмитрием для подключения. Состояния (изучено/закрыто/курс) рисует код."
+    },
+    {
+      "id": "ART023_INC_TYPE_RIOT",
+      "file": "assets/incidents/inc_type_riot.png",
+      "name": "inc_type_riot.png",
+      "label": "Беспорядки",
+      "category": "events",
+      "role": "ART-023 типовая иллюстрация карточки происшествия",
+      "status": "review",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023; atlas split from ChatGPT concept panel",
+      "approvedBy": null,
+      "sha256": "4620653a6ab6f4c672668f5609bb09f84def1b128e1c8b8a8f9f95d716d156cf",
+      "notes": "Wide 16:9; runtime crops central 2:1 region; source montage was a design sheet, upscaled and cropped.",
+      "webCopies": [
+        "assets/incidents/inc_type_riot.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_TYPE_BIO",
+      "file": "assets/incidents/inc_type_bio.png",
+      "name": "inc_type_bio.png",
+      "label": "Биоугроза",
+      "category": "events",
+      "role": "ART-023 типовая иллюстрация карточки происшествия",
+      "status": "review",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023; atlas split from ChatGPT concept panel",
+      "approvedBy": null,
+      "sha256": "34ad85ecc8577d0adc76b60293addf7b502b7dacdeb87696b3f30911418e4ee6",
+      "notes": "Wide 16:9; runtime crops central 2:1 region; source montage was a design sheet, upscaled and cropped.",
+      "webCopies": [
+        "assets/incidents/inc_type_bio.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_TYPE_ARMED",
+      "file": "assets/incidents/inc_type_armed.png",
+      "name": "inc_type_armed.png",
+      "label": "Вооружённая угроза",
+      "category": "events",
+      "role": "ART-023 типовая иллюстрация карточки происшествия",
+      "status": "review",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023; atlas split from ChatGPT concept panel",
+      "approvedBy": null,
+      "sha256": "1a884a955d8499fd3b058542f35aab53dbee0d7e3d65bc377f2b5aa0ad374256",
+      "notes": "Wide 16:9; runtime crops central 2:1 region; source montage was a design sheet, upscaled and cropped.",
+      "webCopies": [
+        "assets/incidents/inc_type_armed.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_TYPE_SEARCH",
+      "file": "assets/incidents/inc_type_search.png",
+      "name": "inc_type_search.png",
+      "label": "Розыск",
+      "category": "events",
+      "role": "ART-023 типовая иллюстрация карточки происшествия",
+      "status": "review",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023; atlas split from ChatGPT concept panel",
+      "approvedBy": null,
+      "sha256": "139713efb360a8fd423ff379273f77f4bc69d57f29c2997f9979fb489136a986",
+      "notes": "Wide 16:9; runtime crops central 2:1 region; source montage was a design sheet, upscaled and cropped.",
+      "webCopies": [
+        "assets/incidents/inc_type_search.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_TYPE_ILLEGAL_MOD",
+      "file": "assets/incidents/inc_type_illegal_mod.png",
+      "name": "inc_type_illegal_mod.png",
+      "label": "Нелегальная модификация",
+      "category": "events",
+      "role": "ART-023 типовая иллюстрация карточки происшествия",
+      "status": "review",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023; atlas split from ChatGPT concept panel",
+      "approvedBy": null,
+      "sha256": "ec9902290dde9bd1cca2f47538bc34e077f22a91eef0e975a336a1c939631428",
+      "notes": "Wide 16:9; runtime crops central 2:1 region; source montage was a design sheet, upscaled and cropped.",
+      "webCopies": [
+        "assets/incidents/inc_type_illegal_mod.webp"
+      ]
+    },
+    {
+      "id": "ART023_AFT_PEOPLE",
+      "file": "assets/ui/aftermath/aft_people.svg",
+      "name": "aft_people.svg",
+      "category": "ui",
+      "role": "ART-023 что на кону",
+      "status": "review",
+      "width": 24,
+      "height": 24,
+      "alpha": true,
+      "source": "ChatGPT original SVG, ART-023 brief",
+      "approvedBy": null,
+      "notes": "stroke=currentColor, no fill; reviewed vector artwork"
+    },
+    {
+      "id": "ART023_AFT_CITY",
+      "file": "assets/ui/aftermath/aft_city.svg",
+      "name": "aft_city.svg",
+      "category": "ui",
+      "role": "ART-023 что на кону",
+      "status": "review",
+      "width": 24,
+      "height": 24,
+      "alpha": true,
+      "source": "ChatGPT original SVG, ART-023 brief",
+      "approvedBy": null,
+      "notes": "stroke=currentColor, no fill; reviewed vector artwork"
+    },
+    {
+      "id": "ART023_AFT_LAW",
+      "file": "assets/ui/aftermath/aft_law.svg",
+      "name": "aft_law.svg",
+      "category": "ui",
+      "role": "ART-023 что на кону",
+      "status": "review",
+      "width": 24,
+      "height": 24,
+      "alpha": true,
+      "source": "ChatGPT original SVG, ART-023 brief",
+      "approvedBy": null,
+      "notes": "stroke=currentColor, no fill; reviewed vector artwork"
+    },
+    {
+      "id": "ART023_AFT_POLITICS",
+      "file": "assets/ui/aftermath/aft_politics.svg",
+      "name": "aft_politics.svg",
+      "category": "ui",
+      "role": "ART-023 что на кону",
+      "status": "review",
+      "width": 24,
+      "height": 24,
+      "alpha": true,
+      "source": "ChatGPT original SVG, ART-023 brief",
+      "approvedBy": null,
+      "notes": "stroke=currentColor, no fill; reviewed vector artwork"
+    },
+    {
+      "id": "ART023_AFT_STAFF",
+      "file": "assets/ui/aftermath/aft_staff.svg",
+      "name": "aft_staff.svg",
+      "category": "ui",
+      "role": "ART-023 что на кону",
+      "status": "review",
+      "width": 24,
+      "height": 24,
+      "alpha": true,
+      "source": "ChatGPT original SVG, ART-023 brief",
+      "approvedBy": null,
+      "notes": "stroke=currentColor, no fill; reviewed vector artwork"
+    },
+    {
+      "id": "ART023_AFT_SCIENCE",
+      "file": "assets/ui/aftermath/aft_science.svg",
+      "name": "aft_science.svg",
+      "category": "ui",
+      "role": "ART-023 что на кону",
+      "status": "review",
+      "width": 24,
+      "height": 24,
+      "alpha": true,
+      "source": "ChatGPT original SVG, ART-023 brief",
+      "approvedBy": null,
+      "notes": "stroke=currentColor, no fill; reviewed vector artwork"
     }
   ]
 }

@@ -121,3 +121,21 @@ describe('ART-003/004 значки карты', () => {
     }
   });
 });
+
+/** ART-016: 8 помещений и 8 предметов исследований на все id из контента; хеши совпадают, есть webp-копии. */
+describe('ART-016 Дирекция', () => {
+  it('16 файлов на все помещения и проекты', async () => {
+    const arts = manifest.assets.filter((a) => a.id.startsWith('ART016_'));
+    expect(arts).toHaveLength(16);
+    for (const a of arts) {
+      expect(createHash('sha256').update(readFileSync(a.file)).digest('hex')).toBe(a.sha256);
+      expect((a as { webCopies?: string[] }).webCopies?.every((w) => existsSync(w))).toBe(true);
+    }
+    const fac = JSON.parse(readFileSync('content/facilities_v1.json', 'utf8'));
+    const res = JSON.parse(readFileSync('content/research_v1.json', 'utf8'));
+    const facIds = (fac.facilities ?? fac).map((x: { id: string }) => x.id);
+    const resIds = (res.projects ?? res.research ?? res).map((x: { id: string }) => x.id);
+    for (const id of facIds) expect(existsSync(`assets/facilities/facility_${id}.png`), id).toBe(true);
+    for (const id of resIds) expect(existsSync(`assets/research/research_${id}.png`), id).toBe(true);
+  });
+});

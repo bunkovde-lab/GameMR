@@ -18,6 +18,8 @@ import { BriefingDialog, EndShiftConfirm, ShiftReportDialog } from './ui/PhaseDi
 import { SettingsDialog } from './ui/SettingsDialog';
 import { Toast } from './ui/Toast';
 import { useGameLoop } from './ui/useGameLoop';
+// Прежний утверждённый арт города (W3) — с ART-019 только заставка перед сменой.
+import citySplashUrl from '../assets/map/web/city_splash_legacy.webp';
 import { useMusicScene } from './ui/audio/useMusic';
 import { dispatch, getGame, useGame } from './store';
 import { pendingDecision } from './core/operations';
@@ -111,6 +113,7 @@ export function App() {
         <SquadStrip game={game} selectedId={ui.selection?.kind === 'squad' ? ui.selection.id : null} onSelect={(id) => select({ kind: 'squad', id })} />
         <BottomNav current={ui.view} onOpen={(view) => uiDispatch({ type: 'OPEN_VIEW', view })} canEndShift={canEndShift} onEndShift={() => setConfirmEnd(true)} />
       </div>
+      {game.phase === 'BRIEFING' && <div className="city-splash" style={{ backgroundImage: `url(${citySplashUrl})` }} data-testid="city-splash" aria-hidden="true" />}
       {game.phase === 'BRIEFING' && !settingsOpen && <BriefingDialog game={game} onOpenSettings={() => setSettingsOpen(true)} />}
       {game.phase === 'SHIFT_REPORT' && !settingsOpen && (game.campaign.ending && !game.campaign.endingSeen ? <EndingDialog game={game} /> : <ShiftReportDialog game={game} />)}
       {confirmEnd && canEndShift && <EndShiftConfirm game={game} onCancel={() => setConfirmEnd(false)} />}

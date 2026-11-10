@@ -39,10 +39,13 @@ test('AUDIO v1: тема меню на брифинге, фон игры на с
 
 test('AUDIO v1: MP3 из сборки реально воспроизводится в браузере', async ({ page }) => {
   await page.goto('/');
+  // Ждём, пока игра загрузится и музыкальный модуль будет создан, затем — первое нажатие.
+  await expect(page.getByTestId('briefing')).toBeVisible();
   await page.mouse.click(5, 5);
   // Проверяем, что элемент <audio> реально воспроизводит (время трека идёт).
   const played = () => page.evaluate(() => {
-    const m = (window as unknown as { __gamemrMusic: { tracks: Map<string, { voices: { el: HTMLAudioElement }[] }> } }).__gamemrMusic;
+    const m = (window as unknown as { __gamemrMusic?: { tracks: Map<string, { voices: { el: HTMLAudioElement }[] }> } }).__gamemrMusic;
+    if (!m) return false;
     const els = [...m.tracks.values()].flatMap((t) => t.voices.map((v) => v.el));
     return els.some((e) => e.currentTime > 0.5 && e.duration > 200 && !e.error);
   });

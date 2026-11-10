@@ -3,6 +3,7 @@ import { createInitialState } from '../../../src/core/state';
 import { reduce } from '../../../src/core/reduce';
 import { caseDef, caseFile, openCaseFromReport } from '../../../src/core/investigations';
 import { toSaveFile } from '../../../src/persistence/saveFormat';
+import { weatherForShift } from '../../../src/ui/map/cityLife';
 import { spawnStoryIncident } from '../../../src/core/campaign';
 import { pendingDecision } from '../../../src/core/operations';
 import type { CaseFile, GameState, OperationReport } from '../../../src/core/types';
@@ -100,4 +101,23 @@ save('op2_window', s10);
   if (!pendingDecision(w)) throw new Error('W10 fixture: no decision');
   w.paused = true;
   save('w10_events', w);
+}
+
+// 8. ART-019: «живой город» — ночь с неспокойными районами и отряд в пути; отдельно смена с дождём.
+const cityAt = (shift: number, minute: number) => {
+  const sn = fresh();
+  sn.shift = shift;
+  sn.minute = minute;
+  const set = (id: string, safety: number) => { sn.districts.find((x) => x.id === id)!.safety = safety; };
+  set('industry', 36); set('residential', 24); set('medical', 50);
+  const r = reduce(sn, { type: 'DISPATCH_SQUAD', squadId: 'axon', incidentId: 'medriot' });
+  if (!r.ok) throw new Error(r.reason);
+  return r.state;
+};
+save('city_night', cityAt(2, 630)); // 18:30 — ночь
+{
+  const seed = fresh().seed;
+  const wet = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11].find((n) => weatherForShift(seed, n).kind !== 'clear') ?? 4;
+  const w = weatherForShift(seed, wet);
+  save('city_rain', cityAt(wet, Math.round((w.from + w.to) / 2)));
 }

@@ -222,6 +222,20 @@ svg.icon {
 .map-world { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
 .map-world img { display: block; width: 100%; height: 100%; pointer-events: auto; -webkit-user-drag: none; }
 .map-geo { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
+/* ART-019: ночная карта поверх дневной, прозрачность = уровень ночи (плавно между минутами) */
+.map-world .map-night { position: absolute; inset: 0; transition: opacity 1.2s linear; }
+/* Поля по краям (окно шире/уже 16:9): та же карта, размытая и затемнённая */
+.map-backdrop { position: absolute; inset: -40px; width: calc(100% + 80px); height: calc(100% + 80px); object-fit: cover; filter: blur(22px) brightness(0.4) saturate(0.7); pointer-events: none; }
+.map-life { position: absolute; left: 0; top: 0; pointer-events: none; }
+.map-ambient {
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1;
+  display: flex; gap: 6px; pointer-events: auto; font-size: 12px; white-space: nowrap;
+}
+.map-ambient span { padding: 3px 9px; border-radius: 999px; background: #0c1016d9; border: 1px solid var(--stroke2); color: var(--muted, #b9b0a0); }
+.map-ambient .hot { color: #ff9a6a; border-color: #8d3138; }
+.workspace:has(.left-panel) .map-ambient { left: calc(50% + var(--left-w) / 2); }
+.city-splash { position: fixed; inset: 0; z-index: 19; background: #05070b center / cover no-repeat; }
+.city-splash + .overlay { background: #0405078c; }
 .district-hit {
   pointer-events: auto; cursor: pointer; fill: transparent; stroke: transparent; stroke-width: 2;
   vector-effect: non-scaling-stroke; transition: fill 0.15s, stroke 0.15s;
@@ -344,6 +358,8 @@ svg.icon {
 @media (max-width: 950px) {
   .left-panel, .right-panel { width: min(var(--left-w), 86vw); }
   .workspace:has(.left-panel) .map-tools, .workspace:has(.left-panel) .layer-tools { left: 10px; }
+  .workspace:has(.left-panel) .map-ambient { left: 50%; }
+  .map-ambient { font-size: 11px; top: 6px; }
   .workspace:has(.right-panel) .zoom-tools { right: 10px; }
   .layer-tools .label { display: none; }
   .district-label { font-size: 11px; }
@@ -519,6 +535,14 @@ td.bad { color: var(--bad); }
 .fin-bars .bar { width: 22px; min-height: 2px; border-radius: 4px 4px 0 0; }
 .fin-bars .bar:hover { filter: brightness(1.25); }
 .facility { gap: 6px; }
+/* ART-016: полоса помещения сверху карточки и миниатюра предмета исследования. */
+.facility .fac-art {
+  height: 110px; margin: -2px -2px 2px; border-radius: 6px; background: #141922 center / cover no-repeat;
+  box-shadow: inset 0 0 0 1px #c9a46a55, inset 0 -30px 30px -20px #0b1118cc;
+}
+.node-list .with-thumb { display: flex; gap: 10px; align-items: center; }
+.node-list .with-thumb > span { display: grid; gap: 2px; min-width: 0; }
+.res-thumb { flex: none; width: 56px; height: 56px; border-radius: 6px; object-fit: cover; box-shadow: 0 0 0 1px #c9a46a66; }
 .fac-now { margin: 0; }
 .facility .btn { justify-self: start; }
 .start-form { display: grid; gap: 8px; padding: 8px; border: 1px dashed var(--stroke2); border-radius: 8px; }

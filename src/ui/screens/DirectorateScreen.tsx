@@ -8,6 +8,7 @@ import { TREATABLE, patientOf, vacancies } from '../../core/staff';
 import type { GameState, StaffRole, TransactionKind } from '../../core/types';
 import { dispatch } from '../../store';
 import { Icon } from '../Icon';
+import { artUrl } from '../art';
 import { ProjectsTab } from './ProjectsTab';
 import { AuthorityTab, PoliticsTab } from './PoliticsTabs';
 import { politicsSummary } from '../../core/politics';
@@ -199,6 +200,7 @@ function Infrastructure({ game }: { game: GameState }) {
           const why = queued ? null : upgradeBlocker(game, fd.id);
           return (
             <article key={fd.id} className="sq-card facility" data-testid={`facility-${fd.id}`}>
+              {artUrl(`facility_${fd.id}`) && <div className="fac-art" role="img" aria-label={fd.label} style={{ backgroundImage: `url(${artUrl(`facility_${fd.id}`)})` }} data-testid={`fac-art-${fd.id}`} />}
               <header><b>{fd.label}</b><small>ур. {game.facilities[fd.id]}</small></header>
               <p className="fac-now">{lv.gives}</p>
               <small className="muted">Содержание: {lv.upkeep ? `${lv.upkeep} РЕ/смена` : 'входит в базовое финансирование'}</small>

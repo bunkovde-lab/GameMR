@@ -9,9 +9,12 @@ on:
 permissions:
   contents: read
 
+# В PR новая правка отменяет старую проверку. В main — нет: иначе при частых слияниях
+# каждая следующая сборка отменяет выкладку предыдущей и сайт не обновляется вовсе.
+# (Ожидающая очереди сборка main всё равно заменяется самой свежей.)
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   check:

@@ -10,7 +10,7 @@ test('ART-007: sprite uses the 35 approved-style icons; screens render them', as
   await page.getByTestId('start-shift').click();
   await expect(page.getByTestId('map-image')).toBeVisible();
   // Иконки в кнопках действительно рисуются (символ найден, у svg есть размер).
-  const box = (await page.getByTestId('zoom-in').locator('svg.icon').boundingBox())!;
+  const box = (await page.getByTestId('toggle-pause').locator('svg.icon').boundingBox())!;
   expect(box.width).toBeGreaterThanOrEqual(13);
   await page.screenshot({ path: `test-results/screens/art007-map-${info.project.name}.png` });
   for (const name of ['staff', 'directorate'] as const) {

@@ -51,7 +51,6 @@
 .btn:disabled { background: none; border-color: transparent; box-shadow: none; }
 .btn:disabled::before { border-image-source: var(--kit-btn-disabled); }
 .btn.danger { border-color: transparent; }
-.zoom-tools .btn { background: none; }
 .nav .btn.end-shift { background: none; border-color: transparent; }
 .nav .btn.end-shift::before { border-image-source: var(--kit-btn-hover); }
 .nav .btn.end-shift:hover:not(:disabled)::before { filter: brightness(1.15); }

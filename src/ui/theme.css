@@ -106,7 +106,6 @@ body {
 .btn.pick[aria-pressed='true']::after { left: auto; right: 10px; top: 10px; bottom: auto; width: 8px; height: 8px; margin: 0; transform: rotate(45deg); }
 .btn.danger { color: var(--bad); border-color: #7a3a3a; }
 .btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
-.zoom-tools .btn { background: linear-gradient(180deg, #1c1d22ee, #0e1013ee); }
 
 /* ---------- Верхний HUD и нижняя навигация (CSS, без больших PNG — STYLE_REF01 §4–5) ---------- */
 .hud {

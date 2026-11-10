@@ -21,14 +21,6 @@ async function openIncident(page: Page, id: string) {
   await expect(page.getByTestId('incident-card')).toBeVisible();
 }
 
-/** Точка привязки метки: у щита ART-003/004 это его нижний кончик, у кружка — центр. */
-async function centerOf(page: Page, testId: string) {
-  const el = page.getByTestId(testId);
-  const b = (await el.boundingBox())!;
-  const shield = await el.evaluate((e) => e.classList.contains('shield') && !e.classList.contains('squad'));
-  return { x: b.x + b.width / 2, y: b.y + b.height * (shield ? 0.97 : 0.5) };
-}
-
 test('ART-019: the whole city fits the free part of the map window without zooming or scrolling', async ({ page }, info) => {
   const errors = await start(page);
   const stage = (await page.getByTestId('map-stage').boundingBox())!;
@@ -164,44 +156,36 @@ test('MAP-008: markers select incidents; choosing another marker moves the selec
   await expect(page.locator('[data-testid="marker-incident-missing"][aria-pressed="true"]')).toHaveCount(0);
 });
 
-test('MAP-012/013: zoom keeps the marker anchored to the same map point', async ({ page }) => {
+test('MAP-012/014: the map is fixed — no zoom buttons; wheel, drag and pinch do not move it', async ({ page }, info) => {
   await start(page);
-  const img = (await page.getByTestId('map-image').boundingBox())!;
-  const rel = (p: { x: number; y: number }, b: typeof img) => ({ u: (p.x - b.x) / b.width, v: (p.y - b.y) / b.height });
-  // метка в середине города: у края окна метки сдвигаются внутрь (с линией к точке), там якорь проверять нельзя
-  await expect(page.getByTestId('marker-incident-illegal')).not.toHaveAttribute('data-moved', /./);
-  const before = rel(await centerOf(page, 'marker-incident-illegal'), img);
-  await page.getByTestId('zoom-in').click();
-  await page.getByTestId('zoom-in').click();
-  await expect(page.getByTestId('camera-zoom')).toHaveText('1.56');
-  const img2 = (await page.getByTestId('map-image').boundingBox())!;
-  expect(img2.width).toBeGreaterThan(img.width * 1.5);
-  // у края окна метка сдвигается внутрь (data-moved) — тогда якорь сверять не с чем
-  if (await page.getByTestId('marker-incident-illegal').isVisible() && !(await page.getByTestId('marker-incident-illegal').getAttribute('data-moved'))) {
-    const after = rel(await centerOf(page, 'marker-incident-illegal'), img2);
-    expect(Math.abs(after.u - before.u)).toBeLessThan(0.003);
-    expect(Math.abs(after.v - before.v)).toBeLessThan(0.003);
-  }
-  await page.getByTestId('zoom-reset').click();
-  await expect(page.getByTestId('camera-zoom')).toHaveText('1.00');
-});
-
-test('MAP-014: dragging pans the map without selecting anything', async ({ page }, info) => {
-  test.skip(info.project.name === 'phone-844', 'проверяется на ПК и планшете');
-  await start(page);
-  // ART-019: при zoom 1 весь город на экране — сдвигать нечего; приближаем и тянем.
-  await page.getByTestId('zoom-in').click();
-  await page.getByTestId('zoom-in').click();
+  await expect(page.getByTestId('zoom-in')).toHaveCount(0);
+  await expect(page.getByTestId('zoom-out')).toHaveCount(0);
+  await expect(page.getByTestId('zoom-reset')).toHaveCount(0);
+  await expect(page.getByRole('group', { name: 'Масштаб карты' })).toHaveCount(0);
+  const img0 = (await page.getByTestId('map-image').boundingBox())!;
   const stage = (await page.getByTestId('map-stage').boundingBox())!;
-  const x0 = (await page.getByTestId('map-image').boundingBox())!.x;
   const cx = stage.x + stage.width * 0.55, cy = stage.y + stage.height * 0.5;
-  await page.mouse.move(cx, cy);
-  await page.mouse.down();
-  await page.mouse.move(cx - 120, cy, { steps: 8 });
-  await page.mouse.up();
-  const x1 = (await page.getByTestId('map-image').boundingBox())!.x;
-  expect(x1).toBeLessThan(x0 - 60);
-  await expect(page.getByTestId('district-card')).toHaveCount(0);
+  if (info.project.name !== 'phone-844') {
+    await page.mouse.move(cx, cy);
+    await page.mouse.wheel(0, -400);
+    await page.mouse.down();
+    await page.mouse.move(cx - 120, cy + 40, { steps: 8 });
+    await page.mouse.up();
+  } else {
+    // щипок двумя пальцами: синтетические указатели на окне карты
+    await page.getByTestId('map-stage').evaluate((el, [x, y]) => {
+      const ev = (type: string, id: number, px: number) =>
+        el.dispatchEvent(new PointerEvent(type, { pointerId: id, clientX: px, clientY: y, bubbles: true, pointerType: 'touch', isPrimary: id === 1 }));
+      ev('pointerdown', 1, x - 20); ev('pointerdown', 2, x + 20);
+      for (let k = 1; k <= 8; k++) { ev('pointermove', 1, x - 20 - k * 10); ev('pointermove', 2, x + 20 + k * 10); }
+      ev('pointerup', 1, x - 100); ev('pointerup', 2, x + 100);
+    }, [cx, cy] as const);
+  }
+  await page.waitForTimeout(150);
+  const img1 = (await page.getByTestId('map-image').boundingBox())!;
+  expect(Math.abs(img1.x - img0.x)).toBeLessThan(1);
+  expect(Math.abs(img1.y - img0.y)).toBeLessThan(1);
+  expect(Math.abs(img1.width - img0.width)).toBeLessThan(1);
 });
 
 test('MAP-017/019/020: dispatch shows route and ETA, pause freezes it, squad arrives', async ({ page }, info) => {

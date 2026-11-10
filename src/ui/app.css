@@ -432,12 +432,6 @@ svg.icon {
   position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 2; max-width: min(560px, 90%);
   padding: 10px 14px; border-radius: 10px; background: #3a1418f2; border: 1px solid var(--bad);
 }
-.zoom-tools { position: absolute; left: 10px; bottom: 10px; display: flex; flex-direction: column; gap: 6px; z-index: 1; }
-.zoom-tools .btn { background: #141a22e8; }
-/* Широкий экран: масштаб и слои всегда у краёв закреплённой области карты — не прыгают при открытии/закрытии панелей;
-   кнопки слоёв не заходят под карточку справа, а переносятся во второй ряд. */
-/* Кнопки масштаба — у правого края города; если полоса справа уже карточки — у края места карточки, чтобы не уходить под неё. */
-/* Масштаб — в левом нижнем углу карты (.zoom-tools выше): не уходит под карточку справа и не закрывает метки у верхнего края. */
 
 /* ---------- W3: список вызовов и карточки ---------- */
 .squad.selected { border-color: #ff8a78; box-shadow: inset 0 0 0 1px #ff8a78; }
@@ -459,9 +453,6 @@ svg.icon {
   .right-panel { width: min(var(--right-w), 86vw); }
   .map-ambient { font-size: 11px; bottom: 6px; }
   .map-screen .district-label { font-size: 10px; letter-spacing: 0.6px; padding: 1px 5px; }
-}
-@media (max-height: 560px) {
-  .zoom-tools { flex-direction: row; }
 }
 @media (prefers-reduced-motion: reduce) {
   .marker.incident.st-escalated, .marker.incident.shield.st-escalated { animation: none; }

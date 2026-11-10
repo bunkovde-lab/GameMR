@@ -21,10 +21,10 @@ test('ART-023: карточка показывает иллюстрацию и �
   // Картинка не вылезает за карточку.
   const panel = (await page.getByTestId('right-panel').boundingBox())!;
   expect(box.x + box.width).toBeLessThanOrEqual(panel.x + panel.width + 1);
-  await expect(page.locator('[data-testid="aftermath-list"] li[data-cat="people"] .aft-ico')).toBeVisible();
+  await expect(page.locator('[data-testid="aftermath-list"] li[data-cat="people"] .aft-ico.mk-icon')).toBeVisible();
   await page.screenshot({ path: `test-results/screens/incident-card-${info.project.name}.png` });
 
   await openIncident(page, 'missing');
-  await expect(page.getByTestId('inc-hero')).toHaveClass(/placeholder/);
-  await expect(page.getByTestId('inc-hero')).toContainText('иллюстрация ожидается');
+  await expect(page.getByTestId('inc-hero')).toHaveAttribute('data-art', 'inc_type_search');
+  await expect(page.getByTestId('inc-hero')).toHaveClass(/has-art/);
 });

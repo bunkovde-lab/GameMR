@@ -27,9 +27,10 @@ describe('ART-023: карточка происшествия', () => {
     expect(screen.getByTestId('inc-hero').getAttribute('data-art')).toBe('scene_sci_breakin');
     expect(screen.getByTestId('inc-hero').className).toContain('has-art');
     cleanup();
+    // Без своей сцены — картинка типа угрозы (ART-023, часть А).
     renderCard({ id: 'missing' });
-    expect(screen.getByTestId('inc-hero').className).toContain('placeholder');
-    expect(screen.getByTestId('inc-hero').textContent).toContain('Розыск');
+    expect(screen.getByTestId('inc-hero').getAttribute('data-art')).toBe('inc_type_search');
+    expect(screen.getByTestId('inc-hero').className).toContain('has-art');
   });
 
   it('штамп только у итоговых состояний', () => {
@@ -48,5 +49,7 @@ describe('ART-023: карточка происшествия', () => {
     renderCard({ id: 'foreign_memory', title: 'Свидетель с чужой памятью', state: 'resolved_success' });
     const cats = [...screen.getByTestId('aftermath-list').querySelectorAll('li')].map((li) => li.getAttribute('data-cat'));
     expect(cats).toEqual(['people', 'law', 'science']);
+    // Значки ART-023 (часть В) — маска из SVG, а не временная иконка.
+    expect(screen.getByTestId('aftermath-list').querySelectorAll('.aft-ico.mk-icon')).toHaveLength(3);
   });
 });

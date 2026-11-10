@@ -39,7 +39,9 @@ describe('ART-023: карточка происшествия', () => {
     cleanup();
     renderCard({ id: 'missing', state: 'resolved_success' });
     expect(screen.getByTestId('inc-stamp').getAttribute('data-stamp')).toBe('closed');
-    expect(screen.getByTestId('inc-stamp').textContent).toBe('Закрыт');
+    // Штамп ART-023 (часть Г) — маска-картинка с подписью для читателя экрана.
+    expect(screen.getByTestId('inc-stamp').className).toContain('has-art');
+    expect(screen.getByTestId('inc-stamp').getAttribute('aria-label')).toBe('Штамп: Закрыт');
     cleanup();
     renderCard({ id: 'missing', state: 'failed' });
     expect(screen.getByTestId('inc-stamp').getAttribute('data-stamp')).toBe('failed');

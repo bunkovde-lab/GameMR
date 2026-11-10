@@ -2952,6 +2952,74 @@
       "source": "ChatGPT original SVG, ART-023 brief",
       "approvedBy": null,
       "notes": "stroke=currentColor, no fill; reviewed vector artwork"
+    },
+    {
+      "id": "ART023_STAMP_CLOSED",
+      "file": "assets/ui/stamps/stamp_closed.png",
+      "category": "ui",
+      "role": "ART-023 штамп итога в карточке происшествия",
+      "label": "Закрыто",
+      "status": "review",
+      "width": 1024,
+      "height": 512,
+      "alpha": false,
+      "source": "ART-023 часть Г; нарисован программно scripts/make_stamps.py (шрифт Old Standard TT, OFL)",
+      "approvedBy": null,
+      "webCopies": [
+        "assets/ui/stamps/web/stamp_closed.webp"
+      ],
+      "notes": "Белый штамп на чёрном; в игре маска, цвет и наклон даёт код."
+    },
+    {
+      "id": "ART023_STAMP_PARTIAL",
+      "file": "assets/ui/stamps/stamp_partial.png",
+      "category": "ui",
+      "role": "ART-023 штамп итога в карточке происшествия",
+      "label": "Закрыто частично",
+      "status": "review",
+      "width": 1024,
+      "height": 512,
+      "alpha": false,
+      "source": "ART-023 часть Г; нарисован программно scripts/make_stamps.py (шрифт Old Standard TT, OFL)",
+      "approvedBy": null,
+      "webCopies": [
+        "assets/ui/stamps/web/stamp_partial.webp"
+      ],
+      "notes": "Белый штамп на чёрном; в игре маска, цвет и наклон даёт код."
+    },
+    {
+      "id": "ART023_STAMP_FAILED",
+      "file": "assets/ui/stamps/stamp_failed.png",
+      "category": "ui",
+      "role": "ART-023 штамп итога в карточке происшествия",
+      "label": "Провалено",
+      "status": "review",
+      "width": 1024,
+      "height": 512,
+      "alpha": false,
+      "source": "ART-023 часть Г; нарисован программно scripts/make_stamps.py (шрифт Old Standard TT, OFL)",
+      "approvedBy": null,
+      "webCopies": [
+        "assets/ui/stamps/web/stamp_failed.webp"
+      ],
+      "notes": "Белый штамп на чёрном; в игре маска, цвет и наклон даёт код."
+    },
+    {
+      "id": "ART023_STAMP_EXPIRED",
+      "file": "assets/ui/stamps/stamp_expired.png",
+      "category": "ui",
+      "role": "ART-023 штамп итога в карточке происшествия",
+      "label": "Истёк срок",
+      "status": "review",
+      "width": 1024,
+      "height": 512,
+      "alpha": false,
+      "source": "ART-023 часть Г; нарисован программно scripts/make_stamps.py (шрифт Old Standard TT, OFL)",
+      "approvedBy": null,
+      "webCopies": [
+        "assets/ui/stamps/web/stamp_expired.webp"
+      ],
+      "notes": "Белый штамп на чёрном; в игре маска, цвет и наклон даёт код."
     }
   ]
 }

@@ -39,7 +39,6 @@
 .btn:active:not(:disabled) { background: none; border-color: transparent; box-shadow: none; }
 .btn:active:not(:disabled)::before { border-image-source: var(--kit-btn-pressed); }
 .btn[aria-pressed='true'], .btn[aria-current='page'], .btn[aria-selected='true'], .btn.primary,
-.layer-tools .btn[aria-pressed='true'],
 .btn[aria-pressed='true']:hover:not(:disabled), .btn[aria-current='page']:hover:not(:disabled), .btn[aria-selected='true']:hover:not(:disabled),
 .btn.primary:hover:not(:disabled) { background: none; border-color: transparent; box-shadow: none; }
 .btn[aria-pressed='true']::before, .btn[aria-current='page']::before, .btn[aria-selected='true']::before, .btn.primary::before {
@@ -52,7 +51,7 @@
 .btn:disabled { background: none; border-color: transparent; box-shadow: none; }
 .btn:disabled::before { border-image-source: var(--kit-btn-disabled); }
 .btn.danger { border-color: transparent; }
-.layer-tools .btn, .zoom-tools .btn, .map-tools .btn { background: none; }
+.zoom-tools .btn, .map-tools .btn { background: none; }
 .nav .btn.end-shift { background: none; border-color: transparent; }
 .nav .btn.end-shift::before { border-image-source: var(--kit-btn-hover); }
 .nav .btn.end-shift:hover:not(:disabled)::before { filter: brightness(1.15); }

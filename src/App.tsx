@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useReducer, useState } from 'react';
 import { IconSprite } from './ui/Icon';
-import { DEFAULT_LAYERS, NARROW_PX, initialUiState, uiReducer, type LayerId, type Selection, type UiState } from './ui/uiState';
+import { NARROW_PX, initialUiState, uiReducer, type Selection, type UiState } from './ui/uiState';
 import { TopHud } from './ui/shell/TopHud';
 import { IncidentPanel } from './ui/shell/IncidentPanel';
 import { ContextPanel } from './ui/shell/ContextPanel';
@@ -26,16 +26,10 @@ import { bootResult, dispatch, getGame, useGame } from './store';
 import { MainMenu } from './ui/menu/MainMenu';
 import { pendingDecision } from './core/operations';
 
-const LAYERS_KEY = 'gamemr-map-layers';
 const isNarrow = () => typeof window !== 'undefined' && window.innerWidth < NARROW_PX;
 
 function initUi(): UiState {
-  let layers = DEFAULT_LAYERS;
-  try {
-    const saved = JSON.parse(localStorage.getItem(LAYERS_KEY) ?? 'null') as Partial<Record<LayerId, boolean>> | null;
-    if (saved) layers = { ...DEFAULT_LAYERS, ...saved };
-  } catch { /* хранилище недоступно — слои по умолчанию */ }
-  return { ...initialUiState, layers, leftPanelOpen: !isNarrow() };
+  return { ...initialUiState, leftPanelOpen: !isNarrow() };
 }
 
 /** Главное меню показывается при каждом запуске; e2e/unit-тесты игровых экранов могут его пропустить. */
@@ -56,10 +50,6 @@ export function App() {
   useGameLoop(!inMenu);
   // Музыка: тема меню — в главном меню, на брифинге, в отчёте о смене и в окне сохранений/настроек; на карте во время смены — фон игры.
   useMusicScene(inMenu || settingsOpen || game.phase === 'BRIEFING' || game.phase === 'SHIFT_REPORT' ? 'menu' : 'game');
-
-  useEffect(() => {
-    try { localStorage.setItem(LAYERS_KEY, JSON.stringify(ui.layers)); } catch { /* не критично */ }
-  }, [ui.layers]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -122,10 +112,8 @@ export function App() {
             game={game}
             selection={ui.selection}
             previewSquadId={ui.previewSquadId}
-            layers={ui.layers}
             leftPanelOpen={ui.leftPanelOpen}
             onSelect={select}
-            onToggleLayer={(layer) => uiDispatch({ type: 'TOGGLE_LAYER', layer })}
             onOpenLeftPanel={toggleLeft}
           />
           {onMap && ui.leftPanelOpen && (

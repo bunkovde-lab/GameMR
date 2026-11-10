@@ -8,12 +8,12 @@ import type { GameState } from '../../core/types';
 import { Icon } from '../Icon';
 import { SQUAD_STATUS } from '../labels';
 import { BALANCE } from '../../core/content';
-import { NARROW_PX, type LayerId, type Selection } from '../uiState';
+import { MAP_LAYERS, NARROW_PX, type Selection } from '../uiState';
 import { getSubMinute } from '../useGameLoop';
 import { MOOD_LABEL, WEATHER_LABEL, districtMood, loadEffectsLevel, nightLevel, weatherForShift, weatherIntensity, type EffectsLevel } from './cityLife';
 import { MapLife } from './MapLife';
 import { DEFAULT_SAFE, clampCamera, ensureVisible, transform, worldToScreen, zoomAt, type Camera, type Viewport, W, H } from './camera';
-import { MarkerIcon, markerArtUrl } from '../art';
+import { markerArtUrl } from '../art';
 import { incidentCaseLink } from '../../core/caseGuide';
 import { CLUSTER_MARKER, INCIDENT_ICON, INCIDENT_MARKER, SQUAD_MARKER, incidentPoint, squadPoint } from './entities';
 import { layoutMarkers } from './markerLayout';
@@ -22,20 +22,13 @@ interface Props {
   game: GameState;
   selection: Selection;
   previewSquadId: string | null;
-  layers: Record<LayerId, boolean>;
   leftPanelOpen: boolean;
   onSelect: (s: Selection) => void;
-  onToggleLayer: (l: LayerId) => void;
   onOpenLeftPanel: () => void;
 }
 
-const LAYER_BUTTONS: { id: LayerId; label: string; icon: 'warning' | 'truck' | 'map' | 'shield' | 'pin'; marker?: string }[] = [
-  { id: 'events', label: 'События', icon: 'warning', marker: CLUSTER_MARKER },
-  { id: 'patrols', label: 'Патрули', icon: 'truck', marker: SQUAD_MARKER },
-  { id: 'districts', label: 'Районы', icon: 'map' },
-  { id: 'risks', label: 'Угрозы', icon: 'shield' },
-  { id: 'infrastructure', label: 'Объекты', icon: 'pin' },
-];
+const layers = MAP_LAYERS;
+const MOVING: string[] = ['en_route', 'on_scene', 'returning'];
 
 interface DragState { pointers: Map<number, Point>; start: Point; cam: Camera; moved: boolean; pinch?: { dist: number; zoom: number } }
 
@@ -45,7 +38,7 @@ const toSvg = (p: Point) => `${p[0] * W},${p[1] * H}`;
  * Карта ART-019 (вид сверху, день/ночь) поверх геометрии W3: арт + SVG-слой геометрии в одной матрице, маркеры — в экранном слое
  * постоянного размера (44 px), позиции через worldToScreen.
  */
-export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen, onSelect, onToggleLayer, onOpenLeftPanel }: Props) {
+export function MapView({ game, selection, previewSquadId, leftPanelOpen, onSelect, onOpenLeftPanel }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
   const [fitX, setFitX] = useState({ left: 0, right: 0 });
@@ -235,7 +228,7 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
   const weatherOn = game.phase === 'ACTIVE' && weatherIntensity(weather, game.minute) > 0.05;
   const hot = game.districts.filter((d) => districtMood(d.safety) !== 'calm');
 
-  const visibleSquads = game.squads.filter((q) => layers.patrols || ['en_route', 'on_scene', 'returning'].includes(q.status) || (selection?.kind === 'squad' && selection.id === q.id));
+  const visibleSquads = game.squads.filter((q) => layers.patrols || MOVING.includes(q.status) || (selection?.kind === 'squad' && selection.id === q.id));
   const squadOffsets = new Map<string, number>();
   const seen = new Map<string, number>();
   for (const q of visibleSquads) {
@@ -245,6 +238,27 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
     squadOffsets.set(q.id, n);
     seen.set(key, n + 1);
   }
+
+  const renderSquad = (q: GameState['squads'][number]) => {
+    const [x, y] = screen(squadPoint(game, q, sub));
+    const off = (squadOffsets.get(q.id) ?? 0) * 46;
+    if (!onStage([x + 30 + off, y - 22])) return null;
+    const st = SQUAD_STATUS[q.status];
+    const selected = selection?.kind === 'squad' && selection.id === q.id;
+    return (
+      <button
+        key={q.id}
+        className={`marker squad tone-${st.tone}${selected ? ' selected' : ''}${markerArtUrl(SQUAD_MARKER) ? ' shield' : ''}`}
+        style={{ left: x + 30 + off, top: y - 22 }}
+        onClick={() => onSelect({ kind: 'squad', id: q.id })}
+        aria-label={`Отряд «${q.name}»: ${st.label}`}
+        aria-pressed={selected}
+        data-testid={`marker-squad-${q.id}`}
+      >
+        {markerArtUrl(SQUAD_MARKER) ? <img src={markerArtUrl(SQUAD_MARKER)} alt="" draggable={false} /> : <Icon name="truck" />}
+      </button>
+    );
+  };
 
   return (
     <section
@@ -293,12 +307,11 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
           {anchorsOn && (
             <svg className="map-geo" viewBox={`0 0 ${W} ${H}`} width={W} height={H}>
               {MAP.districts.map((d) => {
-                const selected = selection?.kind === 'district' && selection.id === d.id;
                 return (
                   <polygon
                     key={d.id}
                     points={d.hitPolygon.map(toSvg).join(' ')}
-                    className={`district-hit${selected ? ' selected' : ''}${layers.districts ? ' outlined' : ''}${hoverDistrict === d.id ? ' hover' : ''}`}
+                    className="district-hit"
                     data-testid={`district-${d.id}`}
                     role="button"
                     tabIndex={0}
@@ -307,6 +320,8 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
                     onKeyDown={keySelect(() => onSelect({ kind: 'district', id: d.id }))}
                     onPointerEnter={() => setHoverDistrict(d.id)}
                     onPointerLeave={() => setHoverDistrict(null)}
+                    onFocus={() => setHoverDistrict(d.id)}
+                    onBlur={() => setHoverDistrict(null)}
                   />
                 );
               })}
@@ -330,7 +345,12 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
           {layers.districts && MAP.districts.map((d) => {
             const [x, y] = screen(d.labelAnchor);
             return (
-              <span key={d.id} className="district-label" style={{ left: x, top: y }}>{d.name}</span>
+              <span
+                key={d.id}
+                className={`district-label${hoverDistrict === d.id ? ' hover' : ''}${selection?.kind === 'district' && selection.id === d.id ? ' selected' : ''}`}
+                style={{ left: x, top: y }}
+                data-testid={`district-label-${d.id}`}
+              >{d.name}</span>
             );
           })}
           {layers.risks && game.districts.filter((d) => d.threat > 0).map((d) => {
@@ -345,6 +365,8 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
             const [x, y] = screen(nodePosition(d.serviceNode));
             return <span key={d.id} className="depot" style={{ left: x, top: y }} title={`Опорный узел: ${d.name}`} aria-hidden="true" />;
           })}
+          {/* Отряды на базе — под метками вызовов, чтобы не закрывали их; отряды в пути — поверх. */}
+          {visibleSquads.filter((q) => !MOVING.includes(q.status)).map(renderSquad)}
           {layers.events && (() => {
             const items = openIncidents.flatMap((inc) => {
               const p = incidentPoint(inc);
@@ -398,26 +420,7 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
               </>
             );
           })()}
-          {visibleSquads.map((q) => {
-            const [x, y] = screen(squadPoint(game, q, sub));
-            const off = (squadOffsets.get(q.id) ?? 0) * 46;
-            if (!onStage([x + 30 + off, y - 22])) return null;
-            const st = SQUAD_STATUS[q.status];
-            const selected = selection?.kind === 'squad' && selection.id === q.id;
-            return (
-              <button
-                key={q.id}
-                className={`marker squad tone-${st.tone}${selected ? ' selected' : ''}${markerArtUrl(SQUAD_MARKER) ? ' shield' : ''}`}
-                style={{ left: x + 30 + off, top: y - 22 }}
-                onClick={() => onSelect({ kind: 'squad', id: q.id })}
-                aria-label={`Отряд «${q.name}»: ${st.label}`}
-                aria-pressed={selected}
-                data-testid={`marker-squad-${q.id}`}
-              >
-                {markerArtUrl(SQUAD_MARKER) ? <img src={markerArtUrl(SQUAD_MARKER)} alt="" draggable={false} /> : <Icon name="truck" />}
-              </button>
-            );
-          })}
+          {visibleSquads.filter((q) => MOVING.includes(q.status)).map(renderSquad)}
         </div>
       )}
 
@@ -442,13 +445,6 @@ export function MapView({ game, selection, previewSquadId, layers, leftPanelOpen
         <button className="btn icon-only" onClick={() => zoomBy(1.25)} aria-label="Приблизить" data-testid="zoom-in"><Icon name="plus" /></button>
         <button className="btn icon-only" onClick={() => zoomBy(0.8)} aria-label="Отдалить" data-testid="zoom-out"><Icon name="minus" /></button>
         <button className="btn icon-only" onClick={() => setCam({ zoom: 1, panX: 0, panY: 0 })} aria-label="Сбросить масштаб" data-testid="zoom-reset"><Icon name="crosshair" /></button>
-      </div>
-      <div className="layer-tools" role="group" aria-label="Слои карты">
-        {LAYER_BUTTONS.map((l) => (
-          <button key={l.id} className="btn" aria-pressed={layers[l.id]} onClick={() => onToggleLayer(l.id)} data-testid={`layer-${l.id}`} title={l.label}>
-            {l.marker && markerArtUrl(l.marker) ? <MarkerIcon markerKey={l.marker} /> : <Icon name={l.icon} />} <span className="label">{l.label}</span>
-          </button>
-        ))}
       </div>
       <output className="visually-hidden" data-testid="camera-zoom">{cam.zoom.toFixed(2)}</output>
     </section>

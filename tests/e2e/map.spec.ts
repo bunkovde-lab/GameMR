@@ -67,9 +67,6 @@ test('MAP-CENTER: on a wide screen the city is pinned between the side panels �
   expect(img.x).toBeGreaterThanOrEqual(left.x + left.width - 1);
   // отступы слева и справа от карты одинаковые
   expect(Math.abs((img.x - (left.x + left.width)) - (right.x - (img.x + img.width)))).toBeLessThan(4);
-  // кнопки слоёв не уходят под карточку справа
-  const tools = (await page.locator('.layer-tools').boundingBox())!;
-  expect(tools.x + tools.width).toBeLessThanOrEqual(right.x + 1);
   // карточку и панель вызовов закрыли — карта остаётся на месте и того же размера (область закреплена)
   await page.getByTestId('right-panel').getByRole('button', { name: /Закрыть/ }).click();
   await expect(page.getByTestId('right-panel')).toHaveCount(0);
@@ -131,7 +128,6 @@ test('MAP-001/003: approved art is loaded at native size and markers are enabled
 
 test('MAP-006/007: district click opens the district card', async ({ page }) => {
   await start(page);
-  await page.getByTestId('layer-districts').click();
   // Клик по подписи района проходит в полигон под ней (подпись не перехватывает указатель).
   await page.getByTestId('district-admin').dispatchEvent('click');
   await expect(page.getByTestId('district-card')).toHaveAttribute('data-district', 'admin');
@@ -216,16 +212,36 @@ test('MAP-017/019/020: dispatch shows route and ETA, pause freezes it, squad arr
   await page.screenshot({ path: `test-results/screens/w3-arrived-${info.project.name}.png` });
 });
 
-test('layers toggle independently and survive reload', async ({ page }) => {
+test('map has no layer buttons: events, patrols, districts and threats are always shown', async ({ page }) => {
   await start(page);
-  await page.getByTestId('layer-patrols').click();
+  await expect(page.locator('.layer-tools')).toHaveCount(0);
+  await expect(page.locator('[data-testid^="layer-"]')).toHaveCount(0);
+  await expect(page.getByTestId('marker-incident-missing')).toBeVisible();
   await expect(page.getByTestId('marker-squad-axon')).toBeVisible();
-  await page.getByTestId('layer-events').click();
-  await expect(page.getByTestId('marker-incident-missing')).toHaveCount(0);
-  await page.reload();
-  await expect(page.getByTestId('map-stage')).toBeVisible();
-  await expect(page.getByTestId('layer-events')).toHaveAttribute('aria-pressed', 'false');
-  await expect(page.getByTestId('layer-patrols')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('district-label-admin')).toBeVisible();
+  await expect(page.locator('.road')).toHaveCount(0);
+  await expect(page.locator('.depot')).toHaveCount(0);
+});
+
+test('district: no border or fill; hover highlights the district name', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone-844', 'наведение мышью — только ПК/планшет');
+  await start(page);
+  const hit = page.getByTestId('district-admin');
+  const label = page.getByTestId('district-label-admin');
+  await expect(label).not.toHaveClass(/hover/);
+  // Наведение указателя на район (центр района может быть закрыт меткой вызова, поэтому событие — прямо в полигон).
+  await hit.dispatchEvent('pointerover');
+  await expect(label).toHaveClass(/hover/);
+  const style = await hit.evaluate((el) => { const s = getComputedStyle(el); return { stroke: s.stroke, fill: s.fill }; });
+  expect(style.stroke).toBe('none');
+  expect(style.fill === 'transparent' || style.fill === 'rgba(0, 0, 0, 0)').toBe(true);
+  await hit.dispatchEvent('click');
+  await expect(label).toHaveClass(/selected/);
+  await hit.dispatchEvent('pointerout');
+  await expect(label).not.toHaveClass(/hover/);
+  const sel = await hit.evaluate((el) => getComputedStyle(el).stroke);
+  expect(sel).toBe('none');
+  await page.screenshot({ path: `test-results/screens/district-hover-${info.project.name}.png` });
 });
 
 test('MAP-030: on a phone the card replaces the list instead of covering the map twice', async ({ page }, info) => {
@@ -241,7 +257,6 @@ test('MAP-030: on a phone the card replaces the list instead of covering the map
 
 test('W3 screenshots', async ({ page }, info) => {
   await start(page);
-  await page.getByTestId('layer-districts').click();
   await openIncident(page, 'medriot');
   await page.getByTestId('dispatch-axon').hover();
   await page.waitForTimeout(200);
@@ -257,7 +272,6 @@ test('ART-003/004: map markers are the approved shields; list and legend use the
   const b = (await inc.boundingBox())!;
   await page.mouse.click(b.x + b.width / 2, b.y + b.height * 0.9);
   await expect(page.getByTestId('incident-card')).toBeVisible();
-  await page.getByTestId('layer-patrols').click();
   const squad = page.getByTestId('marker-squad-axon');
   await expect(squad).toHaveClass(/shield/);
   await expect.poll(() => squad.locator('img').evaluate((i: HTMLImageElement) => i.naturalWidth)).toBe(128);
@@ -266,9 +280,7 @@ test('ART-003/004: map markers are the approved shields; list and legend use the
     const b = (await el.boundingBox())!;
     expect(Math.min(b.width, b.height)).toBeGreaterThanOrEqual(44);
   }
-  // Значки 24×24 в легенде слоёв и в списке вызовов.
-  await expect(page.getByTestId('layer-events').getByTestId('mk-icon-marker_cluster')).toBeVisible();
-  await expect(page.getByTestId('layer-patrols').getByTestId('mk-icon-marker_squad_transport')).toBeVisible();
+  // Значок 24×24 в списке вызовов.
   if (!(await page.getByTestId('left-panel').isVisible())) await page.getByRole('button', { name: /Вызовы/ }).click();
   await expect(page.getByTestId('incident-missing').getByTestId('mk-icon-marker_incident_search')).toBeVisible();
   await page.screenshot({ path: `test-results/screens/art034-${info.project.name}.png` });

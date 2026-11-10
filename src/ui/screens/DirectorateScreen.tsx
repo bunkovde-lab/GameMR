@@ -45,7 +45,7 @@ export function DirectorateScreen({ game, onClose }: { game: GameState; onClose:
         <button className="btn icon-only" onClick={onClose} aria-label="Вернуться к карте"><Icon name="close" /></button>
       </div>
       <div className="panel-body">
-        {tab === 'overview' && <Overview game={game} />}
+        {tab === 'overview' && <DirectorateOverview game={game} />}
         {tab === 'finance' && <Finance game={game} />}
         {tab === 'infra' && <Infrastructure game={game} />}
         {tab === 'projects' && <ProjectsTab game={game} />}
@@ -56,14 +56,17 @@ export function DirectorateScreen({ game, onClose }: { game: GameState; onClose:
   );
 }
 
-function Overview({ game }: { game: GameState }) {
+export interface Problem { tone: 'bad' | 'warn'; text: string }
+
+/** Проблемы Дирекции (вкладка «Обзор» и выпадающий список целей на карте) — из единого состояния игры. */
+export function directorateProblems(game: GameState): Problem[] {
   const f = financeSummary(game);
   const vac = vacancies(game);
   const openVac = (Object.keys(vac) as StaffRole[]).filter((r) => vac[r] > 0);
   const untreated = game.staff.filter((p) => TREATABLE.includes(p.health) && p.health !== 'light_injury' && !patientOf(game, p.id));
   const damaged = game.equipment.filter((u) => u.state === 'damaged').length;
   const blocked = game.construction.filter((b) => b.status === 'blocked');
-  const problems: { tone: 'bad' | 'warn'; text: string }[] = [];
+  const problems: Problem[] = [];
   if (f.unpaid > 0) problems.push({ tone: 'bad', text: `Долг по обязательствам: ${formatRe(f.unpaid)} РЕ.` });
   if (f.free < 0) problems.push({ tone: 'bad', text: `Свободных средств не хватает на ближайшую смену: ${formatRe(f.free)} РЕ.` });
   if (untreated.length) problems.push({ tone: 'bad', text: `Тяжелораненые без лечения: ${untreated.map((p) => p.name).join(', ')}.` });
@@ -73,9 +76,17 @@ function Overview({ game }: { game: GameState }) {
   if (pol.violations) problems.push({ tone: 'bad', text: `Нарушения по проверкам за последние смены: ${pol.violations}. Суд строже к запросам.` });
   if (pol.reviews) problems.push({ tone: 'warn', text: `Чрезвычайные действия ждут проверки: ${pol.reviews}.` });
   if (openVac.length) problems.push({ tone: 'warn', text: `Вакансии: ${openVac.map((r) => `${ROLE_LABEL[r].toLowerCase()} (${vac[r]})`).join(', ')}.` });
+  return problems;
+}
+
+/** Содержимое вкладки «Обзор». Используется и в Дирекции, и в панели «Цели» над картой. */
+export function DirectorateOverview({ game, testId = 'dir-overview' }: { game: GameState; testId?: string }) {
+  const f = financeSummary(game);
+  const problems = directorateProblems(game);
+  const pol = politicsSummary(game);
   const nextSubsidy = SUBSIDY.shifts.find((x) => x >= game.shift);
   return (
-    <div className="career" data-testid="dir-overview">
+    <div className="career" data-testid={testId}>
       <dl className="chips">
         <div><dt>Касса</dt><dd>{formatRe(f.balance)} РЕ</dd></div>
         <div><dt>Свободно</dt><dd className={f.free < 0 ? 'neg' : undefined} data-testid="overview-free">{formatRe(f.free)} РЕ</dd></div>

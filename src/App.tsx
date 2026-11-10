@@ -9,6 +9,7 @@ import { DispatchDialog } from './ui/dispatch/DispatchDialog';
 import { DecisionDialog, OperationReportDialog } from './ui/operations/OperationDialogs';
 import { SquadStrip } from './ui/shell/SquadStrip';
 import { BottomNav } from './ui/shell/BottomNav';
+import { GoalsDock } from './ui/shell/GoalsDock';
 import { StaffScreen } from './ui/screens/StaffScreen';
 import { DirectorateScreen } from './ui/screens/DirectorateScreen';
 import { InvestigationsScreen } from './ui/screens/InvestigationsScreen';
@@ -130,6 +131,7 @@ export function App() {
           {onMap && ui.leftPanelOpen && (
             <IncidentPanel game={game} selectedId={ui.selection?.kind === 'incident' ? ui.selection.id : null} onSelect={(id) => select({ kind: 'incident', id })} onCollapse={toggleLeft} />
           )}
+          {onMap && <GoalsDock game={game} onOpenDirectorate={() => uiDispatch({ type: 'OPEN_VIEW', view: 'directorate' })} />}
           {onMap && ui.rightPanelOpen && ui.selection && (
             <ContextPanel
               game={game}

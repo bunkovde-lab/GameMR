@@ -1,3 +1,4 @@
+import { incidentCaseLink } from '../../core/caseGuide';
 import { isOpen } from '../../core/selectors';
 import type { GameState } from '../../core/types';
 import { dispatch } from '../../store';
@@ -28,12 +29,14 @@ export function IncidentPanel({ game, selectedId, onSelect, onCollapse }: Props)
         <ul className="incident-list">
           {open.map((inc) => {
             const left = inc.deadlineMinute - game.minute;
+            const link = incidentCaseLink(game, inc);
             return (
-              <li key={inc.id} className={`incident sev-${inc.severity} st-${inc.state}${selectedId === inc.id ? ' selected' : ''}`} data-testid={`incident-${inc.id}`}>
+              <li key={inc.id} className={`incident sev-${inc.severity} st-${inc.state}${selectedId === inc.id ? ' selected' : ''}${link ? ' case-link' : ''}`} data-testid={`incident-${inc.id}`}>
                 <div className="incident-head">
                   <button className="incident-title" onClick={() => onSelect(inc.id)} aria-pressed={selectedId === inc.id}>
                     {INCIDENT_MARKER[inc.templateId] && <MarkerIcon markerKey={INCIDENT_MARKER[inc.templateId]!} />}
                     {inc.title}
+                    {link && <span className="case-chip" title={`Связан с делом №${link.number} «${link.title}»`} data-testid={`case-chip-${inc.id}`}><Icon name="search" />№{link.number}</span>}
                   </button>
                   <span className="deadline">
                     {inc.state === 'escalated' ? 'ухудшение' : left > 0 && ['new', 'acknowledged'].includes(inc.state) ? `${left} мин` : ''}

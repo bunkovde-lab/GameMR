@@ -37,3 +37,21 @@ test('squad cards show member faces with fatigue bars and stay tappable', async 
   await expect(page.getByTestId('squad-axon')).toHaveAttribute('aria-pressed', 'true');
   await strip.screenshot({ path: `test-results/screens/squad-strip-${info.project.name}.png` });
 });
+
+test('dispatch window: ready squads show banner and member faces like the main screen', async ({ page }, info) => {
+  if (!(await page.getByTestId('left-panel').isVisible())) await page.getByRole('button', { name: /Вызовы/ }).click();
+  await page.getByTestId('incident-missing').locator('.incident-title').click();
+  await page.getByTestId('open-dispatch').click();
+  const pick = page.getByTestId('pick-axon');
+  await expect(pick.locator('.monogram.banner-axon')).toBeVisible();
+  const faces = page.getByTestId('pick-members-axon').locator('[data-testid^="pick-member-"]');
+  expect(await faces.count()).toBeGreaterThanOrEqual(1);
+  await expect(faces.first().locator('.sq-fatigue i')).toHaveAttribute('style', /width: \d+%/);
+  const box = (await pick.boundingBox())!;
+  const face = (await faces.last().boundingBox())!;
+  expect(face.x + face.width).toBeLessThanOrEqual(box.x + box.width);
+  expect(box.height).toBeGreaterThanOrEqual(44);
+  await pick.click();
+  await expect(pick).toHaveAttribute('aria-pressed', 'true');
+  await page.screenshot({ path: `test-results/screens/dispatch-squads-${info.project.name}.png` });
+});

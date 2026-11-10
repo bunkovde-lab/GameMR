@@ -14,6 +14,7 @@ import { Modal } from '../Modal';
 import { Portrait } from '../Portrait';
 import { groupMods } from '../../core/career';
 import { SQUAD_STATUS } from '../labels';
+import { SquadMember, memberSummary } from '../shell/SquadStrip';
 import { PERMIT_NAME, POLITICS, emergencyRisk, legalRequirement, permitBlocker, requestBlocker, riskWord } from '../../core/politics';
 
 interface Props {
@@ -125,11 +126,19 @@ export function DispatchDialog({ game, incidentId, initialSquadId, onClose, onPr
               const r = q.status === 'ready' ? buildRoute(q.currentNodeId, district.serviceNode, game.roadClosures) : null;
               const fit = q.memberIds.filter((id) => !memberBlocker(game, id, q.id)).length;
               const why = q.status !== 'ready' ? SQUAD_STATUS[q.status].label : !r ? 'нет маршрута' : null;
+              const members = q.memberIds.map((id) => game.staff.find((p) => p.id === id)).filter((p): p is NonNullable<typeof p> => !!p);
               return (
                 <li key={q.id}>
-                  <button className="btn pick" aria-pressed={draft?.squadId === q.id} disabled={!!why} onClick={() => pickSquad(q.id)} data-testid={`pick-${q.id}`}>
-                    <b>«{q.name}»</b>
-                    <small>{why ?? `${fit} чел. · ≈${etaMinutes(r!, 0)} мин`}</small>
+                  <button className="btn pick squad-pick" aria-pressed={draft?.squadId === q.id} disabled={!!why} onClick={() => pickSquad(q.id)} data-testid={`pick-${q.id}`}>
+                    <span className={`monogram banner-${q.id}`} aria-hidden="true" />
+                    <span className="squad-pick-text">
+                      <b>«{q.name}»</b>
+                      <small>{why ?? `${fit} чел. · ≈${etaMinutes(r!, 0)} мин`}</small>
+                    </span>
+                    <span className="squad-members" data-testid={`pick-members-${q.id}`}>
+                      {members.map((p) => <SquadMember key={p.id} p={p} testPrefix="pick-member" />)}
+                    </span>
+                    <span className="visually-hidden">. Состав: {members.length ? members.map(memberSummary).join('; ') : 'нет бойцов'}.</span>
                   </button>
                 </li>
               );

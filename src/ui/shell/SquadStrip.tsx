@@ -22,11 +22,11 @@ export const healthTone = (h: HealthState) =>
 export const memberSummary = (p: Staff) => `${p.name} — ${HEALTH_LOG[p.health]}, усталость ${p.fatigue}%`;
 
 /** Лицо бойца в карточке отряда: портрет, значок ранения и полоса усталости под ним. */
-function SquadMember({ p }: { p: Staff }) {
+export function SquadMember({ p, testPrefix = 'squad-member' }: { p: Staff; testPrefix?: string }) {
   const tone = healthTone(p.health);
   const f = Math.max(0, Math.min(100, p.fatigue));
   return (
-    <span className={`sq-member hp-${tone}`} data-testid={`squad-member-${p.id}`} data-health={p.health} title={memberSummary(p)}>
+    <span className={`sq-member hp-${tone}`} data-testid={`${testPrefix}-${p.id}`} data-health={p.health} title={memberSummary(p)}>
       <Portrait id={p.id} name={p.name} health={p.health} size="xs" />
       {tone !== 'ok' && <span className="sq-badge" aria-hidden="true">{tone === 'lost' ? '✕' : '✚'}</span>}
       <span className={`sq-fatigue tone-${fatigueTone(f)}`} aria-hidden="true"><i style={{ width: `${f}%` }} /></span>

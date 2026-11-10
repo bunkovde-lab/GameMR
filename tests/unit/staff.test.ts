@@ -144,3 +144,19 @@ describe('W6 hiring (ТЗ §7.6, UI-13)', () => {
     expect(nextShift(r.state).candidates.length).toBeGreaterThan(0);
   });
 });
+
+describe('squad strip: fatigue and health tones', () => {
+  it('uses the dispatch exhaustion threshold for red and marks wounds', async () => {
+    const { fatigueTone, healthTone } = await import('../../src/ui/shell/SquadStrip');
+    expect(fatigueTone(0)).toBe('green');
+    expect(fatigueTone(40)).toBe('amber');
+    expect(fatigueTone(79)).toBe('amber');
+    expect(fatigueTone(80)).toBe('red');
+    expect(healthTone('healthy')).toBe('ok');
+    expect(healthTone('fatigued')).toBe('ok');
+    expect(healthTone('light_injury')).toBe('wounded');
+    expect(healthTone('critical')).toBe('wounded');
+    expect(healthTone('recovering')).toBe('recovering');
+    expect(healthTone('dead')).toBe('lost');
+  });
+});

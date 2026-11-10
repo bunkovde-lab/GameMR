@@ -7,7 +7,7 @@ import { SavesPanel } from '../SettingsDialog';
 import { MusicSettings } from '../audio/MusicSettings';
 import { MenuAtmosphere } from './atmosphere';
 import { MENU_ASSETS, missingMenuArt } from './menuAssets';
-import { SCENE_H, SCENE_W, loadFxPrefs, saveFxPrefs, type FxPrefs } from './menuScene';
+import { SCENE, SCENE_H, SCENE_W, loadFxPrefs, saveFxPrefs, type FxPrefs } from './menuScene';
 import './MainMenu.css';
 
 export type MenuItemId = 'continue' | 'new' | 'settings' | 'credits' | 'exit';
@@ -30,6 +30,8 @@ export function continueState(sessionLive: boolean, boot = bootResult()): { enab
 }
 
 export function MainMenu({ sessionLive, onEnterGame }: Props) {
+  const box = useCoverBox();
+  const L = menuLayout(box);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [prefs, setPrefs] = useState<FxPrefs>(() => loadFxPrefs());
   const [busy, setBusy] = useState(false);
@@ -68,8 +70,15 @@ export function MainMenu({ sessionLive, onEnterGame }: Props) {
 
   return (
     <div className={`m00b${prefs.reduceMotion ? ' reduce-motion' : ''}`} data-testid="main-menu">
-      <MenuScene prefs={prefs} />
-      <div className="m00b-ui">
+      <MenuScene prefs={prefs} box={box} />
+      <div
+        className="m00b-ui"
+        style={{
+          '--logo-x': `${L.logoX}px`, '--logo-y': `${L.logoY}px`, '--logo-w': `${L.logoW}px`,
+          '--menu-y': `${L.menuY}px`, '--plate-x': `${L.plateX}px`, '--plate-w': `${L.plateW}px`,
+          '--row': `${L.row}px`, '--menu-font': `${L.font}px`,
+        } as CSSProperties}
+      >
         <h1 className="m00b-logo" data-testid="menu-logo">
           {MENU_ASSETS.logo ? (
             <img src={MENU_ASSETS.logo} alt="Мир Раскола — Право на порядок" draggable={false} />
@@ -119,6 +128,43 @@ export function MainMenu({ sessionLive, onEnterGame }: Props) {
   );
 }
 
+// ——— раскладка по кадру ———
+
+export interface CoverBox { w: number; h: number; x: number; y: number; vw: number; vh: number }
+
+/** Фон кадрируется как cover по кадру 1672×941: эффекты и интерфейс считаются в тех же координатах, что и картинка. */
+function useCoverBox(): CoverBox {
+  const measure = (): CoverBox => {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const k = Math.max(vw / SCENE_W, vh / SCENE_H) * 1.012; // запас под параллакс
+    const w = SCENE_W * k, h = SCENE_H * k;
+    return { w, h, x: (vw - w) / 2, y: (vh - h) / 2, vw, vh };
+  };
+  const [box, setBox] = useState(measure);
+  useLayoutEffect(() => {
+    const fit = () => setBox(measure());
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  }, []);
+  return box;
+}
+
+/**
+ * Логотип и меню стоят там же, где в утверждённом референсе (доли кадра), но не уходят за край экрана
+ * и не становятся мельче читаемого: строка меню не ниже 44 px (зона касания), логотип не уже 220 px.
+ */
+export function menuLayout(b: CoverBox) {
+  const u = SCENE.ui;
+  const logoW = Math.min(Math.max(220, u.logoW * b.w), b.vw * 0.6);
+  const logoX = Math.max(16, b.x + u.logoX * b.w);
+  const logoY = Math.max(12, b.y + u.logoY * b.h);
+  const row = Math.max(44, u.rowH * b.h);
+  const menuRef = b.y + u.menuY * b.h;
+  const menuY = Math.max(12, Math.min(Math.max(logoY + logoW / 3 + 8, menuRef), b.vh - row * 5 - 12));
+  const plateW = Math.min(Math.max(250, u.plateW * b.w), b.vw - logoX - 16);
+  return { logoW, logoX, logoY, row, menuY, plateX: logoX - 5 * (b.w / SCENE_W), plateW, font: Math.max(15, row * 0.35) };
+}
+
 // ——— пять кнопок ———
 
 function MenuButtons({ items, disabled }: { items: { id: MenuItemId; label: string; disabled?: boolean; note?: string; run: () => void }[]; disabled: boolean }) {
@@ -153,7 +199,7 @@ function MenuButtons({ items, disabled }: { items: { id: MenuItemId; label: stri
   } as CSSProperties;
 
   return (
-    <nav className="m00b-menu" aria-label="Главное меню" style={style}>
+    <nav className={`m00b-menu${MENU_ASSETS.rasterButtons ? ' raster' : ''}`} aria-label="Главное меню" style={style}>
       <ul>
         {items.map((it, i) => (
           <li key={it.id}>
@@ -180,38 +226,25 @@ function MenuButtons({ items, disabled }: { items: { id: MenuItemId; label: stri
   );
 }
 
-// ——— сцена: фон (cover) + холст эффектов ———
+// ——— сцена: фон (cover) + слои художника + холст эффектов ———
 
-function MenuScene({ prefs }: { prefs: FxPrefs }) {
+const pct = (pts: readonly (readonly [number, number])[]) => pts.map(([x, y]) => `${(x * 100).toFixed(2)}% ${(y * 100).toFixed(2)}%`);
+/** Маска стекла для CSS: контур окна минус импост (правило evenodd, импост — «дырка»). */
+const GLASS_CLIP = (() => {
+  const outer = pct(SCENE.window);
+  const holes = SCENE.mullions.map((m) => [...pct(m), pct(m)[0]!, outer[0]!]);
+  return `polygon(evenodd, ${[...outer, outer[0]!, ...holes.flat()].join(', ')})`;
+})();
+
+function MenuScene({ prefs, box }: { prefs: FxPrefs; box: CoverBox }) {
   const sceneRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const boltRef = useRef<HTMLImageElement>(null);
   const fxRef = useRef<MenuAtmosphere | null>(null);
-  const [box, setBox] = useState({ w: SCENE_W, h: SCENE_H, x: 0, y: 0 });
-
-  // Фон кадрируется как cover по кадру 1672×941: эффекты считаются в тех же координатах, что и картинка.
-  useLayoutEffect(() => {
-    const fit = () => {
-      const vw = window.innerWidth, vh = window.innerHeight;
-      const k = Math.max(vw / SCENE_W, vh / SCENE_H) * 1.012; // запас под параллакс
-      const w = SCENE_W * k, h = SCENE_H * k;
-      setBox({ w, h, x: (vw - w) / 2, y: (vh - h) / 2 });
-    };
-    fit();
-    window.addEventListener('resize', fit);
-    return () => window.removeEventListener('resize', fit);
-  }, []);
-
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const load = (src: string | null) => {
-      if (!src) return null;
-      const img = new Image();
-      img.decoding = 'async';
-      img.src = src;
-      return img;
-    };
-    const fx = new MenuAtmosphere(canvas, prefs, { rain: load(MENU_ASSETS.fx.rain), lightning: load(MENU_ASSETS.fx.lightning), dust: load(MENU_ASSETS.fx.dust) });
+    const fx = new MenuAtmosphere(canvas, prefs, { lightning: boltRef.current, root: canvas.closest<HTMLElement>('.m00b') });
     fxRef.current = fx;
     (window as unknown as { __gamemrMenuFx?: MenuAtmosphere }).__gamemrMenuFx = fx;
     fx.start();
@@ -256,6 +289,17 @@ function MenuScene({ prefs }: { prefs: FxPrefs }) {
         ) : (
           <div className="m00b-bg m00b-bg-schematic" />
         )}
+        {/* Слои художника за стеклом: два прохода дождевого стекла и разряд молнии (виден только во вспышке) */}
+        <div className="m00b-glass" style={{ clipPath: GLASS_CLIP }}>
+          {MENU_ASSETS.fx.rain && (
+            <>
+              <div className="m00b-rain-tex slow"><img src={MENU_ASSETS.fx.rain} alt="" /><img src={MENU_ASSETS.fx.rain} alt="" /></div>
+              <div className="m00b-rain-tex fast"><img src={MENU_ASSETS.fx.rain} alt="" /><img src={MENU_ASSETS.fx.rain} alt="" /></div>
+            </>
+          )}
+          {MENU_ASSETS.fx.lightning && <img className="m00b-bolt" ref={boltRef} src={MENU_ASSETS.fx.lightning} alt="" style={{ opacity: 0 }} />}
+        </div>
+        {MENU_ASSETS.fx.dust && <img className="m00b-dust-tex" src={MENU_ASSETS.fx.dust} alt="" />}
         <canvas className="m00b-fx" ref={canvasRef} data-testid="menu-fx" />
       </div>
       <div className="m00b-vignette" />

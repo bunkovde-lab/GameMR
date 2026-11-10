@@ -28,14 +28,23 @@ interface Mote { x: number; y: number; vx: number; vy: number; r: number; a: num
 
 /** Три прохода дождя: дальний (мелкий, медленный), средний, ближний (длинный, быстрый). */
 const RAIN_LAYERS = [
-  { count: 140, len: [6, 12], speed: [0.32, 0.42], width: 0.6, alpha: 0.10 },
-  { count: 90, len: [12, 22], speed: [0.55, 0.7], width: 0.9, alpha: 0.14 },
-  { count: 45, len: [22, 38], speed: [0.9, 1.15], width: 1.2, alpha: 0.17 },
+  { count: 140, len: [6, 12], speed: [0.32, 0.42], width: 0.6, alpha: 0.08 },
+  { count: 90, len: [12, 22], speed: [0.55, 0.7], width: 0.9, alpha: 0.11 },
+  { count: 45, len: [22, 38], speed: [0.9, 1.15], width: 1.2, alpha: 0.13 },
 ] as const;
 const WIND = 0.12; // наклон струй (доля по x на единицу y)
 const QUALITY_SCALE: Record<Quality, number> = { 0: 0.35, 1: 0.6, 2: 1 };
 
-export interface FxImages { rain?: HTMLImageElement | null; lightning?: HTMLImageElement | null; dust?: HTMLImageElement | null }
+/**
+ * Слои художника (дождь на стекле, луч с пылью, разряд молнии) — отдельные DOM-элементы с CSS-анимацией:
+ * браузер сдвигает их на видеокарте, холсту не нужно каждый кадр перерисовывать полноразмерные картинки.
+ * Холсту передаётся только элемент разряда: его яркость он меняет во время грозы.
+ */
+export interface FxLayers {
+  lightning?: HTMLElement | null;
+  /** Корневой элемент: при самом низком качестве получает класс fx-lite (лишние слои художника выключаются) */
+  root?: HTMLElement | null;
+}
 
 export interface FxStats { fps: number; quality: Quality; storms: number; running: boolean; flash: number }
 
@@ -54,7 +63,7 @@ export class MenuAtmosphere {
   private quality: Quality;
   private frameTimes: number[] = [];
   private nextStormAt: number;
-  private storm: { start: number; pulses: Pulse[]; bolt: Pt[][]; boltX: number } | null = null;
+  private storm: { start: number; pulses: Pulse[]; bolt: Pt[][] } | null = null;
   private storms = 0;
   private flash = 0;
   private flicker = { until: 0, depth: 0 };
@@ -65,7 +74,7 @@ export class MenuAtmosphere {
   constructor(
     private canvas: HTMLCanvasElement,
     private prefs: FxPrefs,
-    private images: FxImages = {},
+    private dom: FxLayers = {},
     private geo: SceneGeometry = SCENE,
   ) {
     this.ctx = canvas.getContext('2d');
@@ -88,7 +97,7 @@ export class MenuAtmosphere {
   setPrefs(p: FxPrefs) {
     const reseed = p.reduceMotion !== this.prefs.reduceMotion;
     this.prefs = p;
-    if (p.noFlashes) { this.storm = null; this.flash = 0; }
+    if (p.noFlashes) { this.storm = null; this.flash = 0; this.applyFlashLayer(); }
     if (reseed) this.populate();
   }
 
@@ -148,6 +157,7 @@ export class MenuAtmosphere {
     if (avg > 24 && this.quality > 0) {
       this.quality = (this.quality - 1) as Quality;
       this.resize(this.w, this.h);
+      this.dom.root?.classList.toggle('fx-lite', this.quality === 0);
     }
   }
 
@@ -236,6 +246,7 @@ export class MenuAtmosphere {
         this.flash = 0;
       }
     }
+    this.applyFlashLayer();
 
     // Лампа: редкий провал яркости на 5–10% (не стробоскоп)
     if (!this.prefs.reduceMotion && this.time >= this.nextFlickerAt) {
@@ -244,11 +255,24 @@ export class MenuAtmosphere {
     }
   }
 
+  private shownFlash = -1;
+
+  /** Разряд художника — отдельный слой; меняем его прозрачность только когда она изменилась. */
+  private applyFlashLayer() {
+    const el = this.dom.lightning;
+    if (!el) return;
+    const v = Math.round(Math.min(1, this.flash * 0.95) * 100) / 100;
+    if (v !== this.shownFlash) {
+      this.shownFlash = v;
+      el.style.opacity = String(v);
+    }
+  }
+
   private beginStorm() {
     const pulses = lightningPulses(this.rand, this.prefs.reduceMotion);
     const b = this.bbox(this.geo.window);
     const boltX = b.x0 + (b.x1 - b.x0) * (0.15 + 0.7 * this.rand());
-    this.storm = { start: this.time, pulses, bolt: this.makeBolt(boltX, b.y0, b.y0 + (b.y1 - b.y0) * (0.35 + 0.25 * this.rand())), boltX };
+    this.storm = { start: this.time, pulses, bolt: this.makeBolt(boltX, b.y0, b.y0 + (b.y1 - b.y0) * (0.35 + 0.25 * this.rand())) };
     this.storms++;
     this.nextStormAt = this.time + stormLength(pulses) + nextLightningDelay(this.rand) * 1000;
   }
@@ -276,19 +300,22 @@ export class MenuAtmosphere {
 
   // ——— отрисовка ———
 
-  private path(poly: readonly Pt[]) {
+  private addPoly(poly: readonly Pt[]) {
     const c = this.ctx!;
-    c.beginPath();
     poly.forEach(([x, y], i) => (i ? c.lineTo(x * this.w, y * this.h) : c.moveTo(x * this.w, y * this.h)));
     c.closePath();
+  }
+
+  private path(poly: readonly Pt[]) {
+    this.ctx!.beginPath();
+    this.addPoly(poly);
   }
 
   /** Контур стекла без импостов: дождь не рисуется по раме. */
   private glassClip() {
     const c = this.ctx!;
     this.path(this.geo.window);
-    const b = this.bbox(this.geo.window);
-    for (const m of this.geo.mullions) c.rect((m.x - m.w / 2) * this.w, b.y0, m.w * this.w, b.y1 - b.y0);
+    for (const m of this.geo.mullions) this.addPoly(m);
     c.clip('evenodd');
   }
 
@@ -306,10 +333,9 @@ export class MenuAtmosphere {
       c.globalCompositeOperation = 'lighter';
       c.fillStyle = `rgba(150,170,215,${(f * 0.3).toFixed(3)})`;
       c.fillRect(0, 0, this.w, this.h);
-      if (this.storm && this.time - this.storm.start < this.storm.pulses[0]!.dur * 2) this.drawBolt(f);
+      if (!this.dom.lightning && this.storm && this.time - this.storm.start < this.storm.pulses[0]!.dur * 2) this.drawBolt(f);
       c.globalCompositeOperation = 'source-over';
     }
-    this.drawRainTexture();
     RAIN_LAYERS.forEach((L, i) => {
       const layer = this.layers[i];
       if (!layer?.length) return;
@@ -334,13 +360,11 @@ export class MenuAtmosphere {
 
     // 2. Холодные кромки рамы при вспышке
     if (f > 0.02) {
-      const b = this.bbox(this.geo.window);
-      c.fillStyle = `rgba(190,210,245,${(f * 0.22).toFixed(3)})`;
-      for (const m of this.geo.mullions) {
-        c.fillRect((m.x - m.w / 2) * this.w, b.y0, 1.2, b.y1 - b.y0);
-        c.fillRect((m.x + m.w / 2) * this.w - 1.2, b.y0, 1.2, b.y1 - b.y0);
-      }
-      c.fillRect(b.x0, b.y1 - 1, b.x1 - b.x0, 1.5);
+      c.strokeStyle = `rgba(190,210,245,${(f * 0.3).toFixed(3)})`;
+      c.lineWidth = 1.2;
+      for (const m of this.geo.mullions) { this.path(m); c.stroke(); }
+      this.path(this.geo.window);
+      c.stroke();
     }
 
     // 3. Отражения на столе: мягкие холодные полосы от окна + вспышка
@@ -355,16 +379,6 @@ export class MenuAtmosphere {
 
   private drawBolt(f: number) {
     const c = this.ctx!;
-    const img = this.images.lightning;
-    if (img?.complete && img.naturalWidth) {
-      const b = this.bbox(this.geo.window);
-      const hh = (b.y1 - b.y0) * 0.75;
-      const ww = (hh * img.naturalWidth) / img.naturalHeight;
-      c.globalAlpha = Math.min(1, f * 1.2);
-      c.drawImage(img, this.storm!.boltX - ww / 2, b.y0, ww, hh);
-      c.globalAlpha = 1;
-      return;
-    }
     const k = this.h / 1080;
     for (const [i, line] of this.storm!.bolt.entries()) {
       c.beginPath();
@@ -376,22 +390,6 @@ export class MenuAtmosphere {
       c.lineWidth = (i ? 0.8 : 1.5) * k;
       c.stroke();
     }
-  }
-
-  private drawRainTexture() {
-    const img = this.images.rain;
-    if (!img?.complete || !img.naturalWidth) return;
-    const c = this.ctx!;
-    const b = this.bbox(this.geo.window);
-    const hh = b.y1 - b.y0;
-    const passes = this.prefs.reduceMotion ? [0.02] : [0.05, 0.09];
-    passes.forEach((v, i) => {
-      const off = ((this.time * v * (this.h / 1080)) % hh + hh) % hh;
-      c.globalAlpha = i ? 0.22 : 0.3;
-      c.drawImage(img, b.x0, b.y0 + off - hh, b.x1 - b.x0, hh);
-      c.drawImage(img, b.x0, b.y0 + off, b.x1 - b.x0, hh);
-    });
-    c.globalAlpha = 1;
   }
 
   private drawDeskReflection(f: number) {

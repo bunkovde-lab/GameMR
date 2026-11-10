@@ -990,8 +990,9 @@ td.bad { color: var(--bad); }
 .btn.rel-who .pick-text small { color: var(--muted); font-size: 12px; }
 
 /* ART-021: рисованные значки разделов в нижней панели и на кнопке «Сохранения». */
-img.nav-art { width: 30px; height: 30px; object-fit: contain; flex-shrink: 0; pointer-events: none; user-select: none; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6)); }
-.btn.icon-only img.nav-art { width: 28px; height: 28px; }
+img.nav-art { width: 36px; height: 36px; margin: -6px 0; object-fit: contain; flex-shrink: 0; pointer-events: none; user-select: none; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6)); }
+.btn.icon-only img.nav-art { width: 32px; height: 32px; margin: 0; }
+@media (max-width: 940px) { .nav img.nav-art { width: 40px; height: 40px; } }
 .btn:disabled img.nav-art { opacity: 0.5; filter: grayscale(0.6); }
 
 /* Статусы на портрете: ранг, ранение, усталость (личное дело и список составов). */

@@ -50,7 +50,8 @@ function PersonLink({ game, id, open, size = 'xs', children }: { game: GameState
  */
 export function StaffScreen({ game, onClose }: { game: GameState; onClose: () => void }) {
   const [tab, setTab] = useState<Tab>('summary');
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [personId, setPersonId] = useState(() => staffGroups(game, false).find((g) => g.members.length)?.members[0]?.id ?? game.staff[0]!.id);
+  const open = (id: string) => { setPersonId(id); setTab('summary'); };
   const alive = game.staff.filter((p) => p.health !== 'dead').length;
   return (
     <section className="panel screen" role="region" aria-label="Кадры" data-testid="staff-screen">
@@ -58,68 +59,18 @@ export function StaffScreen({ game, onClose }: { game: GameState; onClose: () =>
         <h2><Icon name="users" /> Кадры · {alive}</h2>
         <div className="tabs screen-tabs" role="tablist" aria-label="Разделы кадров">
           {TABS.map((t) => (
-            <button key={t.id} role="tab" className="btn" aria-selected={!openId && tab === t.id} aria-pressed={!openId && tab === t.id} onClick={() => { setTab(t.id); setOpenId(null); }} data-testid={`staff-tab-${t.id}`}>{t.label}</button>
+            <button key={t.id} role="tab" className="btn" aria-selected={tab === t.id} aria-pressed={tab === t.id} onClick={() => setTab(t.id)} data-testid={`staff-tab-${t.id}`}>{t.label}</button>
           ))}
         </div>
         <button className="btn icon-only" onClick={onClose} aria-label="Вернуться к карте"><Icon name="close" /></button>
       </div>
       <div className="panel-body">
-        {openId ? (
-          <PersonCabinet game={game} personId={openId} onSelect={setOpenId} onBack={() => setOpenId(null)} />
-        ) : (
-          <>
-            {tab === 'summary' && <Summary game={game} open={setOpenId} />}
-            {tab === 'roster' && <Roster game={game} open={setOpenId} />}
-            {tab === 'medical' && <Medical game={game} open={setOpenId} />}
-            {tab === 'hiring' && <Hiring game={game} />}
-          </>
-        )}
+        {tab === 'summary' && <PersonCabinet game={game} personId={personId} onSelect={setPersonId} />}
+        {tab === 'roster' && <Roster game={game} open={open} />}
+        {tab === 'medical' && <Medical game={game} open={open} />}
+        {tab === 'hiring' && <Hiring game={game} />}
       </div>
     </section>
-  );
-}
-
-function Summary({ game, open }: { game: GameState; open: Open }) {
-  const groups = staffGroups(game, true);
-  return (
-    <>
-      <div className="table-scroll">
-        <table className="staff-table grouped">
-          <thead>
-            <tr><th>Сотрудник</th><th>Должность</th><th>Ранг</th><th>Состояние</th><th>Усталость</th><th>Жалование</th></tr>
-          </thead>
-          {groups.map((g, i) => (
-            <tbody key={g.key} className={`staff-group${g.key === 'reserve' ? ' reserve' : ''}${g.key === 'archive' ? ' archive' : ''}`} data-testid={`summary-group-${g.key}`}>
-              {i > 0 && <tr className="group-gap" aria-hidden="true"><td colSpan={6} /></tr>}
-              <tr className="group-head">
-                <th colSpan={6} scope="rowgroup">
-                  <span className="group-title">{g.squad ? 'Состав ' : ''}{g.title}</span>
-                  {g.squad && <small className={`tone-${SQUAD_STATUS[g.squad.status].tone}`}><span className="status">{SQUAD_STATUS[g.squad.status].label}</span></small>}
-                  <small className="muted">{g.squad ? `${g.members.length}/3` : `${g.members.length} чел.`}</small>
-                </th>
-              </tr>
-              {g.members.length === 0 && (
-                <tr><td colSpan={6} className="muted">{g.squad ? 'Нет людей — состав не может выехать.' : 'Все распределены по составам.'}</td></tr>
-              )}
-              {g.members.map((p) => {
-                const pt = patientOf(game, p.id);
-                return (
-                  <tr key={p.id} data-testid={`staff-${p.id}`} className={p.health === 'dead' ? 'kia' : undefined}>
-                    <td><PersonLink game={game} id={p.id} open={open}><span>{p.name}{g.commanderId === p.id ? <em className="cmd"> · командир</em> : null}</span></PersonLink></td>
-                    <td>{ROLE_LABEL[p.role]}</td>
-                    <td>{RANKS[p.rank - 1]}</td>
-                    <td className={`health h-${p.health}`}>{HEALTH_LOG[p.health]}{pt ? ' · в клинике' : ''}{p.adaptation ? ' · адаптация' : ''}</td>
-                    <td>{p.fatigue}%</td>
-                    <td>{formatRe(p.salary)} РЕ</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          ))}
-        </table>
-      </div>
-      <p className="empty"><small>Нажмите на портрет или имя, чтобы открыть личное дело: развитие, модификации, отношения, история. Имена и параметры временные (OPEN-08).</small></p>
-    </>
   );
 }
 

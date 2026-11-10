@@ -14,7 +14,8 @@ const loaded = (img: import('@playwright/test').Locator) =>
 
 test('staff: every starting employee shows a loaded portrait; dossier has a large one', async ({ page }, info) => {
   await page.getByTestId('nav-staff').click();
-  const table = page.locator('.staff-table');
+  await page.getByTestId('staff-tab-roster').click();
+  const table = page.getByTestId('roster');
   for (let i = 1; i <= 12; i++) {
     const img = table.getByTestId(`portrait-p${i}`).locator('img');
     await img.scrollIntoViewIfNeeded();
@@ -24,9 +25,7 @@ test('staff: every starting employee shows a loaded portrait; dossier has a larg
   await page.getByTestId('staff-tab-roster').click();
   await expect(page.getByTestId('roster').locator('.portrait.sm').first()).toBeVisible();
   await page.screenshot({ path: `test-results/screens/art005-roster-${info.project.name}.png` });
-  await page.getByTestId('staff-tab-summary').click();
   await page.getByTestId('open-p9').click();
-  await page.getByTestId('cab-tab-history').click();
   const big = page.getByTestId('dossier').getByTestId('portrait-p9');
   await expect(big.locator('img')).toHaveAttribute('alt', 'Портрет: Сели Ренн');
   await expect.poll(() => loaded(big.locator('img'))).toBe(true);
@@ -59,13 +58,14 @@ test('ART-009: candidates show their portrait; a hired candidate keeps the same 
   await page.screenshot({ path: `test-results/screens/art009-hiring-${info.project.name}.png` });
   const cid = (await first.getAttribute('data-testid'))!.replace('candidate-', '');
   await page.getByTestId(`hire-${cid}`).click();
-  await page.getByTestId('staff-tab-summary').click();
-  const face = page.locator('.staff-table').getByTestId('portrait-p13').locator('img');
+  await page.getByTestId('staff-tab-roster').click();
+  await page.getByTestId('open-p13').click();
+  const face = page.getByTestId('person-p13').getByTestId('portrait-p13').locator('img');
   await face.scrollIntoViewIfNeeded();
   await expect.poll(() => loaded(face)).toBe(true);
   // Портрет привязан к имени из пула: нанятый — тот же человек, лицо не заменено монограммой.
-  await expect(page.getByTestId('staff-p13')).toContainText(name);
-  await expect(page.locator('.staff-table').getByTestId('portrait-p13').locator('.portrait-initials')).toHaveCount(0);
+  await expect(page.getByTestId('dossier')).toContainText(name);
+  await expect(page.getByTestId('person-p13').getByTestId('portrait-p13').locator('.portrait-initials')).toHaveCount(0);
   await page.getByTestId('staff-tab-roster').click();
   await page.screenshot({ path: `test-results/screens/art009-hired-${info.project.name}.png` });
 });

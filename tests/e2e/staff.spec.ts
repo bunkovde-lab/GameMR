@@ -52,6 +52,7 @@ test('hiring: deep check is paid and pending, hiring fills the vacancy', async (
   await expect(page.getByTestId(`check-${cid}`)).toBeDisabled();
   await page.getByTestId(`hire-${cid}`).click();
   await expect(hiring).toContainText('Вакансии: нет');
-  await page.getByTestId('staff-tab-summary').click();
-  await expect(page.getByTestId('staff-p13')).toContainText('адаптация');
+  await page.getByTestId('staff-tab-roster').click();
+  await page.getByTestId('open-p13').click();
+  await expect(page.getByTestId('dossier')).toContainText('Адаптация');
 });

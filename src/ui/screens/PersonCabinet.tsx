@@ -1,25 +1,17 @@
-import { useState } from 'react';
-import { RANK_NAMES, nodeById, promotionStatus, skillPoints } from '../../core/career';
+import { RANK_NAMES, promotionStatus } from '../../core/career';
 import { ROLE_LABEL } from '../../core/content';
 import { HEALTH_LOG } from '../../core/healthText';
 import { patientOf, squadCommander, squadOf } from '../../core/staff';
 import type { GameState, Stats } from '../../core/types';
-import { Icon } from '../Icon';
-import { Portrait } from '../Portrait';
+import { formatRe } from '../../core/selectors';
+import { StatusFace } from '../StatusFace';
 import { Development, History, Modifications, PersonPicker, Relations } from './StaffCareer';
 
 /**
- * Личный кабинет сотрудника: открывается нажатием на портрет или имя в «Кадрах».
- * Шапка-досье (ранг, состав, здоровье, качества, опыт) и разделы: развитие, модификации, отношения, история.
- * Всё выводится из состояния игры; кабинет ничего не хранит, кроме выбранного раздела.
+ * Личное дело сотрудника — «Сводка» в «Кадрах». Всё на одном экране без вкладок:
+ * слева составы, в центре досье, модификации, отношения и история, справа — панель развития.
+ * Всё выводится из состояния игры.
  */
-type Section = 'development' | 'mods' | 'relations' | 'history';
-const SECTIONS: { id: Section; label: string }[] = [
-  { id: 'development', label: 'Развитие' },
-  { id: 'mods', label: 'Модификации' },
-  { id: 'relations', label: 'Отношения' },
-  { id: 'history', label: 'История' },
-];
 const STATS: { key: keyof Stats; label: string }[] = [
   { key: 'reaction', label: 'Реакция' },
   { key: 'analysis', label: 'Анализ' },
@@ -28,36 +20,31 @@ const STATS: { key: keyof Stats; label: string }[] = [
   { key: 'authority', label: 'Авторитет' },
 ];
 
-export function PersonCabinet({ game, personId, onSelect, onBack }: { game: GameState; personId: string; onSelect: (id: string) => void; onBack: () => void }) {
-  const [section, setSection] = useState<Section>('development');
+export function PersonCabinet({ game, personId, onSelect }: { game: GameState; personId: string; onSelect: (id: string) => void }) {
   const p = game.staff.find((x) => x.id === personId) ?? game.staff[0]!;
   const sq = squadOf(game, p.id);
   const isCmd = sq ? squadCommander(game, sq)?.id === p.id : false;
   const promo = promotionStatus(game, p.id);
-  const pts = skillPoints(p);
   const pt = patientOf(game, p.id);
   const xpPct = promo ? Math.min(100, Math.round((p.xp / Math.max(1, promo.xpNeed)) * 100)) : 100;
   return (
     <div className="cabinet" data-testid="person-cabinet">
       <div className="person-split">
         <div className="cabinet-side">
-          <button className="btn cabinet-back" onClick={onBack} data-testid="cabinet-back"><Icon name="arrow" /> Все сотрудники</button>
           <PersonPicker key={p.id} game={game} selected={p.id} onSelect={onSelect} archive />
         </div>
-        <div className="person-detail">
+        <div className="person-detail cabinet-main">
           <header className="dossier-card" data-testid="dossier">
-            <Portrait id={p.id} name={p.name} health={p.health} size="lg" />
+            <StatusFace p={p} size="lg" />
             <div className="dossier-main">
               <h3 className="person-name">{p.name}</h3>
               <p className="dossier-line">
-                {ROLE_LABEL[p.role]} · ранг {RANK_NAMES[p.rank - 1]}
+                {ROLE_LABEL[p.role]}
                 {' · '}{sq ? <>состав «{sq.name}»{isCmd ? <em className="cmd"> · командир</em> : null}</> : p.health === 'dead' ? 'служебный архив' : 'резерв'}
               </p>
               <dl className="chips dossier-chips">
-                <div><dt>Состояние</dt><dd className={`health h-${p.health}`}>{HEALTH_LOG[p.health]}{pt ? ' · в клинике' : ''}</dd></div>
-                <div><dt>Усталость</dt><dd>{p.fatigue}%</dd></div>
-                <div><dt>Очки навыка</dt><dd data-testid="skill-points">{pts.free} из {pts.earned}</dd></div>
-                {p.training && <div><dt>Курс</dt><dd>«{nodeById(p.training.nodeId)?.label}», ещё {p.training.shiftsLeft} смен.</dd></div>}
+                {pt && <div><dt>Клиника</dt><dd className={`health h-${p.health}`}>{pt.kind === 'implant' ? 'реабилитация' : HEALTH_LOG[p.health]}, ещё {pt.shiftsLeft} смен.</dd></div>}
+                <div><dt>Жалование</dt><dd>{formatRe(p.salary)} РЕ</dd></div>
                 {p.adaptation > 0 && <div><dt>Адаптация</dt><dd>{p.adaptation} смен.</dd></div>}
               </dl>
               <div className="xp-row" title={promo ? `До аттестации на ранг ${RANK_NAMES[promo.next - 1]} нужно ${promo.xpNeed} опыта` : 'Высший ранг'}>
@@ -76,16 +63,13 @@ export function PersonCabinet({ game, personId, onSelect, onBack }: { game: Game
               ))}
             </ul>
           </header>
-          <div className="tabs cabinet-tabs" role="tablist" aria-label="Разделы личного дела">
-            {SECTIONS.map((s) => (
-              <button key={s.id} role="tab" className="btn" aria-selected={section === s.id} aria-pressed={section === s.id} onClick={() => setSection(s.id)} data-testid={`cab-tab-${s.id}`}>{s.label}</button>
-            ))}
-          </div>
-          {section === 'development' && <Development key={p.id} game={game} p={p} />}
-          {section === 'mods' && <Modifications game={game} p={p} />}
-          {section === 'relations' && <Relations game={game} p={p} onOpen={onSelect} />}
-          {section === 'history' && <History game={game} p={p} />}
+          <Modifications game={game} p={p} />
+          <Relations game={game} p={p} onOpen={onSelect} />
+          <History game={game} p={p} />
         </div>
+        <aside className="cabinet-dev">
+          <Development key={p.id} game={game} p={p} />
+        </aside>
       </div>
     </div>
   );

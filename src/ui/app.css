@@ -939,3 +939,8 @@ td.bad { color: var(--bad); }
 .btn.person-link:hover:not(:disabled), .btn.rel-who:hover:not(:disabled), .btn.person-link:focus-visible, .btn.rel-who:focus-visible { border-color: var(--gold); background: #c9a46a14; box-shadow: none; }
 .btn.rel-who .pick-text { display: grid; gap: 2px; min-width: 0; }
 .btn.rel-who .pick-text small { color: var(--muted); font-size: 12px; }
+
+/* ART-021: рисованные значки разделов в нижней панели и на кнопке «Сохранения». */
+img.nav-art { width: 30px; height: 30px; object-fit: contain; flex-shrink: 0; pointer-events: none; user-select: none; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6)); }
+.btn.icon-only img.nav-art { width: 28px; height: 28px; }
+.btn:disabled img.nav-art { opacity: 0.5; filter: grayscale(0.6); }

@@ -792,6 +792,17 @@ td.bad { color: var(--bad); }
 .action-card .btn.primary { justify-self: start; }
 .permit-row { display: grid; gap: 4px; justify-items: start; padding: 6px 8px; border-left: 3px solid var(--gold); background: #0000002e; }
 .staff-pick { display: inline-flex; align-items: center; gap: 6px; }
+/* Компактное назначение: текущий исполнитель + кнопка, список — в небольшом окне. */
+.staff-assign, .method-list > .staff-assign { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.staff-assign-cur { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.modal.staff-pick-modal { width: min(440px, 100%); }
+.staff-pick-list { display: grid; gap: 6px; margin-top: 8px; }
+.staff-pick-list .staff-pick { display: grid; grid-template-columns: auto 1fr auto; text-align: left; min-height: 48px; width: 100%; }
+.staff-pick-text { display: grid; min-width: 0; }
+.staff-pick-text small { color: var(--muted); }
+.staff-pick-why { color: var(--muted); font-size: 12px; text-align: right; }
+.staff-pick-best { color: var(--gold-light); font-size: 12px; font-weight: 600; }
+.staff-pick-list .staff-pick.best { box-shadow: inset 0 0 0 1px var(--gold); }
 .statement.tainted { border-left: 3px solid var(--amber); padding-left: 8px; }
 .interviews[style] { padding: 12px; border-radius: 12px; }
 .case-head.with-art { padding: 14px 16px; border-radius: 12px; background-size: cover; background-position: center; }

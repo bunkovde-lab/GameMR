@@ -30,6 +30,10 @@ import { buildRoute, shortestPath } from './map/graph';
 import { districtById, edgeById, spawnPosition } from './map/mapConfig';
 import { nextInt } from './rng';
 import { isAway, leaveSquad, returnHome } from './squadHome';
+import {
+  acknowledgeSandboxResult, advanceSandboxMinute, buySandboxSquad, concludeSandboxCase, expireSandboxIncident,
+  resolveSandboxOperation, startSandboxFieldAction,
+} from './sandbox';
 import { DEPLOYED, aliveStaff, citySafety, isOpen } from './selectors';
 import type { Command, CommandResult, GameState, Incident, Squad, Transaction, TransactionKind } from './types';
 
@@ -57,6 +61,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
     case 'PAUSE':
     case 'RESUME': {
       if (s.phase !== 'ACTIVE') return reject('Время идёт только во время активной смены.');
+      if (command.type === 'RESUME' && s.sandbox?.defeatReason) return reject('Сценарий завершён. Начните новую песочницу.');
       s.paused = command.type === 'PAUSE';
       return { ok: true, state: s };
     }
@@ -69,6 +74,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
 
     case 'TICK': {
       if (s.phase !== 'ACTIVE' || s.paused) return reject('Время остановлено.');
+      if (s.sandbox?.defeatReason) return reject('Сценарий завершён.');
       if (!Number.isInteger(command.minutes) || command.minutes < 1) return reject('Некорректный шаг времени.');
       if (pendingDecision(s)) return reject('Ожидается решение по операции.');
       if (activeOp(s)) return reject(`Идёт особая операция «${opDef(activeOp(s)!.id)!.title}»: примите решение.`);
@@ -488,6 +494,16 @@ export function reduce(state: GameState, command: Command): CommandResult {
       return { ok: true, state: s };
     }
     case 'CASE_ACTION': {
+      const action = actionDef(caseDef(command.caseId)!, command.actionId);
+      if (s.mode === 'sandbox' && action?.kind === 'field') {
+        const why = actionBlocker(s, command.caseId, command.actionId);
+        if (why) return reject(why);
+        const incident = startSandboxFieldAction(s, command.caseId, command.actionId);
+        if (!incident) return reject('Для этого действия нет события на карте.');
+        log(s, 'case_action_event', `Дело №${caseDef(command.caseId)!.number}: на карте открыт выезд «${incident.title}».`);
+        return { ok: true, state: s };
+      }
+      if (!command.staffId) return reject('Выберите сотрудника для следственного действия.');
       const why = actionBlocker(s, command.caseId, command.actionId, command.staffId);
       if (why) return reject(why);
       startAction(s, command.caseId, command.actionId, command.staffId);
@@ -516,7 +532,18 @@ export function reduce(state: GameState, command: Command): CommandResult {
     case 'CONCLUDE_CASE': {
       const why = concludeBlocker(s, command.caseId, command.conclusionId, command.hypothesisId);
       if (why) return reject(why);
-      concludeCase(s, command.caseId, command.conclusionId, command.hypothesisId, (a, n) => post(s, a < 0 ? 'sanction' : 'deal', a, n), (t, x) => log(s, t, x));
+      if (s.mode === 'sandbox') concludeSandboxCase(s, command.caseId, command.conclusionId, command.hypothesisId);
+      else concludeCase(s, command.caseId, command.conclusionId, command.hypothesisId, (a, n) => post(s, a < 0 ? 'sanction' : 'deal', a, n), (t, x) => log(s, t, x));
+      return { ok: true, state: s };
+    }
+    case 'BUY_SANDBOX_SQUAD': {
+      const why = buySandboxSquad(s);
+      if (why) return reject(why);
+      return { ok: true, state: s };
+    }
+    case 'ACK_SANDBOX_RESULT': {
+      const why = acknowledgeSandboxResult(s);
+      if (why) return reject(why);
       return { ok: true, state: s };
     }
     case 'STORY_CHOICE': {
@@ -551,6 +578,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
       return { ok: true, state: s };
     }
     case 'END_SHIFT': {
+      if (s.mode === 'sandbox') return reject('В песочнице непрерывное время: смен нет.');
       if (s.phase !== 'ACTIVE' && s.phase !== 'REVIEW_PENDING') return reject('Сейчас нельзя завершить смену.');
       if (pendingDecision(s)) return reject('Сначала примите решение по операции.');
       if (activeOp(s)) return reject('Сначала завершите особую операцию.');
@@ -583,7 +611,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
         }
       }
       checkDeals(s, (a, n) => post(s, 'deal', a, n), (t, x) => log(s, t, x));
-      settleStoryShift(s, (a, n) => post(s, a < 0 ? 'sanction' : 'deal', a, n), (t, x) => log(s, t, x));
+      settleStoryShift(s, (a, n) => post(s, 'sanction' : 'deal', a, n), (t, x) => log(s, t, x));
       const ledger = s.economy.ledger.filter((t) => t.shift === s.shift);
       const open = s.incidents.filter(isOpen);
       const ops = s.operationReports.filter((r) => r.shift === s.shift);
@@ -612,6 +640,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
     }
 
     case 'ADVANCE_SHIFT': {
+      if (s.mode === 'sandbox') return reject('В песочнице непрерывное время: смен нет.');
       if (s.phase !== 'SHIFT_REPORT') return reject('Сначала завершите смену.');
       s.shift += 1;
       s.minute = 0;
@@ -661,6 +690,8 @@ export function reduce(state: GameState, command: Command): CommandResult {
 
 /** Причина, по которой отряд нельзя отправить; null — можно. Используется ядром и интерфейсом (одна логика). */
 export function dispatchBlocker(s: GameState, sq: Squad, inc: Incident): string | null {
+  if (s.sandbox?.defeatReason) return 'Сценарий завершён.';
+  if (s.sandbox && !s.sandbox.unlockedDistricts.includes(inc.districtId)) return 'Район ещё не открыт расследованием.';
   if (sq.status !== 'ready') return `Отряд «${sq.name}» недоступен.`;
   if (!['new', 'acknowledged', 'escalated'].includes(inc.state)) return 'На этот вызов уже назначен отряд или он закрыт.';
   if (s.economy.balance < DISPATCH_COST) return 'Недостаточно средств на выезд.';
@@ -753,12 +784,17 @@ function advanceMinute(s: GameState) {
     applyOperationToRelations(s, report, opCommander, staffLog(s));
     const tpl = s.incidents.find((i) => i.id === report.incidentId)?.templateId;
     if (tpl) openCaseFromReport(s, report, tpl, (type, text, ids) => log(s, type, text, ids));
+    if (s.mode === 'sandbox') resolveSandboxOperation(s, report);
   }
   decidePermits(s, (t, x) => log(s, t, x));
   decideCasePermits(s, (t, x) => log(s, t, x));
   advanceInvestigations(s, (type, text, ids) => log(s, type, text, ids));
   for (const inc of s.incidents) {
     if ((inc.state === 'new' || inc.state === 'acknowledged') && s.minute >= inc.deadlineMinute) {
+      if (inc.sandbox) {
+        expireSandboxIncident(s, inc);
+        continue;
+      }
       // W10: опоздание по сценарию — обострение, исчезновение (вызов закрыт, следы потеряны) или новое событие.
       const kind = lateKind(inc);
       const late = templateOf(inc)?.lateText;
@@ -777,6 +813,10 @@ function advanceMinute(s: GameState) {
         log(s, 'incident_escalated', `Ситуация ухудшилась: ${inc.title}${late ? ` — ${late}` : '.'}`);
       }
     }
+  }
+  if (s.mode === 'sandbox') {
+    advanceSandboxMinute(s);
+    return;
   }
   if (s.minute >= BALANCE.shift.lengthMinutes) {
     s.phase = 'REVIEW_PENDING';

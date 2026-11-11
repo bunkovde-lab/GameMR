@@ -4,6 +4,7 @@ import { buildRoute, etaMinutes } from '../../core/map/graph';
 import { districtById } from '../../core/map/mapConfig';
 import { houseText, lateKind, publicAftermath, templateOf } from '../../core/events';
 import { CASE_LINK_TEXT, incidentCaseLink } from '../../core/caseGuide';
+import { SANDBOX_GOAL_LABEL, sandboxEventFor, sandboxGoalFor } from '../../core/sandbox';
 import { isOpen } from '../../core/selectors';
 import type { GameState } from '../../core/types';
 import { dispatch } from '../../store';
@@ -72,8 +73,24 @@ function IncidentCard({ game, id, onPreview, onSelect, onOpenDispatch, onOpenCas
           </div>
         );
       })()}
+      {inc.sandbox && (() => {
+        const def = sandboxEventFor(inc)!;
+        const goal = sandboxGoalFor(inc)!;
+        const purpose = inc.sandbox!.fallback ? def.fallbackPurpose ?? def.purpose : def.purpose;
+        return (
+          <section className="sandbox-event-brief" data-testid="sandbox-event-brief">
+            <span className="tag good">{SANDBOX_GOAL_LABEL[goal]}{inc.sandbox!.fallback ? ' · обходной путь' : ''}</span>
+            <dl>
+              <dt>Цель выезда</dt><dd>{purpose}</dd>
+              <dt>Результат успеха</dt><dd className="good">{def.successText}</dd>
+              <dt>Последствие провала</dt><dd className="warn">{def.failureText} Дело не перезапускается.</dd>
+            </dl>
+          </section>
+        );
+      })()}
       {(() => {
         // W10: что будет при опоздании и что на кону (без скрытой правды и без строк о деле).
+        if (inc.sandbox) return null;
         const t = templateOf(inc);
         const stakes = publicAftermath(t);
         const late = t?.lateText;
@@ -137,9 +154,12 @@ function DistrictCard({ game, id, onSelect }: { game: GameState; id: string; onS
   const geo = districtById(id);
   if (!d || !geo) return null;
   const incidents = game.incidents.filter((i) => i.districtId === id && isOpen(i));
+  const locked = !!game.sandbox && !game.sandbox.unlockedDistricts.includes(d.id);
+  const controlled = !!game.sandbox?.controlledDistricts.includes(d.id);
   return (
     <div data-testid="district-card" data-district={id}>
       <h3 className="card-title">{d.name}</h3>
+      {game.sandbox && <p className={locked ? 'warn' : controlled ? 'good' : 'known'} data-testid="district-sandbox-status">{locked ? 'Закрыто: откроется по итогу расследования.' : controlled ? 'Район под контролем дирекции.' : 'Район открыт для операций.'}</p>}
       <p className="muted">{geo.description}</p>
       <dl className="kv">
         <dt>Безопасность</dt><dd>{d.safety}%</dd>
@@ -152,7 +172,7 @@ function DistrictCard({ game, id, onSelect }: { game: GameState; id: string; onS
           <li key={i.id}><button className="btn wide" onClick={() => onSelect({ kind: 'incident', id: i.id })}>{i.title}</button></li>
         ))}
       </ul>
-      <p className="hint">Районы — места происшествий и патрулирования, не территории для захвата.</p>
+      <p className="hint">{game.sandbox ? 'Открытие следующего района зависит от итогового заключения активного дела.' : 'Районы — места происшествий и патрулирования, не территории для захвата.'}</p>
     </div>
   );
 }

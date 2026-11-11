@@ -9,7 +9,12 @@ const SPEEDS: Speed[] = [1, 2, 4];
 export function TopHud({ game, onOpenSettings }: { game: GameState; onOpenSettings: () => void }) {
   const active = game.phase === 'ACTIVE';
   const running = active && !game.paused;
-  const stats = [
+  const stats = game.sandbox ? [
+    { id: 'budget', label: 'Бюджет · РЕ', value: formatRe(game.economy.balance) },
+    { id: 'order', label: 'Порядок', value: `${game.sandbox.order}%` },
+    { id: 'legitimacy', label: 'Легитимность', value: `${game.sandbox.legitimacy}%` },
+    { id: 'readiness', label: 'Боеспособность', value: `${game.sandbox.readiness}%` },
+  ] : [
     { id: 'budget', label: 'Бюджет · РЕ', value: formatRe(game.economy.balance) },
     { id: 'safety', label: 'Безопасность', value: `${citySafety(game)}%` },
     { id: 'trust', label: 'Доверие', value: `${cityTrust(game)}%` },
@@ -26,7 +31,7 @@ export function TopHud({ game, onOpenSettings }: { game: GameState; onOpenSettin
       </div>
       <div className="clock" data-testid="clock">
         <b>{clockLabel(game)}</b>
-        <small>Смена {String(game.shift).padStart(2, '0')}</small>
+        <small>{game.sandbox ? `Песочница · ${game.minute} мин` : `Смена ${String(game.shift).padStart(2, '0')}`}{game.paused && active ? ' · пауза' : ''}</small>
       </div>
       <div className="speed" role="group" aria-label="Скорость времени">
         <button

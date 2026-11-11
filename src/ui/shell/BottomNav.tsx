@@ -11,9 +11,9 @@ const ITEMS: NavItem[] = [
   { id: 'directorate', label: 'Дирекция', icon: 'directorate', view: 'directorate' },
 ];
 
-interface Props { current: ViewId; onOpen: (view: ViewId) => void; canEndShift: boolean; onEndShift: () => void }
+interface Props { current: ViewId; onOpen: (view: ViewId) => void; canEndShift: boolean; onEndShift: () => void; sandbox?: boolean }
 
-export function BottomNav({ current, onOpen, canEndShift, onEndShift }: Props) {
+export function BottomNav({ current, onOpen, canEndShift, onEndShift, sandbox = false }: Props) {
   return (
     <nav className="nav" aria-label="Разделы">
       {ITEMS.map((item) =>
@@ -27,9 +27,9 @@ export function BottomNav({ current, onOpen, canEndShift, onEndShift }: Props) {
           </button>
         ),
       )}
-      <button className="btn end-shift" disabled={!canEndShift} onClick={onEndShift} aria-label="Завершить смену" data-testid="end-shift">
+      {!sandbox && <button className="btn end-shift" disabled={!canEndShift} onClick={onEndShift} aria-label="Завершить смену" data-testid="end-shift">
         <NavIcon id="end_shift" /> <span className="label">Завершить смену</span>
-      </button>
+      </button>}
     </nav>
   );
 }

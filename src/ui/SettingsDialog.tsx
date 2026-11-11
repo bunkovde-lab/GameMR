@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { createInitialState } from '../core/state';
+import { createSandboxState } from '../core/sandbox';
 import { parseSave } from '../persistence/saveFormat';
-import { SLOTS, exportJson, listSlots, loadFromSlot, saveToSlot, type SlotId } from '../persistence/saveStore';
+import { autoSlotFor, exportJson, listSlots, loadFromSlot, saveToSlot, slotsForMode, type SaveMode, type SlotId } from '../persistence/saveStore';
 import { getGame, notify, replaceGame } from '../store';
 import { Modal } from './Modal';
 import { MusicSettings } from './audio/MusicSettings';
@@ -50,7 +51,7 @@ export function SavesPanel({ onLoaded, canSave = true, showNewGame = false, onNe
     const blob = new Blob([exportJson(getGame())], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `gamemr-smena-${getGame().shift}.json`;
+    a.download = getGame().mode === 'sandbox' ? `gamemr-sandbox-${getGame().minute}.json` : `gamemr-smena-${getGame().shift}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
   };
@@ -60,31 +61,45 @@ export function SavesPanel({ onLoaded, canSave = true, showNewGame = false, onNe
     else notify('bad', r.reason);
   };
 
+  const currentMode: SaveMode = getGame().mode === 'sandbox' ? 'sandbox' : 'campaign';
+  const groups: { mode: SaveMode; title: string }[] = [{ mode: 'campaign', title: 'Кампания' }, { mode: 'sandbox', title: 'Песочница' }];
   return (
     <>
-      <ul className="slot-list">
-        {SLOTS.map((s) => {
-          const info = slots?.[s.id];
-          return (
-            <li key={s.id} data-testid={`slot-${s.id}`}>
-              <span>
-                <b>{s.label}</b>
-                <small>{info ? `Смена ${info.shift} · ${new Date(info.savedAt).toLocaleString('ru-RU')}` : 'пусто'}</small>
-              </span>
-              {s.id !== 'auto' && canSave && <button className="btn" onClick={() => save(s.id)}>Сохранить</button>}
-              <button className="btn" disabled={!info} onClick={() => load(s.id)}>Загрузить</button>
-            </li>
-          );
-        })}
-      </ul>
+      {groups.map((group) => (
+        <section key={group.mode} className="save-mode-group" data-testid={`saves-${group.mode}`}>
+          <h3 className="section-title">{group.title}</h3>
+          <ul className="slot-list">
+            {slotsForMode(group.mode).map((s) => {
+              const info = slots?.[s.id];
+              const compatible = !!info && info.mode === group.mode;
+              const isAuto = s.id === 'auto' || s.id === 'sandbox-auto';
+              return (
+                <li key={s.id} data-testid={`slot-${s.id}`}>
+                  <span>
+                    <b>{s.label}</b>
+                    <small>{info ? `${group.mode === 'sandbox' ? `Минута ${info.minute}` : `Смена ${info.shift}`} · ${new Date(info.savedAt).toLocaleString('ru-RU')}` : 'пусто'}</small>
+                  </span>
+                  {!isAuto && canSave && currentMode === group.mode && <button className="btn" onClick={() => save(s.id)}>Сохранить</button>}
+                  <button className="btn" disabled={!compatible} onClick={() => load(s.id)}>Загрузить</button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ))}
       <div className="modal-actions wrap">
         {canSave && <button className="btn" onClick={doExport}>Экспорт в файл</button>}
         <button className="btn" onClick={() => fileRef.current?.click()}>Импорт из файла</button>
         <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => e.target.files?.[0] && doImport(e.target.files[0])} />
         {showNewGame && (
-          <button className="btn danger" onClick={() => { if (confirm('Начать новую игру? Несохранённый прогресс будет потерян.')) { replaceGame(createInitialState()); onNewGame?.(); } }}>
-            Новая игра
-          </button>
+          <>
+            <button className="btn danger" onClick={() => { if (confirm('Начать новую кампанию? Несохранённый прогресс будет потерян.')) { replaceGame(createInitialState()); onNewGame?.(); } }}>
+              Новая кампания
+            </button>
+            <button className="btn danger" onClick={() => { if (confirm('Начать новую песочницу? Текущий незавершённый сценарий будет заменён.')) { const fresh = createSandboxState(); replaceGame(fresh); saveToSlot(autoSlotFor(fresh), fresh).catch((e: Error) => notify('bad', `Автосохранение не удалось: ${e.message}`)); onNewGame?.(); } }} data-testid="new-sandbox">
+              Новая песочница
+            </button>
+          </>
         )}
       </div>
     </>

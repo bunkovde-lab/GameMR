@@ -65,6 +65,9 @@ describe('AUDIO v1: музыка меню и игры', () => {
     expect(s.engine.getSnapshot().waitingForGesture).toBe(true);
     s.run(1);
     expect(s.audios.every((a) => a.paused)).toBe(true);
+    const [initialMenu, menuLoop] = s.byScene('menu_theme');
+    expect(initialMenu.preload).toBe('auto');
+    expect(menuLoop.preload).toBe('none'); // резервный голос не скачивает тот же MP3 при открытии меню
     s.grant();
     s.engine.unlock();
     s.run(SCENE_FADE_S + 0.5);
@@ -114,6 +117,7 @@ describe('AUDIO v1: музыка меню и игры', () => {
     s.engine.setScene('game');
     s.run(200 - OVERLAP_S + 0.2);
     const [a, b] = s.byScene('gameplay_ambient');
+    expect(b.preload).toBe('auto');
     expect(b.paused).toBe(false);
     expect(b.currentTime).toBeLessThan(1);
     s.run(OVERLAP_S + 1);

@@ -63,11 +63,11 @@ describe('App shell', () => {
     expect(caseTimer.closest('.mk-timer')!.querySelector('.t')!.textContent).toMatch(/мин|ч|в пути|на месте|ухудшение|назначен/);
   });
 
-  it('staff section counts 12 people, opens the personal file and Escape returns to the map', () => {
+  it('staff section counts 12 people, opens the personal file and Escape returns to the map', async () => {
     render(<App />);
     fireEvent.click(screen.getByTestId('start-shift'));
     fireEvent.click(screen.getByTestId('nav-staff'));
-    expect(screen.getByTestId('staff-screen').textContent).toContain('Кадры · 12');
+    expect((await screen.findByTestId('staff-screen')).textContent).toContain('Кадры · 12');
     expect(screen.getByTestId('person-cabinet')).toBeTruthy();
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.queryByTestId('staff-screen')).toBeNull();

@@ -6,14 +6,18 @@ import type { ReactNode } from 'react';
  * сборкой без изменений кода. Пока файла нет — нейтральная заглушка с подписью, интерактивные элементы всегда рисует код.
  */
 const files = {
-  ...import.meta.glob('../../assets/{backgrounds,events,locations,incidents}/*.{webp,png,jpg}', { eager: true, import: 'default' }),
+  // WebP — основной игровой формат. Исходные PNG, у которых есть WebP-копия, остаются в репозитории
+  // как мастера, но больше не дублируют десятки мегабайт тех же сцен в dist.
+  ...import.meta.glob('../../assets/{backgrounds,events,locations,incidents}/*.webp', { eager: true, import: 'default' }),
+  // У этих четырёх сцен пока нет WebP-мастера: подключаем только их, а не весь PNG-каталог.
+  ...import.meta.glob('../../assets/backgrounds/{interrogation_room_bg,investigation_board_bg}.png', { eager: true, import: 'default' }),
+  ...import.meta.glob('../../assets/events/{op1_key,op2_key}.png', { eager: true, import: 'default' }),
   // ART-016: только игровые webp-копии Дирекции (оригиналы PNG в сборку не попадают).
   ...import.meta.glob('../../assets/{facilities,research}/web/*.webp', { eager: true, import: 'default' }),
 } as Record<string, string>;
 const ART: Record<string, string> = {};
 for (const [path, url] of Object.entries(files)) {
-  const m = /\/([^/]+)\.(webp|png|jpg)$/.exec(path);
-  // webp-копия (из сборочного скрипта) приоритетнее исходного png.
+  const m = /\/([^/]+)\.(webp|png)$/.exec(path);
   if (m && (!ART[m[1]!] || m[2] === 'webp')) ART[m[1]!] = url;
 }
 export const artUrl = (key: string): string | undefined => ART[key];

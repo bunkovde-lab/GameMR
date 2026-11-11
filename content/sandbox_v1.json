@@ -1,0 +1,151 @@
+{
+  "rules": {
+    "startingBalanceRe": 45,
+    "squadSlotCostRe": 25,
+    "maxSquads": 3,
+    "eventDeadlineMinutes": 180,
+    "fallbackDeadlineMinutes": 240,
+    "recoveryMinutes": 240,
+    "lightRecoveryMinutes": 120,
+    "passivePressureEveryMinutes": 60
+  },
+  "districtOrder": ["admin", "residential"],
+  "cases": {
+    "c1": {
+      "districtId": "admin",
+      "nextCaseId": "c2",
+      "nextEventId": "c2-open",
+      "conclusions": { "audit": "partial", "discipline": "error" },
+      "full": {
+        "title": "Дело раскрыто полностью",
+        "text": "Административный центр взят под контроль. Открыты Жилые кварталы; награда — 20 РЕ, порядок +12, легитимность +8.",
+        "episode": "Маршрут контейнера и заявление Кера складываются в одну цепь. Дирекция видит за подлогом систему. В Жилых кварталах поступает сигнал о клинике, где меняют биометрию пациентов."
+      },
+      "partial": {
+        "title": "Дело закрыто частично",
+        "text": "Жилые кварталы открыты, но часть схемы осталась скрытой. Награда — 8 РЕ; доверие и легитимность снижены.",
+        "complication": "Остался скрытый противник: доверие Административного центра −10, легитимность −10."
+      },
+      "error": {
+        "title": "Заключение опровергнуто",
+        "text": "Версия не подтвердилась. Улики, связи, действия, допросы и события дела начнутся заново. Ранения, затраты, отряды и состояние города сохранены. Правильный ответ не раскрывается."
+      }
+    },
+    "c2": {
+      "districtId": "residential",
+      "conclusions": {},
+      "full": { "title": "Дело раскрыто полностью", "text": "Район взят под контроль." },
+      "partial": { "title": "Дело закрыто частично", "text": "Район открыт с осложнением." },
+      "error": { "title": "Заключение опровергнуто", "text": "Дело начинается заново." }
+    }
+  },
+  "events": {
+    "c1-open": {
+      "caseId": "c1",
+      "templateId": "missing",
+      "title": "Пропажа регистратора",
+      "districtId": "admin",
+      "spawnId": "admin:spawn:01",
+      "severity": "medium",
+      "goal": "evidence",
+      "purpose": "Осмотреть архив и сохранить первые улики по исчезновению Идана Кера.",
+      "successText": "Дело №418 открыто, улики с места переданы следователю.",
+      "failureText": "Часть следов утрачена, но дело №418 открыто по уцелевшим материалам."
+    },
+    "c1-route": {
+      "caseId": "c1",
+      "actionId": "a_route",
+      "templateId": "missing",
+      "title": "Маршрут аварийной доставки",
+      "districtId": "admin",
+      "spawnId": "admin:spawn:02",
+      "severity": "medium",
+      "goal": "surveillance",
+      "purpose": "Проследить аварийную доставку и установить маршрут контейнера регистрации.",
+      "successText": "Получена улика «Маршрут контейнера».",
+      "failureText": "Маршрут потерян. Открылась альтернатива: опросить диспетчера, но его сведения будут сомнительнее.",
+      "fallbackTitle": "Показания диспетчера доставки",
+      "fallbackGoal": "witness",
+      "fallbackPurpose": "Получить у диспетчера альтернативные сведения о маршруте контейнера."
+    },
+    "c1-search": {
+      "caseId": "c1",
+      "actionId": "a_search",
+      "templateId": "missing",
+      "title": "Поиск Идана Кера",
+      "districtId": "admin",
+      "spawnId": "admin:spawn:03",
+      "severity": "high",
+      "goal": "witness",
+      "purpose": "Найти Идана Кера и обеспечить безопасный канал для его заявления.",
+      "successText": "Кер найден; в дело поступило его заявление.",
+      "failureText": "Кер сменил убежище. Остался посредник, через которого можно получить запись с менее надёжной цепочкой хранения.",
+      "fallbackTitle": "Посредник Идана Кера",
+      "fallbackGoal": "surveillance",
+      "fallbackPurpose": "Выйти на посредника и получить запись Кера по альтернативному каналу.",
+      "nextEventId": "c1-arrest"
+    },
+    "c1-arrest": {
+      "caseId": "c1",
+      "templateId": "raid",
+      "title": "Задержание курьера реестра",
+      "districtId": "admin",
+      "spawnId": "admin:spawn:02",
+      "severity": "high",
+      "goal": "arrest",
+      "purpose": "Задержать курьера, который перевозил изменённые записи, и сохранить его для допроса.",
+      "successText": "Курьер задержан; канал между перевозкой и подлогом задокументирован.",
+      "failureText": "Курьер скрылся, но оставил часть маршрутных документов. Откроется альтернативный способ получить сведения.",
+      "fallbackTitle": "Оставленные документы курьера",
+      "fallbackGoal": "evidence",
+      "fallbackPurpose": "Изъять документы, оставленные курьером, и восстановить его последний маршрут.",
+      "branchOnFailure": true,
+      "nextEventId": "c1-prevent"
+    },
+    "c1-prevent": {
+      "caseId": "c1",
+      "templateId": "convoy",
+      "title": "Предотвращение новой подмены",
+      "districtId": "admin",
+      "spawnId": "admin:spawn:01",
+      "severity": "high",
+      "goal": "prevention",
+      "purpose": "Перехватить следующий контейнер до внесения поддельных записей в реестр.",
+      "successText": "Новая подмена предотвращена; исходные записи и цепочка хранения сохранены.",
+      "failureText": "Контейнер ушёл по запасному маршруту. Остался диспетчерский журнал для альтернативной проверки.",
+      "fallbackTitle": "Диспетчерский журнал запасного маршрута",
+      "fallbackGoal": "evidence",
+      "fallbackPurpose": "Проверить журнал запасного маршрута и зафиксировать попытку новой подмены.",
+      "branchOnFailure": true,
+      "nextEventId": "c1-finale"
+    },
+    "c1-finale": {
+      "caseId": "c1",
+      "templateId": "court_seal",
+      "title": "Финал дела: сохранность первоисточника",
+      "districtId": "admin",
+      "spawnId": "admin:spawn:03",
+      "severity": "high",
+      "goal": "finale",
+      "purpose": "Обеспечить сохранность первоисточника реестра перед итоговым заключением.",
+      "successText": "Первоисточник защищён. Можно завершать проверку материалов и выносить заключение.",
+      "failureText": "Часть первоисточника повреждена, но резервная копия позволяет продолжить дело по альтернативной ветви.",
+      "fallbackTitle": "Резервная копия реестра",
+      "fallbackGoal": "evidence",
+      "fallbackPurpose": "Изъять резервную копию и подготовить материалы к итоговому заключению.",
+      "branchOnFailure": true
+    },
+    "c2-open": {
+      "caseId": "c2",
+      "templateId": "illegal",
+      "title": "Нелегальная модификация",
+      "districtId": "residential",
+      "spawnId": "residential:spawn:01",
+      "severity": "medium",
+      "goal": "evidence",
+      "purpose": "Проверить подпольную операционную и сохранить биологические образцы для дела №431.",
+      "successText": "Начато дело №431 «Замена плоти», образцы переданы на проверку.",
+      "failureText": "Часть образцов утрачена, но дело №431 начато по оставшимся материалам."
+    }
+  }
+}

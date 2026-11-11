@@ -108,7 +108,10 @@ const checked = (ev: CaseEvidence | undefined) => !!ev && ev.analysis !== 'none'
 
 /** Дело открывается по итогам операции на вызове своего типа в своём окне смен (сценарий §9: даже если прошлые улики потеряны). */
 export function openCaseFromReport(s: GameState, report: Pick<OperationReport, 'incidentId' | 'memberIds' | 'tasks'>, templateId: string, log: Log): CaseFile | null {
-  const def = CASES.find((c) => c.templateId === templateId && s.shift >= c.fromShift && s.shift <= c.toShift);
+  const incident = s.incidents.find((i) => i.id === report.incidentId);
+  const def = s.mode === 'sandbox'
+    ? CASES.find((c) => c.id === incident?.sandbox?.caseId && c.templateId === templateId)
+    : CASES.find((c) => c.templateId === templateId && s.shift >= c.fromShift && s.shift <= c.toShift);
   if (!def || caseFile(s, def.id)) return null;
   const scene = def.evidence.filter((e) => e.origin === 'scene');
   const kept = report.tasks.find((t) => t.label === 'Сохранность улик')?.result ?? 'done';
@@ -250,6 +253,17 @@ export function startAction(s: GameState, caseId: string, actionId: string, staf
   const permit = s.politics.permits.find((p) => p.caseId === caseId && p.actionId === actionId && p.status === 'granted');
   if (permit) permit.status = 'used';
   f.tasks.push({ kind: 'action', target: a.id, staffId, doneAt: absMinute(s) + a.minutes });
+}
+
+/** Завершение полевого действия после реального выезда в песочнице; использует общие улики и флаги дела. */
+export function completeFieldAction(s: GameState, caseId: string, actionId: string, log: Log, questionable = false) {
+  const f = caseFile(s, caseId)!;
+  const d = caseDef(caseId)!;
+  const a = actionDef(d, actionId)!;
+  if (!f.actionsDone.includes(a.id)) f.actionsDone.push(a.id);
+  reveal(s, f, d, a.reveals, log, questionable ? { questionable: true, note: 'Получено по альтернативному каналу или с неполной цепочкой хранения.' } : {});
+  if (a.flagIfBy && s.shift <= a.flagIfBy.shift) setFlag(s, a.flagIfBy.flag);
+  log('case_action', `Дело №${d.number}: ${a.label.toLowerCase()} — выполнено после выезда.`);
 }
 
 // ---------- Анализ ----------
@@ -501,6 +515,8 @@ export function concludeBlocker(s: GameState, caseId: string, conclusionId: stri
   if (!f || !d) return 'Дело не найдено.';
   if (f.status !== 'open') return 'Дело уже решено.';
   if (f.tasks.length) return 'Дождитесь окончания текущей работы по делу.';
+  if (s.mode === 'sandbox' && s.incidents.some((i) => i.sandbox?.caseId === caseId && ['new', 'acknowledged', 'assigned', 'en_route', 'on_scene', 'escalated'].includes(i.state)))
+    return 'Сначала завершите все связанные с делом выезды.';
   const c = conclusionDef(d, conclusionId);
   if (!c) return 'Нет такого решения.';
   if (c.needsFlag && !hasFlag(s, c.needsFlag)) return conclusionNeedText(c.needsFlag);

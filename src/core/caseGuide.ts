@@ -3,6 +3,7 @@ import {
   CASES, CASE_RULES, actionBlocker, actionPermitState, analysisBlocker, caseDef, caseFile, caseForecast, casePermitBlocker, refFound, evidenceDef, interrogationBlocker,
   lineVisible, personAvailable, type CaseDef,
 } from './investigations';
+import { isOpen } from './selectors';
 import type { CaseFile, GameState, Incident } from './types';
 
 /**
@@ -15,6 +16,13 @@ export interface CaseLink { caseId: string; number: number; title: string; mode:
 
 /** Связан ли вызов с делом кампании и как именно. */
 export function incidentCaseLink(s: GameState, inc: Incident): CaseLink | null {
+  if (inc.sandbox) {
+    const d = caseDef(inc.sandbox.caseId);
+    if (!d) return null;
+    const f = caseFile(s, d.id);
+    const mode: CaseLinkMode = !f ? 'opens' : f.status === 'open' ? 'feeds' : 'decided';
+    return { caseId: d.id, number: d.number, title: d.title, mode, backstory: houseText(d.summary) };
+  }
   const t = templateOf(inc);
   const opener = CASES.find((c) => c.templateId === inc.templateId && inc.createdShift >= c.fromShift && inc.createdShift <= c.toShift);
   // Сюжетные вызовы связаны с делом, только если пришли по сценарию (стартовые учебные вызовы того же типа — нет).
@@ -36,7 +44,7 @@ export const CASE_LINK_TEXT: Record<CaseLinkMode, string> = {
 // ---------- Следующий шаг ----------
 
 export type CaseTab = 'board' | 'actions' | 'timeline' | 'interviews' | 'conclusion';
-export interface NextStep { tab: CaseTab; text: string; target?: string }
+export interface NextStep { tab: CaseTab; text: string; target?: string; incidentId?: string }
 
 const linked = (f: CaseFile, id: string) => f.links.some((l) => l.evidenceId === id);
 const busy = (f: CaseFile, target: string) => f.tasks.some((t) => t.target === target);
@@ -46,6 +54,12 @@ export function caseNextStep(s: GameState, f: CaseFile): NextStep | null {
   const d = caseDef(f.id);
   if (!d || f.status !== 'open') return null;
   const title = (id: string) => evidenceDef(d, id)?.title ?? id;
+
+  const fieldEvent = s.incidents.find((i) => isOpen(i) && i.sandbox?.caseId === f.id);
+  if (fieldEvent) return {
+    tab: 'actions', ...(fieldEvent.sandbox!.actionId ? { target: fieldEvent.sandbox!.actionId } : {}), incidentId: fieldEvent.id,
+    text: `На карте ждёт выезд «${fieldEvent.title}». Перейдите к событию и отправьте отряд: цель и последствия указаны на карточке.`,
+  };
 
   const fresh = f.evidence.find((e) => e.analysis === 'none' && !busy(f, e.id) && !analysisBlocker(s, f.id, e.id));
   if (fresh) return { tab: 'board', target: fresh.id, text: `Проверьте улику «${title(fresh.id)}»: на доске нажмите на неё и выберите сотрудника. Пока улика не проверена, на неё нельзя опереться.` };
@@ -57,7 +71,12 @@ export function caseNextStep(s: GameState, f: CaseFile): NextStep | null {
   if (ready) return { tab: 'conclusion', text: `По версии «${ready.title}» уже ${CASE_RULES.chargeMin}+ подтверждённых допустимых связей. Можно выносить заключение или ещё усилить дело.` };
 
   const action = d.actions.find((a) => !f.actionsDone.includes(a.id) && !busy(f, a.id) && !actionBlocker(s, f.id, a.id));
-  if (action) return { tab: 'actions', target: action.id, text: `Следственное действие «${action.label}» даст новые сведения. Откройте «Действия» и назначьте сотрудника.` };
+  if (action) return {
+    tab: 'actions', target: action.id,
+    text: action.kind === 'field' && s.mode === 'sandbox'
+      ? `Следственное действие «${action.label}» создаст выезд на карте. Откройте «Действия» и перейдите к событию; кабинетный сотрудник не нужен.`
+      : `Следственное действие «${action.label}» даст новые сведения. Откройте «Действия» и назначьте сотрудника.`,
+  };
 
   const permit = d.actions.find((a) => !f.actionsDone.includes(a.id) && actionPermitState(s, f, a) === 'missing'
     && (a.requires ?? []).every((r) => refFound(s, f.id, r)) && !casePermitBlocker(s, f.id, a.id));
@@ -72,9 +91,11 @@ export function caseNextStep(s: GameState, f: CaseFile): NextStep | null {
   const inconclusive = f.evidence.find((e) => e.analysis === 'inconclusive' && !busy(f, e.id) && !analysisBlocker(s, f.id, e.id));
   if (inconclusive) return { tab: 'board', target: inconclusive.id, text: `Проверка улики «${title(inconclusive.id)}» оказалась неубедительной. Повторите её: повторная проверка точнее.` };
 
-  if (f.tasks.length) return { tab: 'board', text: `Идёт работа по делу (задач: ${f.tasks.length}). Ускорьте время или займитесь вызовами: результаты придут сами, а то, что не успеет, доделается к следующей смене.` };
+  if (f.tasks.length) return { tab: 'board', text: `Идёт работа по делу (задач: ${f.tasks.length}). Можно продолжить время: результат появится в материалах дела автоматически.` };
 
-  return { tab: 'conclusion', text: 'Доступные шаги пройдены. Новые сведения могут прийти с вызовов следующих смен или после разрешений. Если оснований хватает, выносите заключение.' };
+  return { tab: 'conclusion', text: s.mode === 'sandbox'
+    ? 'Доступные шаги пройдены. Проверьте события активного дела на карте или выносите заключение, если оснований достаточно.'
+    : 'Доступные шаги пройдены. Новые сведения могут прийти с вызовов следующих смен или после разрешений. Если оснований хватает, выносите заключение.' };
 }
 
 // ---------- Учебные шаги ----------

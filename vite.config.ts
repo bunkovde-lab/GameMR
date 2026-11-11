@@ -6,6 +6,16 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   base: process.env.GAMEMR_BASE ?? '/',
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('/node_modules/')) return 'vendor';
+          if (id.includes('/src/core/') || id.includes('/content/')) return 'game-core';
+        },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     include: ['tests/unit/**/*.test.{ts,tsx}'],

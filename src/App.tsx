@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { IconSprite } from './ui/Icon';
 import { initialUiState, uiReducer, type Selection } from './ui/uiState';
 import { TopHud } from './ui/shell/TopHud';
@@ -9,9 +9,7 @@ import { DecisionDialog, OperationReportDialog } from './ui/operations/Operation
 import { SquadStrip } from './ui/shell/SquadStrip';
 import { BottomNav } from './ui/shell/BottomNav';
 import { GoalsDock } from './ui/shell/GoalsDock';
-import { StaffScreen } from './ui/screens/StaffScreen';
 import { DirectorateScreen } from './ui/screens/DirectorateScreen';
-import { InvestigationsScreen } from './ui/screens/InvestigationsScreen';
 import { EndingDialog, SpecialOpDialog, SpecialOpReportDialog } from './ui/CampaignDialogs';
 import { activeOp, unseenOpReport } from './core/specialOps';
 import { BriefingDialog, EndShiftConfirm, ShiftReportDialog } from './ui/PhaseDialogs';
@@ -24,6 +22,11 @@ import { useMusicScene } from './ui/audio/useMusic';
 import { bootResult, dispatch, getGame, useGame } from './store';
 import { MainMenu } from './ui/menu/MainMenu';
 import { pendingDecision } from './core/operations';
+
+// Редкие полноэкранные разделы загружаются по требованию. Карта остаётся в основном чанке и всегда смонтирована,
+// поэтому ленивая загрузка не меняет игровое состояние и не сбрасывает камеру.
+const StaffScreen = lazy(() => import('./ui/screens/StaffScreen').then((m) => ({ default: m.StaffScreen })));
+const InvestigationsScreen = lazy(() => import('./ui/screens/InvestigationsScreen').then((m) => ({ default: m.InvestigationsScreen })));
 
 /** Главное меню показывается при каждом запуске; e2e/unit-тесты игровых экранов могут его пропустить. */
 const startsInMenu = () => !(globalThis as { __GAMEMR_SKIP_MENU__?: boolean }).__GAMEMR_SKIP_MENU__;
@@ -132,9 +135,11 @@ export function App() {
               onOpenCase={(caseId) => uiDispatch({ type: 'OPEN_VIEW', view: 'investigations', caseId })}
             />
           )}
-          {ui.view === 'staff' && <StaffScreen game={game} onClose={() => uiDispatch({ type: 'OPEN_VIEW', view: 'map' })} />}
-          {ui.view === 'investigations' && <InvestigationsScreen game={game} focusCaseId={ui.focusCaseId ?? null} onClose={() => uiDispatch({ type: 'OPEN_VIEW', view: 'map' })} />}
-          {ui.view === 'directorate' && <DirectorateScreen game={game} onClose={() => uiDispatch({ type: 'OPEN_VIEW', view: 'map' })} />}
+          <Suspense fallback={null}>
+            {ui.view === 'staff' && <StaffScreen game={game} onClose={() => uiDispatch({ type: 'OPEN_VIEW', view: 'map' })} />}
+            {ui.view === 'investigations' && <InvestigationsScreen game={game} focusCaseId={ui.focusCaseId ?? null} onClose={() => uiDispatch({ type: 'OPEN_VIEW', view: 'map' })} />}
+            {ui.view === 'directorate' && <DirectorateScreen game={game} onClose={() => uiDispatch({ type: 'OPEN_VIEW', view: 'map' })} />}
+          </Suspense>
         </main>
         <SquadStrip game={game} selectedId={ui.selection?.kind === 'squad' ? ui.selection.id : null} onSelect={(id) => select({ kind: 'squad', id })} />
         <BottomNav current={ui.view} onOpen={(view) => uiDispatch({ type: 'OPEN_VIEW', view })} canEndShift={canEndShift} onEndShift={() => setConfirmEnd(true)} />

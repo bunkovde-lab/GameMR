@@ -244,6 +244,9 @@ export class MusicEngine {
     if (!t.handedOver && cur.el.currentTime >= d - OVERLAP_S) {
       t.handedOver = true;
       const next = t.voices[t.current === 0 ? 1 : 0];
+      // Второй голос не скачивается вместе с первым при открытии меню. К этому моменту он уже
+      // разблокирован действием игрока (в том числе на Safari/iOS), поэтому загрузку можно начать перед повтором.
+      next.el.preload = 'auto';
       next.el.currentTime = 0;
       next.started = true;
       next.level = 0;
@@ -262,12 +265,13 @@ export class MusicEngine {
   private track(scene: MusicScene): Track {
     let t = this.tracks.get(scene);
     if (!t) {
-      const mk = (): Voice => {
+      const mk = (preload: 'auto' | 'none'): Voice => {
         const el = this.env.createAudio(TRACK_URL[scene]);
-        el.preload = 'auto';
+        el.preload = preload;
         return { el, gain: this.connect(el), level: 0, target: 0, rate: 1, started: false, primed: false, blocked: false };
       };
-      t = { scene, voices: [mk(), mk()], current: 0, handedOver: false };
+      // Резервный голос нужен только у конца трека: не загружаем второй экземпляр MP3 при открытии сцены.
+      t = { scene, voices: [mk('auto'), mk('none')], current: 0, handedOver: false };
       this.tracks.set(scene, t);
     }
     return t;

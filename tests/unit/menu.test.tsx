@@ -95,12 +95,12 @@ describe('M00-B: пункт «Продолжить»', () => {
 });
 
 describe('M00-B: меню в приложении', () => {
-  it('при запуске — меню с пятью живыми кнопками, игровой HUD не показан', withMenu(() => {
+  it('при запуске — меню с шестью живыми кнопками, игровой HUD не показан', withMenu(() => {
     render(<App />);
     expect(screen.getByTestId('main-menu')).toBeTruthy();
     expect(screen.queryByTestId('hud')).toBeNull();
     const labels = screen.getAllByRole('button').filter((b) => b.className.includes('m00b-btn')).map((b) => b.querySelector('.m00b-label')!.textContent);
-    expect(labels).toEqual(['Продолжить', 'Новая игра', 'Настройки', 'Авторы', 'Выход']);
+    expect(labels).toEqual(['Продолжить', 'Новая игра', 'Песочница', 'Настройки', 'Авторы', 'Выход']);
     expect((screen.getByTestId('menu-continue') as HTMLButtonElement).disabled).toBe(true);
     expect(screen.getByTestId('menu-continue').textContent).toContain('Сохранённой игры нет');
   }));

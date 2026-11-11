@@ -23,20 +23,20 @@ const corruptAuto = (page: Page) => page.evaluate(() => new Promise<void>((resol
   };
 }));
 
-test('первый запуск: меню M00-B, пять живых кнопок, «Продолжить» неактивно, HUD скрыт', async ({ page }, info) => {
+test('первый запуск: меню M00-B, шесть живых кнопок, «Продолжить» неактивно, HUD скрыт', async ({ page }, info) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
   const menu = page.getByTestId('main-menu');
   await expect(menu).toBeVisible();
   await expect(page.getByTestId('hud')).toHaveCount(0);
-  await expect(page.locator('.m00b-btn .m00b-label')).toHaveText(['Продолжить', 'Новая игра', 'Настройки', 'Авторы', 'Выход']);
+  await expect(page.locator('.m00b-btn .m00b-label')).toHaveText(['Продолжить', 'Новая игра', 'Песочница', 'Настройки', 'Авторы', 'Выход']);
   await expect(page.getByTestId('menu-continue')).toBeDisabled();
   await expect(page.getByTestId('menu-continue')).toContainText('Сохранённой игры нет');
 
   // Читаемые зоны касания, ничего не выходит за экран, нет горизонтальной прокрутки
   const vp = page.viewportSize()!;
-  for (const id of ['continue', 'new', 'settings', 'credits', 'exit']) {
+  for (const id of ['continue', 'new', 'sandbox', 'settings', 'credits', 'exit']) {
     const b = (await page.getByTestId(`menu-${id}`).boundingBox())!;
     expect(b.height).toBeGreaterThanOrEqual(44);
     expect(b.y + b.height).toBeLessThanOrEqual(vp.height);
@@ -57,6 +57,8 @@ test('первый запуск: меню M00-B, пять живых кнопо�
 test('клавиатура: стрелки, Enter, Escape; «Авторы» и «Выход»', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByTestId('menu-new')).toBeFocused(); // первый доступный пункт
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByTestId('menu-sandbox')).toBeFocused();
   await page.keyboard.press('ArrowDown');
   await expect(page.getByTestId('menu-settings')).toBeFocused();
   await page.keyboard.press('ArrowDown');
@@ -113,7 +115,7 @@ test('«Новая игра» поверх кампании: подтвержд�
   await page.getByTestId('to-main-menu').click();
 
   await page.getByTestId('menu-new').click();
-  await expect(page.getByTestId('menu-confirm-new')).toContainText('Автосохранение будет перезаписано');
+  await expect(page.getByTestId('menu-confirm-new')).toContainText('Автосохранение кампании будет перезаписано');
   await page.getByTestId('confirm-new-game').click();
   await expect(page.getByTestId('briefing')).toBeVisible();
 

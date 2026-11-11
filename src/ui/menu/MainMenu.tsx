@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { createInitialState } from '../../core/state';
-import { saveToSlot } from '../../persistence/saveStore';
-import { bootResult, getGame, notify, replaceGame } from '../../store';
+import { createSandboxState } from '../../core/sandbox';
+import { autoSlotFor, loadFromSlot, saveToSlot } from '../../persistence/saveStore';
+import { bootResult, getGame, notify, replaceGame, sandboxBootResult } from '../../store';
 import { Modal } from '../Modal';
 import { SavesPanel } from '../SettingsDialog';
 import { MusicSettings } from '../audio/MusicSettings';
@@ -10,7 +11,7 @@ import { MENU_ASSETS, missingMenuArt } from './menuAssets';
 import { SCENE, SCENE_H, SCENE_W, loadFxPrefs, saveFxPrefs, type FxPrefs } from './menuScene';
 import './MainMenu.css';
 
-export type MenuItemId = 'continue' | 'new' | 'settings' | 'credits' | 'exit';
+export type MenuItemId = 'continue' | 'new' | 'sandbox' | 'settings' | 'credits' | 'exit';
 
 interface Props {
   /** Кампания уже идёт в этой вкладке (вернулись из игры, загрузили слот, восстановили автосохранение) */
@@ -23,7 +24,8 @@ type Dialog = null | 'settings' | 'credits' | 'confirm-new' | 'exit';
 
 /** Пункт «Продолжить»: активен только при восстановленной кампании, иначе — понятная причина. */
 export function continueState(sessionLive: boolean, boot = bootResult()): { enabled: boolean; note: string } {
-  if (sessionLive || boot.restored) return { enabled: true, note: `Смена ${getGame().shift}` };
+  if (sessionLive) return { enabled: true, note: getGame().mode === 'sandbox' ? `Песочница · ${getGame().minute} мин` : `Смена ${getGame().shift}` };
+  if (boot.restored) return { enabled: true, note: `Смена ${getGame().shift}` };
   if (boot.empty) return { enabled: false, note: 'Сохранённой игры нет' };
   if (/недоступно/.test(boot.reason)) return { enabled: false, note: 'Хранилище браузера недоступно' };
   return { enabled: false, note: 'Автосохранение повреждено' };
@@ -36,6 +38,8 @@ export function MainMenu({ sessionLive, onEnterGame }: Props) {
   const [prefs, setPrefs] = useState<FxPrefs>(() => loadFxPrefs());
   const [busy, setBusy] = useState(false);
   const cont = continueState(sessionLive);
+  const sandboxBoot = sandboxBootResult();
+  const sandboxNote = sessionLive && getGame().mode === 'sandbox' ? 'Текущий сценарий' : sandboxBoot.restored ? 'Сохранённый сценарий' : sandboxBoot.empty ? 'Новый сценарий · один район' : 'Новый сценарий';
   const missing = missingMenuArt();
 
   const startNew = async () => {
@@ -50,10 +54,34 @@ export function MainMenu({ sessionLive, onEnterGame }: Props) {
     onEnterGame();
   };
 
+  const startSandbox = async () => {
+    setBusy(true);
+    try {
+      if (sessionLive && getGame().mode === 'sandbox') {
+        onEnterGame();
+        return;
+      }
+      let fresh = createSandboxState();
+      let isNew = true;
+      if (sandboxBoot.restored) {
+        const saved = await loadFromSlot('sandbox-auto');
+        if (saved.ok) { fresh = saved.state; isNew = false; }
+        else { notify('bad', saved.reason); return; }
+      }
+      replaceGame(fresh);
+      if (isNew) await saveToSlot('sandbox-auto', fresh);
+      onEnterGame();
+    } catch (e) {
+      notify('bad', `Не удалось открыть песочницу: ${(e as Error).message}`);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const exit = async () => {
-    // Прогресс текущей смены (время, которое не вызывало автосохранение) сохраняем перед прощанием.
+    // Прогресс сохраняется в слот своего режима; другой режим не перезаписывается.
     if (sessionLive) {
-      try { await saveToSlot('auto', getGame()); } catch { /* сообщим ниже, что сохранить не вышло */ }
+      try { await saveToSlot(autoSlotFor(getGame()), getGame()); } catch { /* сообщим ниже, что сохранить не вышло */ }
     }
     setDialog('exit');
   };
@@ -61,6 +89,7 @@ export function MainMenu({ sessionLive, onEnterGame }: Props) {
   const items: { id: MenuItemId; label: string; disabled?: boolean; note?: string; run: () => void }[] = [
     { id: 'continue', label: 'Продолжить', disabled: !cont.enabled, note: cont.note, run: onEnterGame },
     { id: 'new', label: 'Новая игра', run: () => (cont.enabled ? setDialog('confirm-new') : void startNew()) },
+    { id: 'sandbox', label: 'Песочница', note: sandboxNote, run: () => void startSandbox() },
     { id: 'settings', label: 'Настройки', run: () => setDialog('settings') },
     { id: 'credits', label: 'Авторы', run: () => setDialog('credits') },
     { id: 'exit', label: 'Выход', run: () => void exit() },
@@ -105,10 +134,10 @@ export function MainMenu({ sessionLive, onEnterGame }: Props) {
       {dialog === 'confirm-new' && (
         <Modal title="Новая игра" onClose={() => setDialog(null)} testId="menu-confirm-new" className="m00b-modal">
           <p>
-            Начнётся новая кампания с первой смены. <b>Автосохранение будет перезаписано</b> — текущая кампания
-            (смена {getGame().shift}) не вернётся после перезагрузки страницы.
+            Начнётся новая кампания с первой смены. <b>Автосохранение кампании будет перезаписано</b>.
+            Отдельные сохранения песочницы это не затронет.
           </p>
-          <p className="m00b-muted">Ручные слоты 1–3 останутся без изменений: их можно загрузить в «Настройках».</p>
+          <p className="m00b-muted">Ручные слоты обоих режимов останутся без изменений: их можно загрузить в «Настройках».</p>
           <div className="modal-actions">
             <button className="btn" onClick={() => setDialog(null)}>Отмена</button>
             <button className="btn danger" onClick={() => void startNew()} disabled={busy} data-testid="confirm-new-game">Начать заново</button>
@@ -119,7 +148,7 @@ export function MainMenu({ sessionLive, onEnterGame }: Props) {
         <div className="m00b-farewell" role="dialog" aria-modal="true" aria-labelledby="farewell-title" data-testid="menu-farewell">
           <div>
             <h2 id="farewell-title">Сеанс завершён</h2>
-            <p>{sessionLive ? 'Прогресс сохранён в автосохранении.' : 'Кампания не начата — сохранять нечего.'} Можете закрыть вкладку браузера.</p>
+            <p>{sessionLive ? 'Прогресс сохранён в автосохранении своего режима.' : 'Игра не начата — сохранять нечего.'} Можете закрыть вкладку браузера.</p>
             <button className="btn" autoFocus onClick={() => setDialog(null)} data-testid="farewell-back">Вернуться в меню</button>
           </div>
         </div>
@@ -160,12 +189,12 @@ export function menuLayout(b: CoverBox) {
   const logoY = Math.max(12, b.y + u.logoY * b.h);
   const row = Math.max(44, u.rowH * b.h);
   const menuRef = b.y + u.menuY * b.h;
-  const menuY = Math.max(12, Math.min(Math.max(logoY + logoW / 3 + 8, menuRef), b.vh - row * 5 - 12));
+  const menuY = Math.max(12, Math.min(Math.max(logoY + logoW / 3 + 8, menuRef), b.vh - row * 6 - 12));
   const plateW = Math.min(Math.max(250, u.plateW * b.w), b.vw - logoX - 16);
   return { logoW, logoX, logoY, row, menuY, plateX: logoX - 5 * (b.w / SCENE_W), plateW, font: Math.max(15, row * 0.35) };
 }
 
-// ——— пять кнопок ———
+// ——— шесть кнопок ———
 
 function MenuButtons({ items, disabled }: { items: { id: MenuItemId; label: string; disabled?: boolean; note?: string; run: () => void }[]; disabled: boolean }) {
   const refs = useRef<(HTMLButtonElement | null)[]>([]);

@@ -15,6 +15,7 @@ import { MapLife } from './MapLife';
 import { baseScale, transform, worldToScreen, type Camera, type Viewport, W, H } from './camera';
 import { markerArtUrl } from '../art';
 import { incidentCaseLink } from '../../core/caseGuide';
+import { SANDBOX_GOAL_LABEL, sandboxGoalFor } from '../../core/sandbox';
 import { CLUSTER_MARKER, INCIDENT_ICON, INCIDENT_MARKER, SQUAD_MARKER, incidentPoint, squadPoint } from './entities';
 import { layoutMarkers } from './markerLayout';
 
@@ -229,15 +230,17 @@ export function MapView({ game, selection, previewSquadId, onSelect }: Props) {
           {anchorsOn && (
             <svg className="map-geo" viewBox={`0 0 ${W} ${H}`} width={W} height={H}>
               {MAP.districts.map((d) => {
+                const locked = !!game.sandbox && !game.sandbox.unlockedDistricts.includes(d.id);
                 return (
                   <polygon
                     key={d.id}
                     points={d.hitPolygon.map(toSvg).join(' ')}
-                    className="district-hit"
+                    className={`district-hit${locked ? ' locked' : ''}`}
                     data-testid={`district-${d.id}`}
+                    data-locked={locked || undefined}
                     role="button"
                     tabIndex={0}
-                    aria-label={`Район: ${d.name}`}
+                    aria-label={`Район: ${d.name}${locked ? '. Закрыт до итога расследования' : ''}`}
                     onClick={() => onSelect({ kind: 'district', id: d.id })}
                     onKeyDown={keySelect(() => onSelect({ kind: 'district', id: d.id }))}
                     onPointerEnter={() => setHoverDistrict(d.id)}
@@ -266,13 +269,14 @@ export function MapView({ game, selection, previewSquadId, onSelect }: Props) {
         <div className="map-screen">
           {layers.districts && MAP.districts.map((d) => {
             const [x, y] = screen(d.labelAnchor);
+            const locked = !!game.sandbox && !game.sandbox.unlockedDistricts.includes(d.id);
             return (
               <span
                 key={d.id}
-                className={`district-label${hoverDistrict === d.id ? ' hover' : ''}${selection?.kind === 'district' && selection.id === d.id ? ' selected' : ''}`}
+                className={`district-label${hoverDistrict === d.id ? ' hover' : ''}${selection?.kind === 'district' && selection.id === d.id ? ' selected' : ''}${locked ? ' locked' : ''}`}
                 style={{ left: x, top: y }}
                 data-testid={`district-label-${d.id}`}
-              >{d.name}</span>
+              >{d.name}{locked && <small>Закрыто расследованием</small>}</span>
             );
           })}
           {layers.risks && game.districts.filter((d) => d.threat > 0).map((d) => {
@@ -316,6 +320,7 @@ export function MapView({ game, selection, previewSquadId, onSelect }: Props) {
                   const selected = selection?.kind === 'incident' && selection.id === inc.id;
                   const art = markerArtUrl(INCIDENT_MARKER[inc.templateId] ?? '');
                   const link = incidentCaseLink(game, inc);
+                  const goal = sandboxGoalFor(inc);
                   const timer = incidentTimer(inc, game.minute);
                   return (
                     <button
@@ -323,7 +328,7 @@ export function MapView({ game, selection, previewSquadId, onSelect }: Props) {
                       className={`marker incident sev-${inc.severity} st-${inc.state}${selected ? ' selected' : ''}${art ? ' shield' : ''}${link ? ' case-link' : ''}`}
                       style={{ left: m.x, top: m.y }}
                       onClick={() => onSelect({ kind: 'incident', id: inc.id })}
-                      aria-label={`Вызов: ${inc.title}${link ? `. Связан с делом №${link.number}` : ''}`}
+                      aria-label={`Вызов: ${inc.title}${link ? `. Связан с делом №${link.number}` : ''}${goal ? `. Цель: ${SANDBOX_GOAL_LABEL[goal]}` : ''}`}
                       aria-pressed={selected}
                       data-testid={`marker-incident-${inc.id}`}
                       data-moved={m.moved || undefined}

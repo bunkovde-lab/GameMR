@@ -611,7 +611,7 @@ export function reduce(state: GameState, command: Command): CommandResult {
         }
       }
       checkDeals(s, (a, n) => post(s, 'deal', a, n), (t, x) => log(s, t, x));
-      settleStoryShift(s, (a, n) => post(s, 'sanction' : 'deal', a, n), (t, x) => log(s, t, x));
+      settleStoryShift(s, (a, n) => post(s, a < 0 ? 'sanction' : 'deal', a, n), (t, x) => log(s, t, x));
       const ledger = s.economy.ledger.filter((t) => t.shift === s.shift);
       const open = s.incidents.filter(isOpen);
       const ops = s.operationReports.filter((r) => r.shift === s.shift);

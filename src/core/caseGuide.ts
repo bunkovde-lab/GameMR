@@ -16,6 +16,8 @@ export interface CaseLink { caseId: string; number: number; title: string; mode:
 
 /** Связан ли вызов с делом кампании и как именно. */
 export function incidentCaseLink(s: GameState, inc: Incident): CaseLink | null {
+  // Дежурный вызов может переиспользовать боевой шаблон кампании, но её сюжетную связь не наследует.
+  if (inc.duty) return null;
   if (inc.sandbox) {
     const d = caseDef(inc.sandbox.caseId);
     if (!d) return null;

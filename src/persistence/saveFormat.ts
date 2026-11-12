@@ -84,6 +84,14 @@ const MIGRATIONS: Record<number, (s: Record<string, unknown>) => Record<string, 
   10: (s) => ({ ...s, incoming: [] }),
   /** v11 → v12: поля песочницы добавочные; кампания переносится без изменений. */
   11: (s) => ({ ...s }),
+  /** v12 → v13: у уже начатого дела фон придёт через 90 минут, иначе ждёт первый выезд. */
+  12: (s) => {
+    if (s.mode !== 'sandbox' || !isObject(s.sandbox)) return { ...s };
+    const investigations = isObject(s.investigations) ? s.investigations : {};
+    const opened = Array.isArray(investigations.cases) && investigations.cases.length > 0;
+    const minute = Number.isInteger(s.minute) ? s.minute as number : 0;
+    return { ...s, sandbox: { ...s.sandbox, duty: { nextAt: opened ? minute + 90 : null, generated: 0 } } };
+  },
 };
 
 export function toSaveFile(state: GameState, label: string, now: Date): SaveFile {
@@ -137,8 +145,11 @@ function validateState(s: Record<string, unknown>): string | null {
     if (s.phase !== 'ACTIVE') return 'неверная фаза песочницы';
     for (const key of ['unlockedDistricts', 'controlledDistricts', 'rewardedCases'] as const)
       if (!Array.isArray(sb[key])) return `нет раздела sandbox.${key}`;
-    for (const key of ['caseRuns', 'recovery'] as const)
+    for (const key of ['caseRuns', 'recovery', 'duty'] as const)
       if (!isObject(sb[key])) return `нет раздела sandbox.${key}`;
+    const duty = sb.duty as Record<string, unknown>;
+    if (duty.nextAt !== null && !Number.isInteger(duty.nextAt)) return 'неверное расписание дежурных вызовов';
+    if (!Number.isInteger(duty.generated)) return 'неверный счётчик дежурных вызовов';
     for (const key of ['squadSlots', 'order', 'legitimacy', 'readiness'] as const)
       if (!Number.isFinite(sb[key])) return `неверное значение sandbox.${key}`;
     if (typeof sb.activeCaseId !== 'string') return 'нет активного дела песочницы';

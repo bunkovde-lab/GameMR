@@ -95,7 +95,8 @@ export function dealPaymentsDue(s: GameState): number {
 // ---------- Правовые требования к тактике ----------
 
 export function legalRequirement(inc: Incident | undefined, tactic: TacticId): LegalRequirement | null {
-  if (!inc) return null;
+  // Обычный вызов не наследует судебные ограничения переиспользованного сюжетного шаблона.
+  if (!inc || inc.duty) return null;
   return POLITICS.legalRequirements.find((r) => r.templateId === inc.templateId && r.tactics.includes(tactic)) ?? null;
 }
 const usable = (p: Permit, s: GameState) => p.status === 'granted' && p.expiresShift >= s.shift;
@@ -121,6 +122,7 @@ export const needsEmergency = (s: GameState, incidentId: string, tactic: TacticI
 
 export function requestBlocker(s: GameState, incidentId: string, kind: 'judicial' | 'interagency'): string | null {
   const inc = s.incidents.find((i) => i.id === incidentId);
+  if (inc?.duty) return 'Для обычного дежурного вызова судебный ордер и специальный допуск не требуются.';
   if (!inc || !isOpen(inc)) return 'Вызов закрыт или не найден.';
   if (s.phase !== 'ACTIVE') return 'Запросы рассматриваются во время смены.';
   const req = POLITICS.legalRequirements.find((r) => r.templateId === inc.templateId && r.permit === kind);

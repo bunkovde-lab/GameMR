@@ -1,6 +1,6 @@
 import sandboxFile from '../../content/sandbox_v1.json';
 import { createInitialState, DEFAULT_SEED } from './state';
-import { SQUADS_DEMO, toCents } from './content';
+import { dutyTemplateFor, SQUADS_DEMO, toCents, type DutyTemplateDef } from './content';
 import { actionDef, caseDef, caseFile, completeFieldAction, courtChance } from './investigations';
 import { districtById } from './map/mapConfig';
 import { nextFloat, nextInt } from './rng';
@@ -9,18 +9,6 @@ import { setFlag } from './flags';
 import type {
   DistrictId, DutyKind, GameState, Incident, OperationReport, SandboxGoal, SandboxOutcome, SandboxState, Severity, Squad,
 } from './types';
-
-interface DutyTemplateDef {
-  kind: DutyKind;
-  label: string;
-  templateId: string;
-  title: string;
-  districtId: DistrictId;
-  rewardRe: number;
-  description: string;
-  successText: string;
-  failureText: string;
-}
 
 interface SandboxEventDef {
   caseId: string;
@@ -97,9 +85,6 @@ export const DUTY_KIND_LABEL: Record<DutyKind, string> = {
 };
 
 export const isSandbox = (s: GameState) => s.mode === 'sandbox' && !!s.sandbox;
-export const dutyTemplateFor = (inc: Incident) => inc.duty
-  ? DATA.duty.templates.find((d) => d.kind === inc.duty!.kind && d.districtId === inc.districtId)
-  : undefined;
 export const sandboxEventDef = (eventId: string) => DATA.events[eventId];
 export const sandboxCaseDef = (caseId: string) => DATA.cases[caseId];
 export const sandboxEventFor = (inc: Incident) => inc.sandbox ? sandboxEventDef(inc.sandbox.eventId) : undefined;

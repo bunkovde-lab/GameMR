@@ -36,7 +36,8 @@ export const OPS = opsFile as unknown as {
   stages: Record<string, Stage[]>;
 };
 
-export const stagesFor = (inc: Incident): Stage[] => OPS.stages[inc.templateId] ?? [];
+// Дежурный вызов использует общий расчёт операции, но не сюжетные развилки чужого шаблона.
+export const stagesFor = (inc: Incident): Stage[] => inc.duty ? [] : OPS.stages[inc.templateId] ?? [];
 export const homeNode = (sq: Squad) => SQUADS_DEMO.find((d) => d.id === sq.id)?.currentNodeId ?? sq.currentNodeId;
 
 /** Отряд, ждущий решения игрока (DECISION_PAUSE, ТЗ §2.2). Пока он есть, время не идёт. */
@@ -197,7 +198,7 @@ export function resolveOperation(s: GameState, sq: Squad, inc: Incident): Operat
     tasks: [
       { label: 'Цель операции', result: goal },
       { label: 'Безопасность горожан', result: civil },
-      { label: 'Сохранность улик', result: evidence },
+      { label: inc.duty ? 'Дополнительный ущерб' : 'Сохранность улик', result: evidence },
     ],
     casualties,
     xp: OPS.xp[outcome],

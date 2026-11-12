@@ -3,7 +3,7 @@ import { forecastNarrow, researchOf } from './research';
 import { permitBlocker } from './politics';
 import { caseTaskOf } from './selectors';
 import dispatchFile from '../../content/dispatch_v1.json';
-import { DISPATCH_COST, INCIDENT_TEMPLATES, ROLE_LABEL } from './content';
+import { DISPATCH_COST, dutyProfileFor, INCIDENT_TEMPLATES, ROLE_LABEL } from './content';
 import { buildRoute, etaMinutes, type Route } from './map/graph';
 import { districtById } from './map/mapConfig';
 import type {
@@ -42,6 +42,8 @@ export const equipmentType = (id: string) => EQUIPMENT_TYPES.find((t) => t.id ==
 
 const PROFILES = new Map(INCIDENT_TEMPLATES.map((t) => [t.id, t as unknown as IncidentProfile]));
 export function incidentProfile(inc: Incident): IncidentProfile {
+  const duty = dutyProfileFor(inc);
+  if (duty) return duty;
   return PROFILES.get(inc.templateId) ?? {
     incidentClass: 'routine', difficulty: 11, requirements: ['reaction', 'analysis', 'control'], requiredRoles: [],
     intel: 0, tacticFit: { recon: 0, arrest: 0, suppression: 0, quarantine: 0 }, tags: [], known: '',

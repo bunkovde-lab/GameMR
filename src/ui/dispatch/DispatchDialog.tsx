@@ -20,6 +20,7 @@ import { SQUAD_STATUS } from '../labels';
 import { SquadMember, memberSummary } from '../shell/SquadStrip';
 import { PERMIT_NAME, POLITICS, emergencyRisk, legalRequirement, permitBlocker, requestBlocker, riskWord } from '../../core/politics';
 import { SANDBOX_GOAL_LABEL, sandboxEventFor, sandboxGoalFor } from '../../core/sandbox';
+import { DutyBrief } from '../shell/DutyBrief';
 
 interface Props {
   game: GameState;
@@ -122,7 +123,7 @@ export function DispatchDialog({ game, incidentId, initialSquadId, onClose, onPr
             <div><dt>Нужны роли</dt><dd>{prof.requiredRoles.map((r) => ROLE_LABEL[r]).join(', ') || '—'}</dd></div>
             {game.paused && active && <div className="paused-chip" data-testid="dispatch-paused"><dt>⏸</dt><dd>Пауза, пока окно открыто</dd></div>}
           </dl>
-          {prof.known && <p className="known" data-testid="dispatch-known">{houseText(prof.known)}</p>}
+          {prof.known && !inc.duty && <p className="known" data-testid="dispatch-known">{houseText(prof.known)}</p>}
           {inc.sandbox && (() => {
             const def = sandboxEventFor(inc)!;
             const goal = sandboxGoalFor(inc)!;
@@ -137,8 +138,9 @@ export function DispatchDialog({ game, incidentId, initialSquadId, onClose, onPr
               </section>
             );
           })()}
+          <DutyBrief inc={inc} left={left} testId="dispatch-duty-brief" />
           {(() => {
-            if (inc.sandbox) return null;
+            if (inc.sandbox || inc.duty) return null;
             const t = templateOf(inc);
             const stakes = publicAftermath(t);
             const late = t?.lateText;

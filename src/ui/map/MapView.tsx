@@ -325,10 +325,10 @@ export function MapView({ game, selection, previewSquadId, onSelect }: Props) {
                   return (
                     <button
                       key={inc.id}
-                      className={`marker incident sev-${inc.severity} st-${inc.state}${selected ? ' selected' : ''}${art ? ' shield' : ''}${link ? ' case-link' : ''}`}
+                      className={`marker incident sev-${inc.severity} st-${inc.state}${selected ? ' selected' : ''}${art ? ' shield' : ''}${link ? ' case-link' : ''}${inc.duty ? ' duty-call' : ''}`}
                       style={{ left: m.x, top: m.y }}
                       onClick={() => onSelect({ kind: 'incident', id: inc.id })}
-                      aria-label={`Вызов: ${inc.title}${link ? `. Связан с делом №${link.number}` : ''}${goal ? `. Цель: ${SANDBOX_GOAL_LABEL[goal]}` : ''}`}
+                      aria-label={`Вызов: ${inc.title}${link ? `. Связан с делом №${link.number}` : ''}${goal ? `. Цель: ${SANDBOX_GOAL_LABEL[goal]}` : ''}${inc.duty ? `. ${inc.duty.urgent ? 'Срочный дежурный вызов' : 'Обычный дежурный вызов'}. К расследованию не относится` : ''}`}
                       aria-pressed={selected}
                       data-testid={`marker-incident-${inc.id}`}
                       data-moved={m.moved || undefined}
@@ -338,6 +338,7 @@ export function MapView({ game, selection, previewSquadId, onSelect }: Props) {
                         {timer.tone !== 'state' && <Icon name="clock" />}
                         <span className="t">{timer.text}</span>
                         {link && <span className="case-no" data-testid={`case-badge-${inc.id}`}>№{link.number}</span>}
+                        {inc.duty && <span className="duty-no" data-testid={`duty-badge-${inc.id}`}>Д</span>}
                       </span>
                     </button>
                   );

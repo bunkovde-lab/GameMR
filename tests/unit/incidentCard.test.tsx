@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { createInitialState } from '../../src/core/state';
 import type { Incident } from '../../src/core/types';
+import { artUrl } from '../../src/ui/art';
 import { ContextPanel } from '../../src/ui/shell/ContextPanel';
 import { incidentArtKeys } from '../../src/ui/shell/IncidentArt';
 
@@ -22,14 +23,27 @@ describe('ART-023: карточка происшествия', () => {
     expect(incidentArtKeys('strike')).toEqual(['inc_strike', 'inc_type_riot']);
   });
 
-  it('вызов со сценой показывает готовый арт, без сцены — заглушку типа', () => {
+  it('все 22 события части Б получают собственный подключённый арт', () => {
+    const ids = [
+      'cold_seal', 'triage', 'graft', 'stairs_blood', 'spectrometer', 'courier_box',
+      'incubator', 'foreign_memory', 'missing', 'court_seal', 'two_protocols',
+      'foreign_badge', 'floor_hum', 'strike', 'collector', 'garden_turn', 'spores',
+      'green_water', 'false_call', 'illegal', 'empty_flat', 'no_guardian',
+    ];
+    for (const id of ids) {
+      const key = `inc_${id}`;
+      expect(incidentArtKeys(id)[0]).toBe(key);
+      expect(artUrl(key), key).toBeTruthy();
+    }
+  });
+
+  it('вызов со сценой показывает готовый арт, без сцены — собственную иллюстрацию', () => {
     renderCard({ id: 'bioleak' });
     expect(screen.getByTestId('inc-hero').getAttribute('data-art')).toBe('scene_sci_breakin');
     expect(screen.getByTestId('inc-hero').className).toContain('has-art');
     cleanup();
-    // Без своей сцены — картинка типа угрозы (ART-023, часть А).
     renderCard({ id: 'missing' });
-    expect(screen.getByTestId('inc-hero').getAttribute('data-art')).toBe('inc_type_search');
+    expect(screen.getByTestId('inc-hero').getAttribute('data-art')).toBe('inc_missing');
     expect(screen.getByTestId('inc-hero').className).toContain('has-art');
   });
 

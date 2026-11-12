@@ -6,7 +6,9 @@ import type { ReactNode } from 'react';
  * сборкой без изменений кода. Пока файла нет — нейтральная заглушка с подписью, интерактивные элементы всегда рисует код.
  */
 const files = {
-  ...import.meta.glob('../../assets/{backgrounds,events,locations,incidents}/*.{webp,png,jpg}', { eager: true, import: 'default' }),
+  ...import.meta.glob('../../assets/{backgrounds,events,locations}/*.{webp,png,jpg}', { eager: true, import: 'default' }),
+  // ART-023: у каждого PNG-мастера есть оптимизированная WebP-копия; в сборку попадают только они.
+  ...import.meta.glob('../../assets/incidents/*.webp', { eager: true, import: 'default' }),
   // ART-016: только игровые webp-копии Дирекции (оригиналы PNG в сборку не попадают).
   ...import.meta.glob('../../assets/{facilities,research}/web/*.webp', { eager: true, import: 'default' }),
 } as Record<string, string>;

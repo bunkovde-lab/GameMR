@@ -24,6 +24,6 @@ test('ART-023: карточка показывает иллюстрацию и �
   await page.screenshot({ path: `test-results/screens/incident-card-${info.project.name}.png` });
 
   await openIncident(page, 'missing');
-  await expect(page.getByTestId('inc-hero')).toHaveAttribute('data-art', 'inc_type_search');
+  await expect(page.getByTestId('inc-hero')).toHaveAttribute('data-art', 'inc_missing');
   await expect(page.getByTestId('inc-hero')).toHaveClass(/has-art/);
 });

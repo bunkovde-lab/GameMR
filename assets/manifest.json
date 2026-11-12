@@ -45,6 +45,21 @@
       "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p01.webp (256×320) и face_p01.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
     },
     {
+      "id": "MARA_KASS_ANIMATED_BUST",
+      "file": "assets/characters/animated/mara_kass_bust.glb",
+      "category": "characters",
+      "role": "Анимированный бюст: Мара Касс, крупный портрет в личном деле",
+      "status": "integrated",
+      "format": "glTF 2.0 binary",
+      "triangles": 6698,
+      "animation": "Idle",
+      "durationSeconds": 9,
+      "sha256": "87ffd491d0647eb91002fef59965ee427b264350cbca020385e90bc8a602d000",
+      "source": "Производный ассет от утверждённого PORTRAIT_P01 (ART-005); модель и индивидуальная анимация подготовлены для GameMR",
+      "approvedBy": null,
+      "notes": "Используется только для Portrait id=p1 size=lg. Цикл Idle: моргание, сдержанная мимика, покачивание и индивидуальные повороты головы. Утверждённый WebP остаётся poster/fallback при загрузке, reduced-motion, ошибке ассета или недоступном WebGL."
+    },
+    {
       "id": "PORTRAIT_P02",
       "file": "assets/characters/portrait_p02_kord_rein.png",
       "category": "characters",
@@ -57,6 +72,21 @@
       "source": "ART-005: единая серия 12 портретов, утверждённая владельцем 2026-11-08",
       "approvedBy": "Дмитрий",
       "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p02.webp (256×320) и face_p02.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
+    },
+    {
+      "id": "KORD_REIN_ANIMATED_BUST",
+      "file": "assets/characters/animated/kord_rein_bust.glb",
+      "category": "characters",
+      "role": "Анимированный бюст Корда Рейна для крупного портрета в личном деле",
+      "status": "integrated",
+      "format": "glTF 2.0 binary",
+      "triangles": 6646,
+      "animation": "Idle",
+      "durationSeconds": 8,
+      "sha256": "db09e08843be38e60a50ececfe660d8863e7a20485432b179ace092a7315a8fc",
+      "source": "Производный ассет от утверждённого PORTRAIT_P02 (ART-005); модель и анимация подготовлены для GameMR",
+      "approvedBy": "Дмитрий",
+      "notes": "Используется только для Portrait id=p2 size=lg. Цикл Idle: движение головы, моргание и сдержанная мимика. Утверждённый WebP остаётся poster/fallback при загрузке, reduced-motion, ошибке ассета или недоступном WebGL."
     },
     {
       "id": "PORTRAIT_P03",
@@ -73,6 +103,21 @@
       "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p03.webp (256×320) и face_p03.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
     },
     {
+      "id": "IRMA_VESS_ANIMATED_BUST",
+      "file": "assets/characters/animated/irma_vess_bust.glb",
+      "category": "characters",
+      "role": "Анимированный бюст: Ирма Весс, крупный портрет в личном деле",
+      "status": "integrated",
+      "format": "glTF 2.0 binary",
+      "triangles": 6840,
+      "animation": "Idle",
+      "durationSeconds": 10,
+      "sha256": "dca50da88c7ceb3452cdef5a395f27698c537af940393a2d2d060c6d92342ac2",
+      "source": "Производный ассет от утверждённого PORTRAIT_P03 (ART-005); модель и индивидуальная анимация подготовлены для GameMR",
+      "approvedBy": null,
+      "notes": "Используется только для Portrait id=p3 size=lg. Цикл Idle: моргание, сдержанная мимика, покачивание и индивидуальные повороты головы. Утверждённый WebP остаётся poster/fallback при загрузке, reduced-motion, ошибке ассета или недоступном WebGL."
+    },
+    {
       "id": "PORTRAIT_P04",
       "file": "assets/characters/portrait_p04_elias_vern.png",
       "category": "characters",
@@ -85,6 +130,21 @@
       "source": "ART-005: единая серия 12 портретов, утверждённая владельцем 2026-11-08",
       "approvedBy": "Дмитрий",
       "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p04.webp (256×320) и face_p04.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
+    },
+    {
+      "id": "ELIAS_VERN_ANIMATED_BUST",
+      "file": "assets/characters/animated/elias_vern_bust.glb",
+      "category": "characters",
+      "role": "Анимированный бюст: Элиас Верн, крупный портрет в личном деле",
+      "status": "integrated",
+      "format": "glTF 2.0 binary",
+      "triangles": 7402,
+      "animation": "Idle",
+      "durationSeconds": 7.5,
+      "sha256": "f1f42575d8f2fdedc03a7894512f0657b33948667b54fae4dc3b66c88ff3e2bd",
+      "source": "Производный ассет от утверждённого PORTRAIT_P04 (ART-005); модель и индивидуальная анимация подготовлены для GameMR",
+      "approvedBy": null,
+      "notes": "Используется только для Portrait id=p4 size=lg. Цикл Idle: моргание, сдержанная мимика, покачивание и индивидуальные повороты головы. Утверждённый WebP остаётся poster/fallback при загрузке, reduced-motion, ошибке ассета или недоступном WebGL."
     },
     {
       "id": "PORTRAIT_P05",
@@ -101,6 +161,21 @@
       "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p05.webp (256×320) и face_p05.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
     },
     {
+      "id": "SAI_TESSA_ANIMATED_BUST",
+      "file": "assets/characters/animated/sai_tessa_bust.glb",
+      "category": "characters",
+      "role": "Анимированный бюст: Сай Тесса, крупный портрет в личном деле",
+      "status": "integrated",
+      "format": "glTF 2.0 binary",
+      "triangles": 6902,
+      "animation": "Idle",
+      "durationSeconds": 8.5,
+      "sha256": "4a69c8be4774822ba75cfb4cda5653281e49621e4b05f69fec26d0e5a29e2ed5",
+      "source": "Производный ассет от утверждённого PORTRAIT_P05 (ART-005); модель и индивидуальная анимация подготовлены для GameMR",
+      "approvedBy": null,
+      "notes": "Используется только для Portrait id=p5 size=lg. Цикл Idle: моргание, сдержанная мимика, покачивание и индивидуальные повороты головы. Утверждённый WebP остаётся poster/fallback при загрузке, reduced-motion, ошибке ассета или недоступном WebGL."
+    },
+    {
       "id": "PORTRAIT_P06",
       "file": "assets/characters/portrait_p06_arden_lass.png",
       "category": "characters",
@@ -113,6 +188,21 @@
       "source": "ART-005: единая серия 12 портретов, утверждённая владельцем 2026-11-08",
       "approvedBy": "Дмитрий",
       "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p06.webp (256×320) и face_p06.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
+    },
+    {
+      "id": "ARDEN_LASS_ANIMATED_BUST",
+      "file": "assets/characters/animated/arden_lass_bust.glb",
+      "category": "characters",
+      "role": "Анимированный бюст: Арден Ласс, крупный портрет в личном деле",
+      "status": "integrated",
+      "format": "glTF 2.0 binary",
+      "triangles": 8008,
+      "animation": "Idle",
+      "durationSeconds": 11,
+      "sha256": "e945d98aa2abe5cd3612ca3b557351d9475ed69867041ce46aa36e47c294aa78",
+      "source": "Производный ассет от утверждённого PORTRAIT_P06 (ART-005); модель и индивидуальная анимация подготовлены для GameMR",
+      "approvedBy": null,
+      "notes": "Используется только для Portrait id=p6 size=lg. Цикл Idle: моргание, сдержанная мимика, покачивание и индивидуальные повороты головы. Утверждённый WebP остаётся poster/fallback при загрузке, reduced-motion, ошибке ассета или недоступном WebGL."
     },
     {
       "id": "PORTRAIT_P07",
@@ -129,6 +219,21 @@
       "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p07.webp (256×320) и face_p07.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
     },
     {
+      "id": "NEIRA_TOR_ANIMATED_BUST",
+      "file": "assets/characters/animated/neira_tor_bust.glb",
+      "category": "characters",
+      "role": "Анимированный бюст: Нейра Тор, крупный портрет в личном деле",
+      "status": "integrated",
+      "format": "glTF 2.0 binary",
+      "triangles": 6731,
+      "animation": "Idle",
+      "durationSeconds": 9.5,
+      "sha256": "be9e6ed5e636b29be91746405ca21792366c96ec8ded8fb35610285d773cfe0d",
+      "source": "Производный ассет от утверждённого PORTRAIT_P07 (ART-005); модель и индивидуальная анимация подготовлены для GameMR",
+      "approvedBy": null,
+      "notes": "Используется только для Portrait id=p7 size=lg. Цикл Idle: моргание, сдержанная мимика, покачивание и индивидуальные повороты головы. Утверждённый WebP остаётся poster/fallback при загрузке, reduced-motion, ошибке ассета или недоступном WebGL."
+    },
+    {
       "id": "PORTRAIT_P08",
       "file": "assets/characters/portrait_p08_tarn_sev.png",
       "category": "characters",
@@ -141,6 +246,21 @@
       "source": "ART-005: единая серия 12 портретов, утверждённая владельцем 2026-11-08",
       "approvedBy": "Дмитрий",
       "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p08.webp (256×320) и face_p08.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
+    },
+    {
+      "id": "TARN_SEV_ANIMATED_BUST",
+      "file": "assets/characters/animated/tarn_sev_bust.glb",
+      "category": "characters",
+      "role": "Анимированный бюст: Тарн Сев, крупный портрет в личном деле",
+      "status": "integrated",
+      "format": "glTF 2.0 binary",
+      "triangles": 6932,
+      "animation": "Idle",
+      "durationSeconds": 7,
+      "sha256": "1016e53c272db58594ac69c4c09538f6b980888b791bf04ceb2c18ad8d5f92f7",
+      "source": "Производный ассет от утверждённого PORTRAIT_P08 (ART-005); модель и индивидуальная анимация подготовлены для GameMR",
+      "approvedBy": null,
+      "notes": "Используется только для Portrait id=p8 size=lg. Цикл Idle: моргание, сдержанная мимика, покачивание и индивидуальные повороты головы. Утверждённый WebP остаётся poster/fallback при загрузке, reduced-motion, ошибке ассета или недоступном WebGL."
     },
     {
       "id": "PORTRAIT_P09",
@@ -157,6 +277,21 @@
       "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p09.webp (256×320) и face_p09.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
     },
     {
+      "id": "SELI_RENN_ANIMATED_BUST",
+      "file": "assets/characters/animated/seli_renn_bust.glb",
+      "category": "characters",
+      "role": "Анимированный бюст: Сели Ренн, крупный портрет в личном деле",
+      "status": "integrated",
+      "format": "glTF 2.0 binary",
+      "triangles": 8334,
+      "animation": "Idle",
+      "durationSeconds": 12,
+      "sha256": "9383e0d5b4542d32058d811f51055bc44a98e1a411ac683c4848d346ef94560f",
+      "source": "Производный ассет от утверждённого PORTRAIT_P09 (ART-005); модель и индивидуальная анимация подготовлены для GameMR",
+      "approvedBy": null,
+      "notes": "Используется только для Portrait id=p9 size=lg. Цикл Idle: моргание, сдержанная мимика, покачивание и индивидуальные повороты головы. Утверждённый WebP остаётся poster/fallback при загрузке, reduced-motion, ошибке ассета или недоступном WebGL."
+    },
+    {
       "id": "PORTRAIT_P10",
       "file": "assets/characters/portrait_p10_gard_verek.png",
       "category": "characters",
@@ -169,6 +304,21 @@
       "source": "ART-005: единая серия 12 портретов, утверждённая владельцем 2026-11-08",
       "approvedBy": "Дмитрий",
       "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p10.webp (256×320) и face_p10.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
+    },
+    {
+      "id": "GARD_VEREK_ANIMATED_BUST",
+      "file": "assets/characters/animated/gard_verek_bust.glb",
+      "category": "characters",
+      "role": "Анимированный бюст: Гард Верек, крупный портрет в личном деле",
+      "status": "integrated",
+      "format": "glTF 2.0 binary",
+      "triangles": 6289,
+      "animation": "Idle",
+      "durationSeconds": 8.8,
+      "sha256": "3ef4a49ceb494b30785b546ec9a0eebbca392d1e6fdaca76306c837fde75b712",
+      "source": "Производный ассет от утверждённого PORTRAIT_P10 (ART-005); модель и индивидуальная анимация подготовлены для GameMR",
+      "approvedBy": null,
+      "notes": "Используется только для Portrait id=p10 size=lg. Цикл Idle: моргание, сдержанная мимика, покачивание и индивидуальные повороты головы. Утверждённый WebP остаётся poster/fallback при загрузке, reduced-motion, ошибке ассета или недоступном WebGL."
     },
     {
       "id": "PORTRAIT_P11",
@@ -185,6 +335,21 @@
       "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p11.webp (256×320) и face_p11.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
     },
     {
+      "id": "LIKA_ORT_ANIMATED_BUST",
+      "file": "assets/characters/animated/lika_ort_bust.glb",
+      "category": "characters",
+      "role": "Анимированный бюст: Лика Орт, крупный портрет в личном деле",
+      "status": "integrated",
+      "format": "glTF 2.0 binary",
+      "triangles": 7660,
+      "animation": "Idle",
+      "durationSeconds": 10.5,
+      "sha256": "9b47332ec7f819da445857f55e63e3b5ca5b1f5a89fb4eede0e8ea0b84db933a",
+      "source": "Производный ассет от утверждённого PORTRAIT_P11 (ART-005); модель и индивидуальная анимация подготовлены для GameMR",
+      "approvedBy": null,
+      "notes": "Используется только для Portrait id=p11 size=lg. Цикл Idle: моргание, сдержанная мимика, покачивание и индивидуальные повороты головы. Утверждённый WebP остаётся poster/fallback при загрузке, reduced-motion, ошибке ассета или недоступном WebGL."
+    },
+    {
       "id": "PORTRAIT_P12",
       "file": "assets/characters/portrait_p12_ran_vett.png",
       "category": "characters",
@@ -197,6 +362,21 @@
       "source": "ART-005: единая серия 12 портретов, утверждённая владельцем 2026-11-08",
       "approvedBy": "Дмитрий",
       "notes": "PNG RGB 4:5, извлечён из утверждённого общего художественного листа. Имена рабочие OPEN-08; фон содержит небольшие художественные световые вариации и не является абсолютно плоским #141922. Подключён (PR art005-portraits): в игре используются копии assets/characters/web/portrait_p12.webp (256×320) и face_p12.webp (128×128, обрезка лица), созданные scripts/build_portraits.py; оригинал не изменён. Состояния ранен/погиб/пропал рисует код (src/ui/Portrait.tsx)."
+    },
+    {
+      "id": "RAN_VETT_ANIMATED_BUST",
+      "file": "assets/characters/animated/ran_vett_bust.glb",
+      "category": "characters",
+      "role": "Анимированный бюст: Ран Ветт, крупный портрет в личном деле",
+      "status": "integrated",
+      "format": "glTF 2.0 binary",
+      "triangles": 6390,
+      "animation": "Idle",
+      "durationSeconds": 9.2,
+      "sha256": "1637a3acaafc1175acfd932bc88d3dc7244e1fad7cb977eb539c7b1028779c7d",
+      "source": "Производный ассет от утверждённого PORTRAIT_P12 (ART-005); модель и индивидуальная анимация подготовлены для GameMR",
+      "approvedBy": null,
+      "notes": "Используется только для Portrait id=p12 size=lg. Цикл Idle: моргание, сдержанная мимика, покачивание и индивидуальные повороты головы. Утверждённый WebP остаётся poster/fallback при загрузке, reduced-motion, ошибке ассета или недоступном WebGL."
     },
     {
       "id": "ART008_BTN_DEFAULT_9S",
@@ -2773,6 +2953,424 @@
       "source": "GameMR_ART022_7_organ_icons_REVIEW.zip; 2026-11-10",
       "approvedBy": "Дмитрий",
       "notes": "Исходный PNG без изменений, передан Дмитрием для подключения. Состояния (изучено/закрыто/курс) рисует код."
+    },
+    {
+      "id": "ART023_INC_COLD_SEAL",
+      "file": "assets/incidents/inc_cold_seal.png",
+      "name": "inc_cold_seal.png",
+      "label": "Пломба без владельца",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": "Дмитрий",
+      "sha256": "d3850f070b89c82fa129e2039ade27cc4b849c9911d4a5237f3dc0d542c77879",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку. Художественное направление пакета утверждено Дмитрием на этом изображении.",
+      "webCopies": [
+        "assets/incidents/inc_cold_seal.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_TRIAGE",
+      "file": "assets/incidents/inc_triage.png",
+      "name": "inc_triage.png",
+      "label": "Третий поток сортировки",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "fd42b594adbd712f1fb1c643f72cc01c1cb7891da307d49500e849bdc6ec902d",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_triage.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_GRAFT",
+      "file": "assets/incidents/inc_graft.png",
+      "name": "inc_graft.png",
+      "label": "Генетический отказ трансплантата",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "0e72076a0469175e8d10cca335078263b37130cde9e3a5acb1feea24aec77bd6",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_graft.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_STAIRS_BLOOD",
+      "file": "assets/incidents/inc_stairs_blood.png",
+      "name": "inc_stairs_blood.png",
+      "label": "Кровь на лестничном марше",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "bc304b0986bdd5b24101b0290e14347581f1518720ef3a3253f97034f88868b5",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_stairs_blood.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_SPECTROMETER",
+      "file": "assets/incidents/inc_spectrometer.png",
+      "name": "inc_spectrometer.png",
+      "label": "Слепой спектрометр",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "e64616143ff41b051b7e154297d909ead9c462ac24c2448c97b2cedb166b0636",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_spectrometer.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_COURIER_BOX",
+      "file": "assets/incidents/inc_courier_box.png",
+      "name": "inc_courier_box.png",
+      "label": "Контейнер из жилого блока",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "3cdc51dfd4af1df1bb8b5272f8b1420ba838b0f1db5f8e513131ba20fd233d02",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_courier_box.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_INCUBATOR",
+      "file": "assets/incidents/inc_incubator.png",
+      "name": "inc_incubator.png",
+      "label": "Пустой инкубатор",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "213f6b8af90c0b76d9f296600a20c8e693550768e09dcd52284be61d63ea3f05",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_incubator.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_FOREIGN_MEMORY",
+      "file": "assets/incidents/inc_foreign_memory.png",
+      "name": "inc_foreign_memory.png",
+      "label": "Свидетель с чужой памятью",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "c5b26ea897827d93d50335e2ceec68d12f120695a64a016d80914f4c48f6497e",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_foreign_memory.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_MISSING",
+      "file": "assets/incidents/inc_missing.png",
+      "name": "inc_missing.png",
+      "label": "Пропажа регистратора",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "dbbf276d20d4566bb45879386bca92f3f456c42dfe3a7f1151590049f1ae2aaa",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_missing.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_COURT_SEAL",
+      "file": "assets/incidents/inc_court_seal.png",
+      "name": "inc_court_seal.png",
+      "label": "Печать отложенного решения",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "52fe5a9423d9b7d72fb5b1e28b28d3feee62369dfbe0360b324641841b6f8cfd",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_court_seal.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_TWO_PROTOCOLS",
+      "file": "assets/incidents/inc_two_protocols.png",
+      "name": "inc_two_protocols.png",
+      "label": "Две версии протокола",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "08ab96890f199380ca219b8fdcb3302a975c9234d3727d497e738356354c13e3",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_two_protocols.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_FOREIGN_BADGE",
+      "file": "assets/incidents/inc_foreign_badge.png",
+      "name": "inc_foreign_badge.png",
+      "label": "Значок чужого ведомства",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "3b280537971e7160c2dabf6e7b1155552ac55b2076d63d51aaea3e9dc24cd0e2",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_foreign_badge.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_FLOOR_HUM",
+      "file": "assets/incidents/inc_floor_hum.png",
+      "name": "inc_floor_hum.png",
+      "label": "Гул под станочным полом",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "ffe7ef19f84b306df5b554a42b4d8f2a0cf63b2cad3f600d88e96ea93190f97c",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_floor_hum.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_STRIKE",
+      "file": "assets/incidents/inc_strike.png",
+      "name": "inc_strike.png",
+      "label": "Забастовка у конвейера",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "6f47b9666fe9faedd932d0d1f6b525cb5c2c82748a4d079f60dd630794c3e833",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_strike.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_COLLECTOR",
+      "file": "assets/incidents/inc_collector.png",
+      "name": "inc_collector.png",
+      "label": "Старый голос в коллекторе",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "12ffe2358cb1adb8a9459a62222a55fde9678318a2533d6b751f48dc1adb9928",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_collector.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_GARDEN_TURN",
+      "file": "assets/incidents/inc_garden_turn.png",
+      "name": "inc_garden_turn.png",
+      "label": "Сад, который отвернулся",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "068318eb4b15112c41d8d94ec6b7619b6cb85df3961d296bd613d761ed41cae1",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_garden_turn.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_SPORES",
+      "file": "assets/incidents/inc_spores.png",
+      "name": "inc_spores.png",
+      "label": "Споры в вентиляционной решётке",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "0c1db5c548609fa98ac13f636e1761ebbbcb2f41fed459294d670958c82cc771",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_spores.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_GREEN_WATER",
+      "file": "assets/incidents/inc_green_water.png",
+      "name": "inc_green_water.png",
+      "label": "Питьевая вода зеленеет",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "537b90440ded5cacf8416531016a18ff5b7375347c02a71e697d52d4008d2223",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_green_water.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_FALSE_CALL",
+      "file": "assets/incidents/inc_false_call.png",
+      "name": "inc_false_call.png",
+      "label": "Ложный зов зверя",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "1570f623083281e1d07baf59d4d08cf9287520590e4aeac6c1d6c8c56c3368d0",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_false_call.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_ILLEGAL",
+      "file": "assets/incidents/inc_illegal.png",
+      "name": "inc_illegal.png",
+      "label": "Нелегальная модификация",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "b20f37bf47072731b7b4a73dd642b2d6bf7f5afac8435588a0ff7701f986338a",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_illegal.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_EMPTY_FLAT",
+      "file": "assets/incidents/inc_empty_flat.png",
+      "name": "inc_empty_flat.png",
+      "label": "Квартира без жильца",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "a95fd594f271867a7734cff4e1f1455b68298431334883b62931df2c2e683d6d",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_empty_flat.webp"
+      ]
+    },
+    {
+      "id": "ART023_INC_NO_GUARDIAN",
+      "file": "assets/incidents/inc_no_guardian.png",
+      "name": "inc_no_guardian.png",
+      "label": "Лист без опекуна",
+      "category": "events",
+      "role": "ART-023 часть Б: уникальная иллюстрация происшествия",
+      "status": "integrated",
+      "width": 1600,
+      "height": 900,
+      "alpha": false,
+      "source": "ART-023 часть Б; Kimi image generation; 2026-11-13",
+      "approvedBy": null,
+      "sha256": "4735ce730feae86b89c8b1bcc89df70c7adab0073b0e11a6fc00855cb33c9c4f",
+      "notes": "Центральная обрезка 2:1 проверена. Игра использует WebP 1280×720; PNG остаётся мастером и не включается в браузерную сборку.",
+      "webCopies": [
+        "assets/incidents/inc_no_guardian.webp"
+      ]
     },
     {
       "id": "ART023_INC_TYPE_RIOT",

@@ -1,0 +1,41 @@
+name: ART-023 one-time binary import
+
+on:
+  push:
+    paths:
+      - .github/workflows/art023-import.yml
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify base and import reviewed payload
+        env:
+          ART023_URL: 'https://www.kimi.com/apiv2-files/sign-obj/kimi-fs%2Ffiles%2Fblob%2Fc6a6773e7a63f3bf12c5bfd24bdf9dee229bb0eacbf36372327c6bc87ef2f1ba?filename=ART-023_%D0%B4%D0%BB%D1%8F_%D0%B2%D0%BB%D0%B8%D1%82%D0%B8%D1%8F.zip&sig=fcQEwlgGJLmBC7jxlTor5hUa53G1gpgNCGgV0buNdPc=&t=o'
+          ART023_SHA256: 'c6a6773e7a63f3bf12c5bfd24bdf9dee229bb0eacbf36372327c6bc87ef2f1ba'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --exit-code 97fb25416dc4068d09b82abff3bce5596c406831 -- src/ui/art.tsx assets/manifest.json tests/unit/incidentCard.test.tsx tests/e2e/incident-card.spec.ts
+          curl --fail --location --retry 3 "$ART023_URL" -o /tmp/art023-payload.zip
+          echo "$ART023_SHA256  /tmp/art023-payload.zip" | sha256sum -c -
+          rm -rf /tmp/art023-payload
+          unzip -q /tmp/art023-payload.zip -d /tmp/art023-payload
+          test "$(find /tmp/art023-payload -type f | wc -l)" -eq 48
+          cp -a /tmp/art023-payload/assets/. assets/
+          cp -a /tmp/art023-payload/src/. src/
+          cp -a /tmp/art023-payload/tests/. tests/
+          rm .github/workflows/art023-import.yml
+          git config user.name 'bunkovde-lab'
+          git config user.email 'bunkovde@gmail.com'
+          git add -- assets src tests .github/workflows/art023-import.yml
+          { unzip -Z1 /tmp/art023-payload.zip; echo .github/workflows/art023-import.yml; } | sort > /tmp/art023-expected.txt
+          git diff --cached --name-only | sort > /tmp/art023-actual.txt
+          diff -u /tmp/art023-expected.txt /tmp/art023-actual.txt
+          git diff --cached --check
+          git commit -m 'ART-023: 22 уникальные иллюстрации происшествий'
+          git push origin main

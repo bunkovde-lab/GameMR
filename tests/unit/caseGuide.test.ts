@@ -63,3 +63,12 @@ describe('Расследования: подсказки', () => {
     expect(caseNextStep(s, f)).toBeNull();
   });
 });
+
+
+describe('Расследования: дежурный вызов', () => {
+  it('не наследует сюжетную связь переиспользованного шаблона кампании', () => {
+    const s = started();
+    const inc = { ...s.incidents[0]!, templateId: 'convoy', duty: { kind: 'brawl' as const, urgent: false, rewardRe: 4 } };
+    expect(incidentCaseLink(s, inc)).toBeNull();
+  });
+});

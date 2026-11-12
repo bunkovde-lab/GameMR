@@ -35,7 +35,7 @@ test('board: links to versions, a comparison of two items, analysis by a chosen 
   await page.getByTestId('ev-e01').click();
   await tall(page, 'link-e01-h1b');
   await page.getByTestId('link-e01-h1b').click();
-  await expect(page.getByTestId('link-e01-h1b')).toContainText('предложена');
+  await expect(page.getByTestId('link-e01-h1b')).toContainText('ждёт проверки');
   await page.getByTestId('pair-with-e02').click();
   await expect(page.getByTestId('pair-list')).toContainText('ждёт проверки');
   await page.getByTestId('analyst-open').click();

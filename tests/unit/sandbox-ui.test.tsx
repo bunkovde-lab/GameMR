@@ -98,6 +98,34 @@ describe('Sandbox UI integration', () => {
     expect(getGame().paused).toBe(false);
   });
 
+  it('distinguishes supporting, contradicting, neutral and inconclusive evidence links', () => {
+    const s = openedSandbox();
+    const file = s.investigations.cases[0]!;
+    file.evidence.find((e) => e.id === 'e01')!.analysis = 'confirmed';
+    file.evidence.find((e) => e.id === 'e02')!.analysis = 'inconclusive';
+    replaceGame(s);
+    render(<App />);
+    act(() => { fireEvent.click(screen.getByTestId('nav-investigations')); });
+    if (screen.queryByTestId('case-help-close')) act(() => { fireEvent.click(screen.getByTestId('case-help-close')); });
+    act(() => { fireEvent.click(screen.getByTestId('ev-e01')); });
+
+    expect(screen.getByTestId('link-e01-h1b').textContent).toContain('подтверждает');
+    expect(screen.getByTestId('link-e01-h1a').textContent).toContain('опровергает');
+    expect(screen.getByTestId('link-e01-h1c').textContent).toContain('не влияет');
+    expect(screen.getByTestId('link-e01-h1d').textContent).toContain('не влияет');
+    expect(screen.getByTestId('link-effect-e01-h1c').textContent).toContain('Проверка выполнена');
+    expect(screen.getByTestId('link-effect-e01-h1c').textContent).not.toContain('повторная проверка');
+
+    act(() => { fireEvent.click(screen.getByTestId('link-e01-h1b')); });
+    expect(screen.getByTestId('hyp-count-h1b').textContent).toContain('1 из 3');
+    act(() => { fireEvent.click(screen.getByTestId('link-e01-h1c')); });
+    expect(screen.getByTestId('hyp-count-h1c').textContent).toContain('0 из 3');
+
+    act(() => { fireEvent.click(screen.getByTestId('ev-e02')); });
+    expect(screen.getByTestId('link-e02-h1b').textContent).toContain('результат неясен');
+    expect(screen.getByTestId('link-effect-e02-h1b').textContent).toContain('нужна повторная проверка');
+  });
+
   it('shows the case outcome and restarts a defeated scenario without touching campaign state', () => {
     const s = createSandboxState();
     s.sandbox!.result = { caseId: 'c1', outcome: 'error', title: 'Заключение опровергнуто', text: 'Материалы начаты заново.' };

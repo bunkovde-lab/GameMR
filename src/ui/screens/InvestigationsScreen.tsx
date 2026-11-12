@@ -33,8 +33,47 @@ const TABS: { id: Tab; label: string }[] = [
 const TYPE_ICON: Record<string, IconName> = {
   bio_sample: 'beaker', document: 'folder', recording: 'radio', testimony: 'person', object: 'search', finance: 'chart', registry: 'book', location: 'pin',
 };
-const LINK_WORD: Record<LinkStatus, string> = { proposed: 'предложена', supported: 'подтверждена', contradicted: 'опровергнута' };
 const PAIR_WORD: Record<LinkStatus, string> = { proposed: 'ждёт проверки улик', supported: 'связь подтверждена', contradicted: 'связи нет' };
+
+/** Отношение конкретной улики к версии — не окончательный статус самой версии. */
+function evidenceLinkEffect(game: GameState, f: CaseFile, d: CaseDef, evidenceId: string, hypothesisId: string, linked = false): { word: string; text: string; tone: LinkStatus } {
+  const ev = f.evidence.find((e) => e.id === evidenceId)!;
+  if (ev.analysis === 'none') return {
+    word: 'ждёт проверки', tone: 'proposed',
+    text: linked
+      ? 'Связь сохранена как рабочая пометка: подтверждением или противоречием она станет только после проверки улики.'
+      : 'Связь можно поставить как рабочую пометку, но подтверждением или противоречием она станет только после проверки улики.',
+  };
+  if (ev.analysis === 'inconclusive') return {
+    word: 'результат неясен', tone: 'proposed',
+    text: 'Проверка не дала результата по этой версии. Именно в этом случае нужна повторная проверка улики.',
+  };
+  const st = linkStatus(f, d, evidenceId, hypothesisId).status;
+  if (st === 'supported') {
+    const ok = admissibility(game, f, ev, evidenceDef(d, evidenceId)!).ok;
+    return ok ? {
+      word: 'подтверждает', tone: st,
+      text: linked
+        ? 'Уже учитывается как одно допустимое подтверждение в доказательной базе этой версии.'
+        : 'После добавления даст одно допустимое подтверждение для доказательной базы этой версии.',
+    } : {
+      word: 'подтверждает · сомнительна', tone: st,
+      text: 'Подтверждает версию, но не засчитывается в минимум допустимых доказательств и снижает шанс суда.',
+    };
+  }
+  if (st === 'contradicted') return {
+    word: 'опровергает', tone: st,
+    text: linked
+      ? 'Уже учтено как одно противоречие в доказательной базе этой версии.'
+      : 'После добавления будет учтено как одно противоречие для доказательной базы этой версии.',
+  };
+  return {
+    word: 'не влияет', tone: 'proposed',
+    text: linked
+      ? 'Проверка выполнена: улика не относится к этой версии. Связь сохранена как пометка и не изменяет доказательную базу.'
+      : 'Проверка выполнена: эта улика ни подтверждает, ни опровергает версию. Связь останется пометкой и не изменит доказательную базу.',
+  };
+}
 const KIND_WORD = { field: 'выезд', desk: 'кабинетная работа', lab: 'лаборатория' } as const;
 const CASE_ART: Record<string, string> = { c1: 'case1_registry_office', c2: 'case2_clinic', c3: 'case3_lab' };
 const minutesLeft = (game: GameState, doneAt: number) => Math.max(0, doneAt - absMinute(game));
@@ -259,7 +298,7 @@ function Board({ game, f, d, initialSel = null }: { game: GameState; f: CaseFile
   const pairsOf = (id: string) => f.pairs.filter((p) => p.a === id || p.b === id).length;
   return (
     <div className="board-wrap">
-      <p className="hint">Связи строите вы: улика → версия и улика ↔ улика. Линия остаётся «предложенной», пока улики не проверены. Доска не говорит, какая версия верна.</p>
+      <p className="hint">Проверка показывает, как улика относится к версиям. Затем вы сами добавляете её в доказательную базу выбранной версии — только так она учитывается в заключении. «Не влияет» означает завершённую проверку без отношения к версии, а не необходимость проверить снова.</p>
       <div className="board" ref={boardRef} data-testid="board" style={boardBg()} data-art="investigation_board_bg">
         <svg className="board-lines" aria-hidden="true">
           {lines.map((l) => {
@@ -286,8 +325,8 @@ function Board({ game, f, d, initialSel = null }: { game: GameState; f: CaseFile
                   {np > 0 && <span className="tag">сопоставлений: {np}</span>}
                 </span>
                 {f.links.filter((l) => l.evidenceId === ev.id).map((l) => {
-                  const st = linkStatus(f, d, ev.id, l.hypothesisId).status;
-                  return <small key={l.hypothesisId} className={`link-chip ${st}`}>→ {d.hypotheses.find((h) => h.id === l.hypothesisId)?.title}: {LINK_WORD[st]}</small>;
+                  const effect = evidenceLinkEffect(game, f, d, ev.id, l.hypothesisId);
+                  return <small key={l.hypothesisId} className={`link-chip ${effect.tone}`}>→ {d.hypotheses.find((h) => h.id === l.hypothesisId)?.title}: {effect.word}</small>;
                 })}
               </button>
             );
@@ -307,15 +346,23 @@ function Board({ game, f, d, initialSel = null }: { game: GameState; f: CaseFile
         </div>
         <div className="hypotheses" aria-label="Версии">
           {d.hypotheses.map((h) => {
-            const ls = f.links.filter((l) => l.hypothesisId === h.id).map((l) => linkStatus(f, d, l.evidenceId, h.id).status);
-            const n = (st: LinkStatus) => ls.filter((x) => x === st).length;
+            const links = f.links.filter((l) => l.hypothesisId === h.id);
+            const fc = caseForecast(game, f, h.id);
+            const noEffect = links.filter((l) => {
+              const ev = f.evidence.find((e) => e.id === l.evidenceId)!;
+              return ev.analysis !== 'none' && ev.analysis !== 'inconclusive' && linkStatus(f, d, l.evidenceId, h.id).status === 'proposed';
+            }).length;
+            const waiting = links.length - fc.supported - fc.contradicted - noEffect;
             return (
               <article key={h.id} data-hyp={h.id} className={`hyp-card${f.working === h.id ? ' working' : ''}`} data-testid={`hyp-${h.id}`}>
                 <header><b>{h.title}</b>{f.working === h.id && <span className="tag good">рабочая версия</span>}</header>
                 <small className="muted">{h.text}</small>
-                <small data-testid={`hyp-count-${h.id}`}>
-                  Связей: {ls.length}{ls.length ? ` · подтверждено ${n('supported')} · опровергнуто ${n('contradicted')} · предложено ${n('proposed')}` : ''}
+                <small className={fc.admissibleSupported >= CASE_RULES.chargeMin ? 'good' : undefined} data-testid={`hyp-count-${h.id}`}>
+                  Допустимых подтверждений: <b>{fc.admissibleSupported} из {CASE_RULES.chargeMin}</b>
                 </small>
+                {links.length > 0 && <small className="muted">
+                  Подтверждают: {fc.supported} (сомнительных: {fc.questionable}) · противоречат: {fc.contradicted} · не влияют: {noEffect} · ждут проверки: {waiting}
+                </small>}
                 {f.status === 'open' && (
                   <button className="btn" onClick={() => dispatch({ type: 'SET_WORKING_HYPOTHESIS', caseId: f.id, hypothesisId: f.working === h.id ? null : h.id })} data-testid={`working-${h.id}`}>
                     {f.working === h.id ? 'Снять отметку' : 'Сделать рабочей'}
@@ -400,15 +447,19 @@ function EvidencePanel({ game, f, d, id, pinned, onClose }: { game: GameState; f
       </dl>
       {a.text && <p className="result-text">{a.text}</p>}
 
-      <h5 className="section-title">Связать с версией</h5>
-      <div className="seg wrap" role="group" aria-label="Связи с версиями">
+      <h5 className="section-title">Добавить в доказательную базу версии</h5>
+      <small className="muted">Это не новая проверка: вы выбираете, где использовать уже полученный результат. Для обвинения нужно {CASE_RULES.chargeMin} допустимых подтверждения одной версии.</small>
+      <div className="method-list" role="group" aria-label="Доказательная база версий">
         {d.hypotheses.map((h) => {
           const linked = f.links.some((l) => l.evidenceId === id && l.hypothesisId === h.id);
-          const st = linked ? linkStatus(f, d, id, h.id) : null;
+          const effect = evidenceLinkEffect(game, f, d, id, h.id, linked);
           return (
-            <button key={h.id} className="btn" aria-pressed={linked} disabled={!open} onClick={() => dispatch({ type: linked ? 'UNLINK_EVIDENCE' : 'LINK_EVIDENCE', caseId: f.id, evidenceId: id, hypothesisId: h.id })} data-testid={`link-${id}-${h.id}`}>
-              {linked ? '✓ ' : '+ '}{h.title}{st ? ` · ${LINK_WORD[st.status]}` : ''}
-            </button>
+            <div key={h.id}>
+              <button className="btn pick" aria-pressed={linked} disabled={!open} onClick={() => dispatch({ type: linked ? 'UNLINK_EVIDENCE' : 'LINK_EVIDENCE', caseId: f.id, evidenceId: id, hypothesisId: h.id })} data-testid={`link-${id}-${h.id}`}>
+                {linked ? '✓ В базе: ' : '+ '}{h.title} · {effect.word}
+              </button>
+              <small className={effect.tone === 'supported' ? 'good' : effect.tone === 'contradicted' ? 'bad' : 'muted'} data-testid={`link-effect-${id}-${h.id}`}>{effect.text}</small>
+            </div>
           );
         })}
       </div>
@@ -678,7 +729,7 @@ function Conclusion({ game, f, d, onContinue }: { game: GameState; f: CaseFile; 
   const cur = confirm ? conclusionDef(d, confirm) : undefined;
   return (
     <div className="career" data-testid="conclusion">
-      <p className="hint">Прогноз говорит о пригодности доказательств, а не о том, какая версия верна. {game.sandbox ? 'Проверяйте связи и реконструкцию: игра не выбирает верное заключение за вас.' : 'Обвинить можно и по ошибочной версии: истина может вскрыться позже.'}</p>
+      <p className="hint">Прогноз говорит о пригодности доказательств, а не о том, какая версия верна. Учитываются только улики, которые вы вручную добавили в доказательную базу версии на доске. {game.sandbox ? 'Проверяйте связи и реконструкцию: игра не выбирает верное заключение за вас.' : 'Обвинить можно и по ошибочной версии: истина может вскрыться позже.'}</p>
       {game.sandbox && <p className="warn" data-testid="sandbox-conclusion-warning"><b>Перед заключением.</b> Полный или частичный итог открывает следующий район. Ошибочное итоговое заключение будет опровергнуто: улики, связи, действия, допросы и события текущего дела начнутся заново. Ранения, ресурсы, купленные слоты и прошлые районы сохранятся. Неудача отдельного выезда дело не перезапускает.</p>}
       {f.decision?.court === 'returned' && <p className="warn">Суд продолжения вернул прошлое обвинение. Укрепите доказательства или выберите другое решение.</p>}
       <div className="table-scroll">
@@ -796,7 +847,7 @@ function CaseHelp({ onClose, sandbox }: { onClose: () => void; sandbox: boolean 
         <li><b>Выезд на вызов открывает дело.</b> Вызовы, связанные с делом, отмечены на карте золотым ярлыком «№…». {sandbox ? 'В песочнице все события относятся к активному делу; на карточке указаны цель выезда, успех и последствие провала.' : 'Задача операции «Сохранность улик» решает, сколько улик с места дойдёт до дела.'}</li>
         <li><b>Проверьте улики.</b> На доске нажмите на улику и выберите следователя, аналитика или биокриминалиста. Проверка идёт 45–90 игровых минут и иногда бывает неубедительной: тогда её повторяют, повторная точнее.</li>
         <li><b>Добывайте новые сведения.</b> «Действия» — выезды и запросы (некоторым нужен ордер суда или допуск Дома). {sandbox && 'Полевое действие сначала создаёт событие на карте: кабинетный сотрудник для него не нужен. '}«Допросы» — люди отвечают на вопросы, когда у вас есть улики, на которые можно сослаться. Усиленный допрос быстрее, но суд может исключить такие показания.</li>
-        <li><b>Стройте связи на доске.</b> Свяжите улику с версией. Пока улика не проверена, связь только «предложена». Доска не говорит, какая версия верна: решаете вы.</li>
+        <li><b>Соберите доказательную базу на доске.</b> Проверка сама показывает, как улика относится к версиям. Затем добавьте её в базу выбранной версии: только так она учитывается в заключении. «Не влияет» — проверка завершена, отношения к версии нет. «Результат неясен» — нужна повторная проверка. Доска не говорит, какая версия верна: решаете вы.</li>
         <li><b>Усильте дело (по желанию).</b> Сопоставьте две улики между собой и восстановите порядок событий в «Реконструкции». Это повышает шансы в суде.</li>
         <li><b>Вынесите заключение.</b> Для обвинения нужно минимум 3 проверенные и допустимые улики, подтверждающие одну версию. {sandbox ? 'Полный или частичный итог открывает следующий район. Ошибочное итоговое заключение опровергается и перезапускает только материалы текущего дела; правильный ответ не раскрывается.' : 'Суд может вернуть обвинение, а ошибочное решение может вскрыться через пару смен.'}</li>
       </ol>

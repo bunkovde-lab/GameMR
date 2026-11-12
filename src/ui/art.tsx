@@ -35,7 +35,7 @@ const mkIcons = import.meta.glob('../../assets/ui/markers/*.svg', { eager: true,
 const MARKER: Record<string, string> = {};
 const MARKER_ICON: Record<string, string> = {};
 for (const [path, url] of Object.entries(mkFiles)) { const m = /\/(marker_[^/]+)\.webp$/.exec(path); if (m) MARKER[m[1]!] = url; }
-for (const [path, url] of Object.entries(mkIcons)) { const m = /\/([^/]+)\.svg$/.exec(path); if (m) MARKER_ICON[m[1]!] = url; }
+for (const [path, url] of Object.entries(mkIcons)) { const m = /\/(marker_[^/]+)\.svg$/.exec(path); if (m) MARKER_ICON[m[1]!] = url; }
 export const markerArtUrl = (key: string): string | undefined => MARKER[key];
 export const markerIconUrl = (key: string): string | undefined => MARKER_ICON[key];
 

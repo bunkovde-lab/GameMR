@@ -22,6 +22,12 @@
 .duty-brief dt { color: #b9e5f2; font-weight: 600; }
 .duty-brief dd { margin: 0; }
 .duty-actions { display: grid; gap: 6px; }
+.btn.pick.duty-tactic { gap: 4px; }
+.btn.pick.duty-tactic.response-recommended { border-color: #72b8cf; }
+.btn.pick.duty-tactic.response-excessive { border-color: #7a3a3a; }
+.btn.pick.duty-tactic .duty-response-text { margin-top: 3px; }
+.btn.pick.duty-tactic.response-excessive .duty-response-text { color: #e0a39a; }
+.duty-tactic-effect.response-excessive { color: var(--amber); }
 .sandbox-duty-status { margin: 10px 0; padding-top: 8px; border-top: 1px solid var(--stroke2); }
 @media (max-width: 650px) {
   .duty-brief dl { grid-template-columns: 1fr; gap: 2px; }

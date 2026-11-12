@@ -102,17 +102,27 @@ test('ordinary duty call follows a real case operation and supports patrol deleg
 
   await expect(page.getByTestId('duty-badge-duty-2')).toBeVisible({ timeout: 40_000 });
   await openIncident(page, 'duty-2');
+  await expect(page.getByTestId('toast')).toHaveCount(0, { timeout: 10_000 });
   await expect(page.getByTestId('duty-brief')).toContainText('К расследованию не относится');
   await expect(page.getByTestId('duty-brief')).toContainText('Передать наряду');
   await expect(page.getByTestId('card-case-link')).toHaveCount(0);
   await page.screenshot({ path: 'test-results/screens/sandbox-duty-card-pc-1366.png' });
 
   await page.getByTestId('open-dispatch').click();
-  await expect(page.getByTestId('dispatch-duty-brief')).toContainText('Риск выезда');
+  await expect(page.getByTestId('dispatch-duty-brief')).toContainText('Чем опасно');
+  await page.getByTestId('pick-axon').click();
+  await expect(page.getByTestId('tactic-arrest')).toContainText('Осмотр и опрос свидетелей');
+  await expect(page.getByTestId('tactic-suppression')).toContainText('Избыточно');
+  await expect(page.getByTestId('legal-box')).toHaveCount(0);
+  await page.getByTestId('tactic-arrest').scrollIntoViewIfNeeded();
   await page.screenshot({ path: 'test-results/screens/sandbox-duty-dispatch-pc-1366.png' });
-  await page.getByTestId('dispatch-dialog').getByRole('button', { name: 'Закрыть', exact: true }).click();
 
   await page.setViewportSize({ width: 844, height: 390 });
+  await page.getByTestId('tactic-arrest').scrollIntoViewIfNeeded();
+  await expect(page.getByTestId('dispatch-dialog')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: 'test-results/screens/sandbox-duty-dispatch-phone-844.png' });
+  await page.getByTestId('dispatch-dialog').getByRole('button', { name: 'Закрыть', exact: true }).click();
   await expect(page.getByTestId('duty-brief')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: 'test-results/screens/sandbox-duty-card-phone-844.png' });

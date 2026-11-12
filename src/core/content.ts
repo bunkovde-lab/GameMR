@@ -4,7 +4,8 @@ import staffFile from '../../content/staff_start.json';
 import squadsDemo from '../../content/squads_demo.json';
 import incidentsDemo from '../../content/incidents_demo.json';
 import incidentsW10 from '../../content/incidents_w10.json';
-import type { DeadlineType, DistrictId, Severity, SquadStatus, StaffRole, Stats } from './types';
+import sandboxFile from '../../content/sandbox_v1.json';
+import type { DeadlineType, DistrictId, DutyKind, Incident, Severity, SquadStatus, StaffRole, Stats, TacticId } from './types';
 
 export const BALANCE = balance;
 export const toCents = (re: number) => Math.round(re * 100);
@@ -35,6 +36,80 @@ export const INCIDENT_TEMPLATES: IncidentTemplate[] = (incidentsW10.templates as
   const demo = START_INCIDENTS.find((d) => d.id === w.id);
   return { ...(demo ?? { spawnId: `${w.districtId}:spawn:01`, state: 'new', flags: [] }), ...w } as IncidentTemplate;
 });
+
+export interface DutyTemplateDef {
+  kind: DutyKind;
+  label: string;
+  templateId: string;
+  title: string;
+  districtId: DistrictId;
+  rewardRe: number;
+  description: string;
+  threat: string;
+  objective: string;
+  successText: string;
+  failureText: string;
+}
+
+export type DutyResponseFit = 'recommended' | 'acceptable' | 'excessive';
+export interface DutyTacticGuidance { label: string; fit: DutyResponseFit; reason: string }
+interface DutyProfileDef {
+  difficulty: number;
+  requirements: (keyof Stats)[];
+  intel: number;
+  tacticFit: Record<TacticId, number>;
+  tags: string[];
+  responses: Record<TacticId, DutyTacticGuidance>;
+}
+export interface DutyOperationalProfile {
+  incidentClass: 'routine';
+  difficulty: number;
+  requirements: (keyof Stats)[];
+  requiredRoles: StaffRole[];
+  intel: number;
+  tacticFit: Record<TacticId, number>;
+  tags: string[];
+  known: string;
+}
+
+const DUTY_CONTENT = sandboxFile.duty as unknown as {
+  templates: DutyTemplateDef[];
+  profiles: Record<DutyKind, DutyProfileDef>;
+};
+
+export const DUTY_RESPONSE_LABEL: Record<DutyResponseFit, string> = {
+  recommended: 'Соразмерно',
+  acceptable: 'Допустимо',
+  excessive: 'Избыточно',
+};
+
+/** Обычный вызов берёт собственное описание, а не сюжетный текст боевого шаблона. */
+export function dutyTemplateFor(inc: Incident): DutyTemplateDef | undefined {
+  if (!inc.duty) return undefined;
+  const sameKind = DUTY_CONTENT.templates.filter((d) => d.kind === inc.duty!.kind && d.districtId === inc.districtId);
+  return sameKind.find((d) => d.title === inc.title && d.templateId === inc.templateId) ?? sameKind[0];
+}
+
+/** Профиль влияет на реальный прогноз; срочность немного усложняет тот же вызов. */
+export function dutyProfileFor(inc: Incident): DutyOperationalProfile | null {
+  if (!inc.duty) return null;
+  const profile = DUTY_CONTENT.profiles[inc.duty.kind];
+  if (!profile) return null;
+  return {
+    incidentClass: 'routine',
+    difficulty: profile.difficulty + (inc.duty.urgent ? 1 : 0),
+    requirements: [...profile.requirements],
+    requiredRoles: [],
+    intel: profile.intel,
+    tacticFit: { ...profile.tacticFit },
+    tags: [...profile.tags],
+    known: '',
+  };
+}
+
+export function dutyTacticGuidance(inc: Incident, tactic: TacticId): DutyTacticGuidance | null {
+  return inc.duty ? DUTY_CONTENT.profiles[inc.duty.kind]?.responses[tactic] ?? null : null;
+}
 
 export const ROLE_LABEL: Record<StaffRole, string> = {
   guard: 'Страж',

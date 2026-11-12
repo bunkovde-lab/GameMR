@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { createSandboxState, SANDBOX_GOAL_LABEL, SANDBOX_RULES, advanceSandboxMinute, checkSandboxDefeat, concludeSandboxCase, resolveSandboxOperation, sandboxGoalFor, spawnSandboxEvent } from '../../src/core/sandbox';
 import { caseFile, openCaseFromReport } from '../../src/core/investigations';
+import { defaultDraft, incidentProfile, planDispatch } from '../../src/core/dispatch';
+import { dutyTacticGuidance } from '../../src/core/content';
+import { stagesFor } from '../../src/core/operations';
+import { legalRequirement, permitBlocker } from '../../src/core/politics';
 import { reduce } from '../../src/core/reduce';
 import { exportJson } from '../../src/persistence/saveStore';
 import { parseSave } from '../../src/persistence/saveFormat';
@@ -324,6 +328,52 @@ describe('Sandbox duty background', () => {
     expect(next.incidents.filter((i) => i.sandbox)).toHaveLength(caseEvents);
     expect(next.investigations.cases).toHaveLength(0);
     expect(next.sandbox!.defeatReason).toBeNull();
+  });
+
+  it('uses proportional duty profiles for quick dispatch instead of inherited campaign difficulty', () => {
+    const s = withDuty();
+    const duty = s.incidents.find((i) => i.duty)!;
+    const expected = [
+      ['conflict', 'arrest'],
+      ['theft', 'recon'],
+      ['brawl', 'arrest'],
+      ['missing', 'recon'],
+      ['hazard', 'quarantine'],
+    ] as const;
+    for (const [kind, tactic] of expected) {
+      duty.duty!.kind = kind;
+      duty.duty!.urgent = false;
+      const profile = incidentProfile(duty);
+      expect(profile.incidentClass).toBe('routine');
+      expect(profile.requiredRoles).toEqual([]);
+      expect(defaultDraft(s, 'axon', duty.id).tactic).toBe(tactic);
+    }
+    duty.duty!.kind = 'missing';
+    expect(dutyTacticGuidance(duty, 'arrest')!.label).toBe('Осмотр и опрос свидетелей');
+    expect(dutyTacticGuidance(duty, 'suppression')!.fit).toBe('excessive');
+  });
+
+  it('does not require an order or create an emergency basis for an ordinary duty arrest', () => {
+    const s = withDuty();
+    const duty = s.incidents.find((i) => i.duty)!;
+    duty.templateId = 'missing';
+    duty.duty!.kind = 'missing';
+    expect(legalRequirement(duty, 'arrest')).toBeNull();
+    expect(permitBlocker(s, duty.id, 'arrest')).toBeNull();
+    const draft = { ...defaultDraft(s, 'axon', duty.id), tactic: 'arrest' as const };
+    expect(planDispatch(s, draft).blockers).toEqual([]);
+    const sent = ok(s, { type: 'DISPATCH_SQUAD', ...draft });
+    expect(sent.politics.permits).toEqual([]);
+    expect(legalRequirement({ ...duty, duty: undefined }, 'arrest')).not.toBeNull();
+  });
+
+  it('does not inherit narrative operation stages from the reused combat template', () => {
+    const s = withDuty();
+    const duty = s.incidents.find((i) => i.duty)!;
+    duty.templateId = 'convoy';
+    duty.duty!.kind = 'brawl';
+    expect(stagesFor(duty)).toEqual([]);
+    expect(stagesFor({ ...duty, duty: undefined }).length).toBeGreaterThan(0);
   });
 
   it('migrates a v12 sandbox save with a dormant deterministic duty schedule', () => {

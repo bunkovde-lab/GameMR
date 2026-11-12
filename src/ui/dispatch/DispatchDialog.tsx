@@ -3,7 +3,7 @@ import { isOpen } from '../../core/selectors';
 import { INCIDENT_STATE_LABEL, SEVERITY_LABEL } from '../labels';
 import { AftermathList, IncidentHero } from '../shell/IncidentArt';
 import { useEffect, useMemo, useState } from 'react';
-import { DISPATCH_COST, ROLE_LABEL } from '../../core/content';
+import { DISPATCH_COST, DUTY_RESPONSE_LABEL, dutyTacticGuidance, ROLE_LABEL } from '../../core/content';
 import {
   DISPATCH_RULES, EQUIPMENT_TYPES, TACTICS, bestCommander, civilianRiskWord, defaultDraft, equipmentType, forecastWord,
   incidentProfile, memberBlocker, planDispatch, tacticBlocker, tacticById, type DispatchDraft,
@@ -84,6 +84,7 @@ export function DispatchDialog({ game, incidentId, initialSquadId, onClose, onPr
 
   const blockers = plan ? [...(active ? [] : ['Отправка доступна после начала смены.']), ...plan.blockers] : [];
   const tactic = draft ? tacticById(draft.tactic) : null;
+  const selectedDutyGuidance = draft ? dutyTacticGuidance(inc, draft.tactic) : null;
   const nameOf = (id: string) => game.staff.find((p) => p.id === id)?.name ?? id;
 
   return (
@@ -246,21 +247,27 @@ export function DispatchDialog({ game, incidentId, initialSquadId, onClose, onPr
                 {TACTICS.map((t) => {
                   const why = tacticBlocker(game, t.id, draft.memberIds, draft.equipmentIds);
                   const legal = permitBlocker(game, incidentId, t.id) ? legalRequirement(inc, t.id) : null;
+                  const guidance = dutyTacticGuidance(inc, t.id);
                   return (
                     <li key={t.id}>
-                      <button className="btn pick" aria-pressed={draft.tactic === t.id} disabled={!!why} onClick={() => setTactic(t.id)} data-testid={`tactic-${t.id}`}>
-                        <b>{t.label}</b>
-                        <small>{why ?? `риск для группы: ${['низкий', 'низкий', 'средний', 'высокий'][t.squadRisk]}`}{!why && legal ? ` · нужно ${PERMIT_NAME[legal.permit]}` : ''}</small>
+                      <button className={`btn pick${guidance ? ` duty-tactic response-${guidance.fit}` : ''}`} aria-pressed={draft.tactic === t.id} disabled={!!why} onClick={() => setTactic(t.id)} data-testid={`tactic-${t.id}`}>
+                        <b>{guidance?.label ?? t.label}</b>
+                        <small>{why ?? `${guidance ? `${DUTY_RESPONSE_LABEL[guidance.fit]} · ` : ''}риск для группы: ${['низкий', 'низкий', 'средний', 'высокий'][t.squadRisk]}`}{!why && legal ? ` · нужно ${PERMIT_NAME[legal.permit]}` : ''}</small>
+                        {guidance && <small className="duty-response-text" data-testid={`tactic-guidance-${t.id}`}>{guidance.reason}</small>}
                       </button>
                     </li>
                   );
                 })}
               </ul>
-              {tactic && (
+              {tactic && (selectedDutyGuidance ? (
+                <p className={`hint duty-tactic-effect response-${selectedDutyGuidance.fit}`} data-testid="tactic-effects">
+                  <b>{DUTY_RESPONSE_LABEL[selectedDutyGuidance.fit]}.</b> {selectedDutyGuidance.reason} На месте +{tactic.sceneMinutes} мин · риск для горожан: {civilianRiskWord(tactic.id)}.
+                </p>
+              ) : (
                 <p className="hint" data-testid="tactic-effects">
                   На месте +{tactic.sceneMinutes} мин · риск для горожан: {civilianRiskWord(tactic.id)} · улики {tactic.evidence} · {tactic.escape}.
                 </p>
-              )}
+              ))}
               {tactic && permitBlocker(game, incidentId, tactic.id) && (() => {
                 const req = legalRequirement(inc, tactic.id)!;
                 const reqWhy = requestBlocker(game, incidentId, req.permit);

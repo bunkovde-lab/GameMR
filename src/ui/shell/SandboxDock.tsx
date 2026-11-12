@@ -32,6 +32,10 @@ export function SandboxDock({ game, onOpenCase }: { game: GameState; onOpenCase:
               <dt>Боеспособность</dt><dd>{sb.readiness}%</dd>
               <dt>Отряды</dt><dd>{game.squads.length} / {SANDBOX_RULES.maxSquads}</dd>
             </dl>
+            <section className="sandbox-duty-status" data-testid="sandbox-duty-status">
+              <h3 className="section-title">Дежурный фон</h3>
+              <p className="hint">Обычные вызовы: {game.incidents.filter((i) => i.duty && ['new', 'acknowledged', 'escalated', 'en_route', 'on_scene'].includes(i.state)).length} / 2. {sb.duty.nextAt === null ? 'Начнутся после первого выезда по делу.' : 'Не связаны с расследованием; можно передать наряду.'}</p>
+            </section>
             <h3 className="section-title">Дополнительный отряд</h3>
             <p className="hint">Ускоряет выезды и даёт резерв, но не заменяет улики, связи и заключение.</p>
             <button className="btn primary wide" disabled={!!reason || !!sb.defeatReason} onClick={() => dispatch({ type: 'BUY_SANDBOX_SQUAD' })} data-testid="buy-sandbox-squad">

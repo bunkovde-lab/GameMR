@@ -75,3 +75,48 @@ test('real case operation opens the investigation and sandbox save survives relo
   await expect(page.getByTestId('case-c1')).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+
+test('ordinary duty call follows a real case operation and supports patrol delegation', async ({ page }, info) => {
+  test.skip(info.project.name !== 'pc-1366', 'Полный цикл на эталонном viewport; мобильный срез проверяется изменением размера ниже');
+  test.setTimeout(90_000);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+  await page.goto('/');
+  await page.getByTestId('menu-sandbox').click();
+  await openIncident(page, 'sandbox-1');
+  await page.getByTestId('open-dispatch').click();
+  await page.getByTestId('pick-axon').click();
+  await page.getByTestId('tactic-recon').click();
+  await page.getByTestId('confirm-dispatch').click();
+  await page.getByRole('button', { name: '×4' }).click();
+  for (let i = 0; i < 10 && !(await page.getByTestId('operation-report').count()); i++) {
+    const decision = page.getByTestId('decision-dialog');
+    if (await decision.count()) await decision.locator('[data-testid^="option-"]').first().click();
+    else await page.waitForTimeout(500);
+  }
+  await expect(page.getByTestId('operation-report')).toBeVisible({ timeout: 20_000 });
+  await page.getByTestId('ack-report').click();
+  if (await page.getByTestId('toggle-pause').getAttribute('aria-label') === 'Продолжить') await page.getByTestId('toggle-pause').click();
+
+  await expect(page.getByTestId('duty-badge-duty-2')).toBeVisible({ timeout: 40_000 });
+  await openIncident(page, 'duty-2');
+  await expect(page.getByTestId('duty-brief')).toContainText('К расследованию не относится');
+  await expect(page.getByTestId('duty-brief')).toContainText('Передать наряду');
+  await expect(page.getByTestId('card-case-link')).toHaveCount(0);
+  await page.screenshot({ path: 'test-results/screens/sandbox-duty-card-pc-1366.png' });
+
+  await page.getByTestId('open-dispatch').click();
+  await expect(page.getByTestId('dispatch-duty-brief')).toContainText('Риск выезда');
+  await page.screenshot({ path: 'test-results/screens/sandbox-duty-dispatch-pc-1366.png' });
+  await page.getByTestId('dispatch-dialog').getByRole('button', { name: 'Закрыть', exact: true }).click();
+
+  await page.setViewportSize({ width: 844, height: 390 });
+  await expect(page.getByTestId('duty-brief')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: 'test-results/screens/sandbox-duty-card-phone-844.png' });
+  await page.getByTestId('delegate-duty').click();
+  await expect(page.getByTestId('card-state')).not.toHaveText('Новый');
+  expect(errors).toEqual([]);
+});

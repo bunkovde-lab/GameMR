@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { App } from '../../src/App';
 import { openCaseFromReport } from '../../src/core/investigations';
-import { createSandboxState } from '../../src/core/sandbox';
+import { advanceSandboxMinute, createSandboxState } from '../../src/core/sandbox';
 import { createInitialState } from '../../src/core/state';
 import type { GameState, OperationReport } from '../../src/core/types';
 import { getGame, replaceGame } from '../../src/store';
@@ -147,5 +147,32 @@ describe('Sandbox UI integration', () => {
     expect(getGame().sandbox!.unlockedDistricts).toEqual(['admin']);
     expect(getGame().squads).toHaveLength(1);
     expect(screen.queryByTestId('sandbox-defeat')).toBeNull();
+  });
+});
+
+
+describe('Sandbox duty UI', () => {
+  it('distinguishes an ordinary call from a case event and exposes all three decisions', () => {
+    const s = createSandboxState();
+    s.sandbox!.duty.nextAt = 0;
+    advanceSandboxMinute(s);
+    s.paused = false;
+    const duty = s.incidents.find((i) => i.duty)!;
+    replaceGame(s);
+    render(<App />);
+    act(() => { fireEvent.click(screen.getByTestId(`marker-incident-${duty.id}`)); });
+
+    expect(screen.getByTestId('duty-brief').textContent).toContain('К расследованию не относится');
+    expect(screen.getByTestId('duty-brief').textContent).toContain('Передать наряду');
+    expect(screen.getByTestId('duty-brief').textContent).toContain('немедленного поражения нет');
+    expect(screen.queryByTestId('card-case-link')).toBeNull();
+    expect(screen.getByTestId(`duty-badge-${duty.id}`).textContent).toBe('Д');
+
+    act(() => { fireEvent.click(screen.getByTestId('open-dispatch')); });
+    expect(screen.getByTestId('dispatch-duty-brief').textContent).toContain('Риск выезда');
+    act(() => { fireEvent.click(screen.getByRole('button', { name: 'Закрыть' })); });
+    act(() => { fireEvent.click(screen.getByTestId('delegate-duty')); });
+    expect(getGame().incidents.find((i) => i.id === duty.id)!.state).toBe('resolved_partial');
+    expect(getGame().squads[0]!.assignedIncidentId).toBeNull();
   });
 });

@@ -13,6 +13,7 @@ import { INCIDENT_STATE_LABEL, SEVERITY_LABEL, SQUAD_STATUS } from '../labels';
 import type { Selection } from '../uiState';
 import { SquadCard } from './SquadCard';
 import { AftermathList, IncidentHero, incidentCardBg } from './IncidentArt';
+import { DutyBrief } from './DutyBrief';
 
 interface Props {
   game: GameState;
@@ -57,7 +58,7 @@ function IncidentCard({ game, id, onPreview, onSelect, onOpenDispatch, onOpenCas
         {district.name} · <span className={`sev-text sev-${inc.severity}`}>{SEVERITY_LABEL[inc.severity]}</span> · <span data-testid="card-class">{DISPATCH_RULES.classes[prof.incidentClass].label}</span>
       </p>
       <IncidentHero inc={inc} />
-      {prof.known && <p className="known">{houseText(prof.known)}</p>}
+      {prof.known && !inc.duty && <p className="known">{houseText(prof.known)}</p>}
       {(() => {
         // Вызов из сюжета расследования: предыстория дела и что даст выезд (без скрытой правды).
         const link = incidentCaseLink(game, inc);
@@ -88,9 +89,10 @@ function IncidentCard({ game, id, onPreview, onSelect, onOpenDispatch, onOpenCas
           </section>
         );
       })()}
+      <DutyBrief inc={inc} left={left} />
       {(() => {
         // W10: что будет при опоздании и что на кону (без скрытой правды и без строк о деле).
-        if (inc.sandbox) return null;
+        if (inc.sandbox || inc.duty) return null;
         const t = templateOf(inc);
         const stakes = publicAftermath(t);
         const late = t?.lateText;
@@ -114,6 +116,16 @@ function IncidentCard({ game, id, onPreview, onSelect, onOpenDispatch, onOpenCas
         <button className="btn wide" onClick={() => dispatch({ type: 'ACKNOWLEDGE_INCIDENT', incidentId: inc.id })}>
           <Icon name="check" /> Принять вызов
         </button>
+      )}
+      {inc.duty && canSend && (
+        <div className="duty-actions" data-testid="duty-actions">
+          <button className="btn wide" onClick={() => dispatch({ type: 'DELEGATE_DUTY_INCIDENT', incidentId: inc.id })} data-testid="delegate-duty">
+            <Icon name="users" /> Передать дежурному наряду
+          </button>
+          <button className="btn wide danger" onClick={() => dispatch({ type: 'IGNORE_DUTY_INCIDENT', incidentId: inc.id })} data-testid="ignore-duty">
+            Не вмешиваться
+          </button>
+        </div>
       )}
       {canSend && (
         <>

@@ -3,12 +3,24 @@ import { createInitialState, DEFAULT_SEED } from './state';
 import { SQUADS_DEMO, toCents } from './content';
 import { actionDef, caseDef, caseFile, completeFieldAction, courtChance } from './investigations';
 import { districtById } from './map/mapConfig';
-import { nextFloat } from './rng';
+import { nextFloat, nextInt } from './rng';
 import { isOpen } from './selectors';
 import { setFlag } from './flags';
 import type {
-  DistrictId, GameState, Incident, OperationReport, SandboxGoal, SandboxOutcome, SandboxState, Severity, Squad,
+  DistrictId, DutyKind, GameState, Incident, OperationReport, SandboxGoal, SandboxOutcome, SandboxState, Severity, Squad,
 } from './types';
+
+interface DutyTemplateDef {
+  kind: DutyKind;
+  label: string;
+  templateId: string;
+  title: string;
+  districtId: DistrictId;
+  rewardRe: number;
+  description: string;
+  successText: string;
+  failureText: string;
+}
 
 interface SandboxEventDef {
   caseId: string;
@@ -53,6 +65,17 @@ const DATA = sandboxFile as unknown as {
   districtOrder: DistrictId[];
   cases: Record<string, SandboxCaseDef>;
   events: Record<string, SandboxEventDef>;
+  duty: {
+    firstDelayMinutes: number;
+    minIntervalMinutes: number;
+    maxIntervalMinutes: number;
+    retryMinutes: number;
+    maxActive: number;
+    deadlineMinutes: number;
+    urgentDeadlineMinutes: number;
+    urgentChancePercent: number;
+    templates: DutyTemplateDef[];
+  };
 };
 
 export const SANDBOX_RULES = DATA.rules;
@@ -65,7 +88,18 @@ export const SANDBOX_GOAL_LABEL: Record<SandboxGoal, string> = {
   finale: 'Финал дела',
 };
 
+export const DUTY_KIND_LABEL: Record<DutyKind, string> = {
+  conflict: 'Бытовой конфликт',
+  theft: 'Кража / ограбление',
+  brawl: 'Массовая драка',
+  missing: 'Поиск пропавшего',
+  hazard: 'Авария / угроза жителям',
+};
+
 export const isSandbox = (s: GameState) => s.mode === 'sandbox' && !!s.sandbox;
+export const dutyTemplateFor = (inc: Incident) => inc.duty
+  ? DATA.duty.templates.find((d) => d.kind === inc.duty!.kind && d.districtId === inc.districtId)
+  : undefined;
 export const sandboxEventDef = (eventId: string) => DATA.events[eventId];
 export const sandboxCaseDef = (caseId: string) => DATA.cases[caseId];
 export const sandboxEventFor = (inc: Incident) => inc.sandbox ? sandboxEventDef(inc.sandbox.eventId) : undefined;
@@ -114,6 +148,7 @@ export function createSandboxState(seed: number = DEFAULT_SEED): GameState {
     caseRuns: { c1: { attempts: 0, failures: 0 }, c2: { attempts: 0, failures: 0 } },
     rewardedCases: [],
     recovery: {},
+    duty: { nextAt: null, generated: 0 },
     result: null,
     defeatReason: null,
     sliceComplete: false,
@@ -221,6 +256,113 @@ export function buySandboxSquad(s: GameState): string | null {
   return null;
 }
 
+export type DutyDecision = 'success' | 'partial' | 'failure' | 'patrol' | 'ignore';
+export interface DutyEffect { rewardRe: number; order: number; legitimacy: number; readiness: number }
+
+/** Все последствия видны интерфейсу заранее и этой же функцией применяются ядром. */
+export function dutyEffect(inc: Incident, decision: DutyDecision): DutyEffect {
+  const urgent = inc.duty?.urgent ?? false;
+  const rewardRe = inc.duty?.rewardRe ?? 0;
+  if (decision === 'patrol') return { rewardRe: 0, order: 1, legitimacy: 0, readiness: 0 };
+  if (decision === 'ignore') return { rewardRe: 0, order: urgent ? -8 : -4, legitimacy: urgent ? -3 : -1, readiness: 0 };
+  if (decision === 'success') return { rewardRe, order: urgent ? 6 : 4, legitimacy: urgent ? 2 : 1, readiness: 1 };
+  if (decision === 'partial') return { rewardRe: Math.floor(rewardRe / 2), order: urgent ? -1 : 1, legitimacy: 0, readiness: -2 };
+  return { rewardRe: 0, order: urgent ? -6 : -3, legitimacy: urgent ? -3 : -1, readiness: urgent ? -6 : -4 };
+}
+
+function applyDutyEffect(s: GameState, effect: DutyEffect, note: string) {
+  if (effect.rewardRe) post(s, toCents(effect.rewardRe), note);
+  changeVitals(s, { order: effect.order, legitimacy: effect.legitimacy, readiness: effect.readiness });
+}
+
+function scheduleNextDuty(s: GameState) {
+  const sb = s.sandbox!;
+  const rules = DATA.duty;
+  const span = Math.max(0, rules.maxIntervalMinutes - rules.minIntervalMinutes);
+  let jitter = 0;
+  if (span) [jitter, s.rng] = nextInt(s.rng, span + 1);
+  const singleRecovering = s.squads.length === 1 && s.squads[0]!.status !== 'ready';
+  sb.duty.nextAt = s.minute + (rules.minIntervalMinutes + jitter) * (singleRecovering ? 2 : 1);
+}
+
+/** Городской фон живёт отдельно от очереди кампании incoming и не затрагивает её. */
+function advanceDuty(s: GameState) {
+  const sb = s.sandbox!;
+  if (sb.duty.nextAt === null || s.minute < sb.duty.nextAt) return;
+  const active = s.incidents.filter((i) => i.duty && isOpen(i));
+  const finale = s.incidents.some((i) => isOpen(i) && sandboxGoalFor(i) === 'finale');
+  if (active.length >= DATA.duty.maxActive || finale) {
+    sb.duty.nextAt = s.minute + DATA.duty.retryMinutes;
+    return;
+  }
+  const pool = DATA.duty.templates.filter((d) => sb.unlockedDistricts.includes(d.districtId));
+  if (!pool.length) {
+    sb.duty.nextAt = s.minute + DATA.duty.retryMinutes;
+    return;
+  }
+  let pick: number, spawn: number, urgentRoll: number;
+  [pick, s.rng] = nextInt(s.rng, pool.length);
+  [spawn, s.rng] = nextInt(s.rng, 3);
+  [urgentRoll, s.rng] = nextInt(s.rng, 100);
+  const def = pool[pick]!;
+  const ready = s.squads.some((q) => q.status === 'ready' && q.memberIds.length > 0);
+  const urgentAllowed = sb.unlockedDistricts.length >= 2 && ready && sb.order >= 35
+    && !active.some((i) => i.duty?.urgent);
+  const urgent = urgentAllowed && urgentRoll < DATA.duty.urgentChancePercent;
+  const baseDeadline = urgent ? DATA.duty.urgentDeadlineMinutes : DATA.duty.deadlineMinutes;
+  const inc: Incident = {
+    id: `duty-${s.nextIds.incident++}`,
+    templateId: def.templateId,
+    title: def.title,
+    districtId: def.districtId,
+    spawnId: `${def.districtId}:spawn:0${spawn + 1}`,
+    severity: urgent ? 'high' : def.kind === 'brawl' || def.kind === 'hazard' ? 'medium' : 'low',
+    state: 'new',
+    deadlineType: 'expire',
+    deadlineMinute: s.minute + baseDeadline + (ready ? 0 : 60),
+    createdShift: s.shift,
+    duty: { kind: def.kind, urgent, rewardRe: def.rewardRe + (urgent ? 2 : 0) },
+  };
+  s.incidents.push(inc);
+  sb.duty.generated += 1;
+  log(s, 'duty_incident_created', `${urgent ? 'Срочный дежурный вызов' : 'Дежурный вызов'}: ${inc.title}. К расследованию не относится.`);
+  s.paused = true;
+  scheduleNextDuty(s);
+}
+
+function dutyCommandBlocker(s: GameState, incidentId: string): Incident | string {
+  const inc = s.incidents.find((i) => i.id === incidentId);
+  if (!inc?.duty || !s.sandbox) return 'Это не обычный дежурный вызов.';
+  if (!['new', 'acknowledged', 'escalated'].includes(inc.state)) return 'Решение по этому вызову уже принято.';
+  return inc;
+}
+
+export function delegateDutyIncident(s: GameState, incidentId: string): string | null {
+  const found = dutyCommandBlocker(s, incidentId);
+  if (typeof found === 'string') return found;
+  applyDutyEffect(s, dutyEffect(found, 'patrol'), 'Дежурный наряд принял вызов');
+  found.state = 'resolved_partial';
+  log(s, 'duty_delegated', `${found.title}: передано дежурному наряду. Отряд не занят, награда и опыт не начисляются.`);
+  return null;
+}
+
+function ignoreDuty(s: GameState, inc: Incident, expired: boolean) {
+  const effect = dutyEffect(inc, 'ignore');
+  const sb = s.sandbox!;
+  // Отказ никогда сам по себе не завершает сценарий: остаётся шанс исправить обстановку.
+  sb.order = Math.max(1, clamp(sb.order + effect.order));
+  sb.legitimacy = Math.max(1, clamp(sb.legitimacy + effect.legitimacy));
+  inc.state = 'expired';
+  log(s, expired ? 'duty_expired' : 'duty_ignored', `${inc.title}: ${expired ? 'срок вышел' : 'дирекция не вмешалась'}; порядок ${effect.order}, легитимность ${effect.legitimacy}. Немедленного поражения нет.`);
+}
+
+export function ignoreDutyIncident(s: GameState, incidentId: string): string | null {
+  const found = dutyCommandBlocker(s, incidentId);
+  if (typeof found === 'string') return found;
+  ignoreDuty(s, found, false);
+  return null;
+}
+
 function changeVitals(s: GameState, delta: Partial<Pick<SandboxState, 'order' | 'legitimacy' | 'readiness'>>) {
   const sb = s.sandbox!;
   sb.order = clamp(sb.order + (delta.order ?? 0));
@@ -253,20 +395,32 @@ function spawnFailureBranch(s: GameState, inc: Incident) {
 export function resolveSandboxOperation(s: GameState, report: OperationReport) {
   const sb = s.sandbox;
   const inc = s.incidents.find((i) => i.id === report.incidentId);
-  const link = inc?.sandbox;
-  if (!sb || !inc || !link) return;
-  const def = sandboxEventDef(link.eventId)!;
-  const success = report.outcome !== 'failure';
-  report.findings = [...(report.findings ?? []), success ? def.successText : def.failureText];
-  if (report.outcome === 'success') changeVitals(s, { order: 2, readiness: 2 });
-  else if (report.outcome === 'partial') changeVitals(s, { order: -3, legitimacy: -1, readiness: -4 });
-  else changeVitals(s, { order: -8, legitimacy: -4, readiness: -12 });
+  if (!sb || !inc) return;
 
   for (const c of report.casualties) {
     if (c.after === 'dead') continue;
     const light = c.after === 'light_injury' || c.after === 'fatigued';
     sb.recovery[c.staffId] = s.minute + (light ? SANDBOX_RULES.lightRecoveryMinutes : SANDBOX_RULES.recoveryMinutes);
   }
+
+  if (inc.duty) {
+    const def = dutyTemplateFor(inc)!;
+    const effect = dutyEffect(inc, report.outcome);
+    applyDutyEffect(s, effect, `Дежурный вызов: ${inc.title}`);
+    report.findings = [...(report.findings ?? []), report.outcome === 'failure' ? def.failureText : def.successText];
+    log(s, 'duty_resolved', `${inc.title}: ${report.outcome === 'success' ? 'успех' : report.outcome === 'partial' ? 'частичный результат' : 'неудача'}; награда ${effect.rewardRe} РЕ. Следственные материалы не изменены.`);
+    return;
+  }
+
+  const link = inc.sandbox;
+  if (!link) return;
+  const def = sandboxEventDef(link.eventId)!;
+  const success = report.outcome !== 'failure';
+  report.findings = [...(report.findings ?? []), success ? def.successText : def.failureText];
+  if (report.outcome === 'success') changeVitals(s, { order: 2, readiness: 2 });
+  else if (report.outcome === 'partial') changeVitals(s, { order: -3, legitimacy: -1, readiness: -4 });
+  else changeVitals(s, { order: -8, legitimacy: -4, readiness: -12 });
+  if (sb.duty.nextAt === null) sb.duty.nextAt = s.minute + DATA.duty.firstDelayMinutes;
 
   if (success && def.nextEventId && !s.incidents.some((i) => i.sandbox?.eventId === def.nextEventId && isOpen(i))) {
     spawnSandboxEvent(s, def.nextEventId);
@@ -285,7 +439,13 @@ export function resolveSandboxOperation(s: GameState, report: OperationReport) {
   }
 }
 
-/** Просроченный вызов тоже ведёт в другую ветвь, а не к перезапуску дела. */
+/** Просроченный дежурный вызов закрывается без следственной альтернативы и мгновенного поражения. */
+export function expireDutyIncident(s: GameState, inc: Incident) {
+  if (!inc.duty || !s.sandbox) return;
+  ignoreDuty(s, inc, true);
+}
+
+/** Просроченный вызов дела ведёт в другую ветвь, а не к перезапуску. */
 export function expireSandboxIncident(s: GameState, inc: Incident) {
   if (!inc.sandbox || !s.sandbox) return;
   inc.state = 'expired';
@@ -329,6 +489,7 @@ export function advanceSandboxMinute(s: GameState) {
     if (waiting) changeVitals(s, { order: -waiting, readiness: ready ? 0 : 1 });
     else if (!s.squads.some((q) => q.operation)) changeVitals(s, { readiness: 1 });
   }
+  if (!sb.defeatReason) advanceDuty(s);
 }
 
 function resetSandboxCase(s: GameState, caseId: string) {

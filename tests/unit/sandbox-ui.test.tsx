@@ -158,11 +158,15 @@ describe('Sandbox duty UI', () => {
     advanceSandboxMinute(s);
     s.paused = false;
     const duty = s.incidents.find((i) => i.duty)!;
+    duty.duty!.kind = 'missing';
     replaceGame(s);
     render(<App />);
     act(() => { fireEvent.click(screen.getByTestId(`marker-incident-${duty.id}`)); });
 
     expect(screen.getByTestId('duty-brief').textContent).toContain('К расследованию не относится');
+    expect(screen.getByTestId('duty-brief').textContent).toContain('Чем опасно');
+    expect(screen.getByTestId('duty-brief').textContent).toContain('Задача отряда');
+    expect(screen.getByTestId('duty-brief').textContent).toContain('Соразмерно');
     expect(screen.getByTestId('duty-brief').textContent).toContain('Передать наряду');
     expect(screen.getByTestId('duty-brief').textContent).toContain('немедленного поражения нет');
     expect(screen.queryByTestId('card-case-link')).toBeNull();
@@ -170,6 +174,11 @@ describe('Sandbox duty UI', () => {
 
     act(() => { fireEvent.click(screen.getByTestId('open-dispatch')); });
     expect(screen.getByTestId('dispatch-duty-brief').textContent).toContain('Риск выезда');
+    act(() => { fireEvent.click(screen.getByTestId('pick-axon')); });
+    expect(screen.getByTestId('tactic-arrest').textContent).toContain('Осмотр и опрос свидетелей');
+    expect(screen.getByTestId('tactic-suppression').textContent).toContain('Избыточно');
+    expect(screen.getByTestId('tactic-guidance-arrest').textContent).toContain('проверяет помещения');
+    expect(screen.queryByTestId('legal-box')).toBeNull();
     act(() => { fireEvent.click(screen.getByRole('button', { name: 'Закрыть' })); });
     act(() => { fireEvent.click(screen.getByTestId('delegate-duty')); });
     expect(getGame().incidents.find((i) => i.id === duty.id)!.state).toBe('resolved_partial');

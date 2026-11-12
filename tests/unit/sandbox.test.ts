@@ -218,3 +218,132 @@ describe('Sandbox vertical slice: outcomes, resources and recovery', () => {
     expect(ok(loaded.state, { type: 'TICK', minutes: 30 })).toEqual(ok(s, { type: 'TICK', minutes: 30 }));
   });
 });
+
+
+function withDuty(): GameState {
+  const s = createSandboxState();
+  s.sandbox!.duty.nextAt = 0;
+  advanceSandboxMinute(s);
+  s.paused = false;
+  return s;
+}
+
+describe('Sandbox duty background', () => {
+  it('starts only after the first completed case operation and auto-pauses on the first ordinary call', () => {
+    const s = createSandboxState();
+    for (let i = 0; i < 400; i++) { s.minute += 1; advanceSandboxMinute(s); }
+    expect(s.incidents.filter((i) => i.duty)).toHaveLength(0);
+    const opener = s.incidents[0]!;
+    opener.state = 'resolved_success';
+    resolveSandboxOperation(s, report(s, opener.id));
+    expect(s.sandbox!.duty.nextAt).toBe(s.minute + 90);
+    for (let i = 0; i < 90; i++) { s.minute += 1; advanceSandboxMinute(s); }
+    const duty = s.incidents.filter((i) => i.duty);
+    expect(duty).toHaveLength(1);
+    expect(duty[0]!.sandbox).toBeUndefined();
+    expect(s.paused).toBe(true);
+  });
+
+  it('keeps at most two active ordinary calls and waits during the case finale', () => {
+    const s = withDuty();
+    s.sandbox!.duty.nextAt = s.minute;
+    advanceSandboxMinute(s);
+    expect(s.incidents.filter((i) => i.duty && i.state === 'new')).toHaveLength(2);
+    s.sandbox!.duty.nextAt = s.minute;
+    advanceSandboxMinute(s);
+    expect(s.incidents.filter((i) => i.duty)).toHaveLength(2);
+    expect(s.sandbox!.duty.nextAt).toBe(s.minute + 30);
+
+    for (const i of s.incidents) if (i.duty) i.state = 'expired';
+    spawnSandboxEvent(s, 'c1-finale');
+    s.sandbox!.duty.nextAt = s.minute;
+    advanceSandboxMinute(s);
+    expect(s.incidents.filter((i) => i.duty)).toHaveLength(2);
+  });
+
+  it('slows generation and never creates urgent calls while the only squad is recovering', () => {
+    const s = createSandboxState();
+    s.sandbox!.unlockedDistricts.push('residential');
+    s.squads[0]!.status = 'en_route';
+    s.sandbox!.recovery.p1 = 10_000;
+    for (let n = 0; n < 8; n++) {
+      s.sandbox!.duty.nextAt = s.minute;
+      advanceSandboxMinute(s);
+      const made = s.incidents.filter((i) => i.duty);
+      expect(made.at(-1)!.duty!.urgent).toBe(false);
+      expect(made.at(-1)!.deadlineMinute - s.minute).toBeGreaterThanOrEqual(210);
+      for (const i of made) i.state = 'expired';
+      s.minute += 1;
+    }
+  });
+
+  it('delegates or ignores without case changes, rewards, squad assignment or instant defeat', () => {
+    const s = withDuty();
+    const duty = s.incidents.find((i) => i.duty)!;
+    const cases = JSON.stringify(s.investigations);
+    const balance = s.economy.balance;
+    const order = s.sandbox!.order;
+    const delegated = ok(s, { type: 'DELEGATE_DUTY_INCIDENT', incidentId: duty.id });
+    expect(delegated.incidents.find((i) => i.id === duty.id)!.state).toBe('resolved_partial');
+    expect(delegated.sandbox!.order).toBe(order + 1);
+    expect(delegated.economy.balance).toBe(balance);
+    expect(delegated.squads[0]!.assignedIncidentId).toBeNull();
+    expect(JSON.stringify(delegated.investigations)).toBe(cases);
+
+    const ignoredState = withDuty();
+    const ignored = ignoredState.incidents.find((i) => i.duty)!;
+    ignoredState.sandbox!.order = 2;
+    ignoredState.sandbox!.legitimacy = 2;
+    const after = ok(ignoredState, { type: 'IGNORE_DUTY_INCIDENT', incidentId: ignored.id });
+    expect(after.incidents.find((i) => i.id === ignored.id)!.state).toBe('expired');
+    expect(after.sandbox!.order).toBe(1);
+    expect(after.sandbox!.legitimacy).toBe(1);
+    expect(after.sandbox!.defeatReason).toBeNull();
+  });
+
+  it('resolves a duty operation with its own reward and never opens evidence or a fallback branch', () => {
+    const s = withDuty();
+    const duty = s.incidents.find((i) => i.duty)!;
+    const before = s.economy.balance;
+    const caseEvents = s.incidents.filter((i) => i.sandbox).length;
+    duty.state = 'resolved_success';
+    resolveSandboxOperation(s, report(s, duty.id));
+    expect(s.economy.balance - before).toBe(duty.duty!.rewardRe * 100);
+    expect(s.investigations.cases).toHaveLength(0);
+    expect(s.incidents.filter((i) => i.sandbox)).toHaveLength(caseEvents);
+    expect(s.incidents.filter((i) => i.duty)).toHaveLength(1);
+  });
+
+  it('expires an ordinary call without campaign effects or a case fallback', () => {
+    const s = withDuty();
+    const duty = s.incidents.find((i) => i.duty)!;
+    duty.deadlineMinute = s.minute + 1;
+    const caseEvents = s.incidents.filter((i) => i.sandbox).length;
+    const next = ok(s, { type: 'TICK', minutes: 1 });
+    expect(next.incidents.find((i) => i.id === duty.id)!.state).toBe('expired');
+    expect(next.incidents.filter((i) => i.sandbox)).toHaveLength(caseEvents);
+    expect(next.investigations.cases).toHaveLength(0);
+    expect(next.sandbox!.defeatReason).toBeNull();
+  });
+
+  it('migrates a v12 sandbox save with a dormant deterministic duty schedule', () => {
+    const s = createSandboxState();
+    const file = JSON.parse(exportJson(s)) as { schemaVersion: number; state: GameState };
+    file.schemaVersion = 12;
+    delete (file.state.sandbox as unknown as Record<string, unknown>).duty;
+    const loaded = parseSave(JSON.stringify(file));
+    expect(loaded.ok).toBe(true);
+    if (!loaded.ok) return;
+    expect(loaded.state.sandbox!.duty).toEqual({ nextAt: null, generated: 0 });
+    expect(loaded.state.incidents).toEqual(s.incidents);
+    expect(ok(loaded.state, { type: 'TICK', minutes: 30 })).toEqual(ok(s, { type: 'TICK', minutes: 30 }));
+
+    const progressed = openedCase();
+    const oldProgress = JSON.parse(exportJson(progressed)) as { schemaVersion: number; state: GameState };
+    oldProgress.schemaVersion = 12;
+    delete (oldProgress.state.sandbox as unknown as Record<string, unknown>).duty;
+    const resumed = parseSave(JSON.stringify(oldProgress));
+    expect(resumed.ok).toBe(true);
+    if (resumed.ok) expect(resumed.state.sandbox!.duty.nextAt).toBe(progressed.minute + 90);
+  });
+});

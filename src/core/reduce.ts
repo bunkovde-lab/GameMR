@@ -31,8 +31,8 @@ import { districtById, edgeById, spawnPosition } from './map/mapConfig';
 import { nextInt } from './rng';
 import { isAway, leaveSquad, returnHome } from './squadHome';
 import {
-  acknowledgeSandboxResult, advanceSandboxMinute, buySandboxSquad, concludeSandboxCase, expireSandboxIncident,
-  resolveSandboxOperation, startSandboxFieldAction,
+  acknowledgeSandboxResult, advanceSandboxMinute, buySandboxSquad, concludeSandboxCase, delegateDutyIncident,
+  expireDutyIncident, expireSandboxIncident, ignoreDutyIncident, resolveSandboxOperation, startSandboxFieldAction,
 } from './sandbox';
 import { DEPLOYED, aliveStaff, citySafety, isOpen } from './selectors';
 import type { Command, CommandResult, GameState, Incident, Squad, Transaction, TransactionKind } from './types';
@@ -541,6 +541,16 @@ export function reduce(state: GameState, command: Command): CommandResult {
       if (why) return reject(why);
       return { ok: true, state: s };
     }
+    case 'DELEGATE_DUTY_INCIDENT': {
+      const why = delegateDutyIncident(s, command.incidentId);
+      if (why) return reject(why);
+      return { ok: true, state: s };
+    }
+    case 'IGNORE_DUTY_INCIDENT': {
+      const why = ignoreDutyIncident(s, command.incidentId);
+      if (why) return reject(why);
+      return { ok: true, state: s };
+    }
     case 'ACK_SANDBOX_RESULT': {
       const why = acknowledgeSandboxResult(s);
       if (why) return reject(why);
@@ -782,8 +792,9 @@ function advanceMinute(s: GameState) {
     log(s, 'operation_completed', `Операция «${report.squadName}» (${report.incidentTitle}) завершена: ${word}.`, report.memberIds);
     for (const c of report.casualties) log(s, c.after === 'dead' ? 'staff_killed' : 'staff_injured', `${c.name}: ${HEALTH_LOG[c.after]}.`, [c.staffId]);
     applyOperationToRelations(s, report, opCommander, staffLog(s));
-    const tpl = s.incidents.find((i) => i.id === report.incidentId)?.templateId;
-    if (tpl) openCaseFromReport(s, report, tpl, (type, text, ids) => log(s, type, text, ids));
+    const source = s.incidents.find((i) => i.id === report.incidentId);
+    const tpl = source?.templateId;
+    if (tpl && !source?.duty) openCaseFromReport(s, report, tpl, (type, text, ids) => log(s, type, text, ids));
     if (s.mode === 'sandbox') resolveSandboxOperation(s, report);
   }
   decidePermits(s, (t, x) => log(s, t, x));
@@ -791,6 +802,10 @@ function advanceMinute(s: GameState) {
   advanceInvestigations(s, (type, text, ids) => log(s, type, text, ids));
   for (const inc of s.incidents) {
     if ((inc.state === 'new' || inc.state === 'acknowledged') && s.minute >= inc.deadlineMinute) {
+      if (inc.duty) {
+        expireDutyIncident(s, inc);
+        continue;
+      }
       if (inc.sandbox) {
         expireSandboxIncident(s, inc);
         continue;

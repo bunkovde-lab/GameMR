@@ -2,7 +2,7 @@
  * Доменная модель W2 — подмножество ТЗ §5.2, необходимое для одной смены.
  * Деньги хранятся целым числом в сотых долях РЕ (cents), чтобы избежать ошибок округления.
  */
-export const SCHEMA_VERSION = 11;
+export const SCHEMA_VERSION = 12;
 
 import type { Route } from './map/graph';
 
@@ -203,6 +203,50 @@ export interface Squad {
   commanderId: string | null;
 }
 
+export type SandboxGoal = 'evidence' | 'arrest' | 'witness' | 'surveillance' | 'prevention' | 'finale';
+export type SandboxOutcome = 'full' | 'partial' | 'error';
+
+/** Статическая связь выезда с делом; тексты цели и исходов лежат в content/sandbox_v1.json. */
+export interface SandboxIncidentLink {
+  eventId: string;
+  caseId: string;
+  actionId?: string;
+  attempt: number;
+  fallback: boolean;
+}
+
+export interface SandboxCaseRun {
+  attempts: number;
+  failures: number;
+}
+
+export interface SandboxResult {
+  caseId: string;
+  outcome: SandboxOutcome;
+  title: string;
+  text: string;
+  episode?: string;
+  complication?: string;
+}
+
+export interface SandboxState {
+  unlockedDistricts: DistrictId[];
+  controlledDistricts: DistrictId[];
+  squadSlots: number;
+  order: number;
+  legitimacy: number;
+  readiness: number;
+  activeCaseId: string;
+  caseRuns: Record<string, SandboxCaseRun>;
+  /** Награда за район выдаётся один раз, даже после загрузки или повторных команд. */
+  rewardedCases: string[];
+  /** Сотрудник → игровая минута автоматического возвращения после тяжёлого ранения. */
+  recovery: Record<string, number>;
+  result: SandboxResult | null;
+  defeatReason: string | null;
+  sliceComplete: boolean;
+}
+
 export interface Incident {
   id: string;
   templateId: string;
@@ -215,6 +259,8 @@ export interface Incident {
   /** Игровая минута смены, когда наступает ухудшение */
   deadlineMinute: number;
   createdShift: number;
+  /** Есть только у событий отдельного режима «Песочница». */
+  sandbox?: SandboxIncidentLink;
 }
 
 export type TransactionKind =
@@ -413,6 +459,9 @@ export interface ShiftReport {
 
 export interface GameState {
   schemaVersion: number;
+  /** Отсутствие поля означает прежнюю кампанию; так старые сохранения остаются совместимыми. */
+  mode?: 'sandbox';
+  sandbox?: SandboxState;
   seed: number;
   rng: { state: number; cursor: number };
   shift: number;
@@ -500,10 +549,12 @@ export type Command =
   | { type: 'LINK_PAIR'; caseId: string; a: string; b: string }
   | { type: 'UNLINK_PAIR'; caseId: string; a: string; b: string }
   | { type: 'INTERROGATE'; caseId: string; personId: string; lineId: string; staffId: string }
-  | { type: 'CASE_ACTION'; caseId: string; actionId: string; staffId: string }
+  | { type: 'CASE_ACTION'; caseId: string; actionId: string; staffId?: string }
   | { type: 'REQUEST_CASE_PERMIT'; caseId: string; actionId: string }
   | { type: 'REQUEST_EXPERTISE'; caseId: string }
   | { type: 'CONCLUDE_CASE'; caseId: string; conclusionId: string; hypothesisId?: string }
+  | { type: 'BUY_SANDBOX_SQUAD' }
+  | { type: 'ACK_SANDBOX_RESULT' }
   | { type: 'STORY_CHOICE'; shift: number; optionId: string }
   | { type: 'START_SPECIAL_OP'; opId: string; squadId: string }
   | { type: 'SPECIAL_OP_CHOICE'; opId: string; optionId: string }

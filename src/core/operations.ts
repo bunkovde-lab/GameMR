@@ -134,7 +134,8 @@ export function resolveOperation(s: GameState, sq: Squad, inc: Incident): Operat
         const fatiguePts = Math.min(3, Math.floor(m.fatigue / DISPATCH_RULES.forecast.fatiguePerPoint));
         if (roll(s) < C.seriousGivenInjury + C.seriousPerFatiguePoint * fatiguePts) {
           const death = C.deathGivenSerious + (outcome === 'failure' ? C.deathBonusOnFailure : 0);
-          const dies = roll(s) < death;
+          // Сюжетная сложность песочницы: тяжёлые ранения без постоянной гибели. Кампания не меняется.
+          const dies = s.mode === 'sandbox' ? false : roll(s) < death;
           if (dies && rescue && m.id !== op.commanderId) { rescue = false; m.health = worse(m.health, 'critical'); }
           else m.health = dies ? 'dead' : worse(m.health, 'serious_injury');
         } else {
@@ -178,7 +179,8 @@ export function resolveOperation(s: GameState, sq: Squad, inc: Incident): Operat
   const evidenceScore = op.evidence + (tacticById(op.tactic).evidence === 'сохраняются' ? 0 : -1);
   const evidence = evidenceScore > 0 ? 'done' : evidenceScore === 0 ? 'partial' : 'failed';
   inc.state = outcome === 'success' ? 'resolved_success' : outcome === 'partial' ? 'resolved_partial' : 'failed';
-  const findings = applyEventOutcome(s, inc, outcome);
+  // Случайные городские последствия кампании не подмешиваются в события активного дела песочницы.
+  const findings = s.mode === 'sandbox' ? [] : applyEventOutcome(s, inc, outcome);
 
   const report: OperationReport = {
     id: s.nextIds.report++,

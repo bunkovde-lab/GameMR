@@ -7,9 +7,9 @@ import {
   timedEvidence, timelineComplete, timelineView, workerBlocker, type CaseDef, type ConclusionDef, type LinkStatus,
 } from '../../core/investigations';
 import { POLITICS, houseById } from '../../core/politics';
-import { formatRe } from '../../core/selectors';
+import { formatRe, isOpen } from '../../core/selectors';
 import type { CaseFile, GameState, InterrogationMethod, StaffRole } from '../../core/types';
-import { dispatch } from '../../store';
+import { dispatch, getGame } from '../../store';
 import { artUrl, evidenceIconUrl } from '../art';
 import { Icon, type IconName } from '../Icon';
 import { Portrait } from '../Portrait';
@@ -59,7 +59,7 @@ const TRAINING_KEY = 'gamemr.caseTrainingHidden';
 const readFlag = (k: string) => { try { return window.localStorage.getItem(k) === '1'; } catch { return false; } };
 const writeFlag = (k: string, v: boolean) => { try { window.localStorage.setItem(k, v ? '1' : '0'); } catch { /* приватный режим */ } };
 
-export function InvestigationsScreen({ game, onClose, focusCaseId = null }: { game: GameState; onClose: () => void; focusCaseId?: string | null }) {
+export function InvestigationsScreen({ game, onClose, focusCaseId = null, onOpenIncident }: { game: GameState; onClose: () => void; focusCaseId?: string | null; onOpenIncident?: (incidentId: string) => void }) {
   const files = game.investigations.cases;
   const [tab, setTab] = useState<string>((focusCaseId && files.some((f) => f.id === focusCaseId) ? focusCaseId : null) ?? files.find((f) => f.status === 'open')?.id ?? files[0]?.id ?? 'campaign');
   const current = files.find((f) => f.id === tab);
@@ -71,7 +71,7 @@ export function InvestigationsScreen({ game, onClose, focusCaseId = null }: { ga
       <div className="panel-header">
         <h2><Icon name="search" /> Расследования</h2>
         <div className="tabs screen-tabs" role="tablist" aria-label="Дела и кампания">
-          <button role="tab" className="btn" aria-selected={tab === 'campaign'} onClick={() => setTab('campaign')} data-testid="case-tab-campaign">Кампания</button>
+          {!game.sandbox && <button role="tab" className="btn" aria-selected={tab === 'campaign'} onClick={() => setTab('campaign')} data-testid="case-tab-campaign">Кампания</button>}
           {files.map((f) => {
             const d = caseDef(f.id)!;
             return (
@@ -85,31 +85,37 @@ export function InvestigationsScreen({ game, onClose, focusCaseId = null }: { ga
         <button className="btn icon-only" onClick={onClose} aria-label="Вернуться к карте"><Icon name="close" /></button>
       </div>
       <div className="panel-body">
-        {current ? <CaseView key={current.id} game={game} f={current} /> : <CampaignPanel game={game} />}
-        {!files.length && tab === 'campaign' && (
+        {current ? <CaseView key={current.id} game={game} f={current} onOpenIncident={onOpenIncident} /> : game.sandbox ? (
+          <div className="sq-card" data-testid="sandbox-no-case">
+            <h3>Дело №{caseDef(game.sandbox.activeCaseId)?.number} ещё не открыто</h3>
+            <p>Завершите выезд, отмеченный на карте ярлыком дела. После этого здесь появятся улики, версии, действия и допросы — игра не расследует дело за вас.</p>
+            <button className="btn primary" onClick={onClose} data-testid="sandbox-case-to-map">Перейти к событию на карте</button>
+          </div>
+        ) : <CampaignPanel game={game} />}
+        {!game.sandbox && !files.length && tab === 'campaign' && (
           <p className="hint" data-testid="no-cases-hint">
             Дел пока нет. Первое дело откроется после выезда на вызов, отмеченный на карте золотым ярлыком «№…». <button className="link" onClick={() => setHelp(true)}>Как устроены расследования</button>
           </p>
         )}
       </div>
-      {help && <CaseHelp onClose={closeHelp} />}
+      {help && <CaseHelp onClose={closeHelp} sandbox={!!game.sandbox} />}
     </section>
   );
 }
 
-function CaseView({ game, f }: { game: GameState; f: CaseFile }) {
+function CaseView({ game, f, onOpenIncident }: { game: GameState; f: CaseFile; onOpenIncident?: (incidentId: string) => void }) {
   const d = caseDef(f.id)!;
   const [tab, setTab] = useState<Tab>('board');
   const [focus, setFocus] = useState<string | null>(null);
   const go = (t: Tab, target?: string) => { setTab(t); setFocus(target ?? null); };
   const loc = artUrl(CASE_ART[f.id] ?? '');
-  const chronicle = CAMPAIGN.nodes.filter((n) => n.shift >= d.fromShift && n.shift <= Math.min(game.shift, d.toShift));
+  const chronicle = game.sandbox ? [] : CAMPAIGN.nodes.filter((n) => n.shift >= d.fromShift && n.shift <= Math.min(game.shift, d.toShift));
   return (
     <div className="career case-view" data-testid={`case-${f.id}`}>
       <header className={`case-head${loc ? ' with-art' : ''}`} style={loc ? { backgroundImage: `linear-gradient(90deg, rgba(10,12,16,.92) 40%, rgba(10,12,16,.4)), url(${loc})` } : undefined} data-art={CASE_ART[f.id]}>
         <p>{d.summary}</p>
         <small className="muted">
-          Открыто в смену {f.openedShift} · объект в ведении: {houseById(d.houseId)?.label} · улик: {f.evidence.length} · <b data-testid="case-status">{caseStatusWord(f)}</b>
+          {game.sandbox ? 'Непрерывное расследование' : `Открыто в смену ${f.openedShift}`} · объект в ведении: {houseById(d.houseId)?.label} · улик: {f.evidence.length} · <b data-testid="case-status">{caseStatusWord(f)}</b>
         </small>
         {chronicle.length > 0 && (
           <details className="case-back" data-testid="case-chronicle">
@@ -120,18 +126,33 @@ function CaseView({ game, f }: { game: GameState; f: CaseFile }) {
           </details>
         )}
       </header>
-      <CaseGuide game={game} f={f} tab={tab} onGo={go} />
+      {game.sandbox && <SandboxCaseSummary game={game} f={f} d={d} />}
+      <CaseGuide game={game} f={f} tab={tab} onGo={go} onOpenIncident={onOpenIncident} />
       <div className="tabs case-tabs" role="tablist" aria-label="Режимы дела">
         {TABS.map((t) => (
           <button key={t.id} role="tab" className="btn" aria-selected={tab === t.id} onClick={() => go(t.id)} data-testid={`case-mode-${t.id}`}>{t.label}</button>
         ))}
       </div>
       {tab === 'board' && <Board key={focus ?? 'board'} game={game} f={f} d={d} initialSel={focus} />}
-      {tab === 'actions' && <Actions game={game} f={f} d={d} />}
+      {tab === 'actions' && <Actions game={game} f={f} d={d} onOpenIncident={onOpenIncident} />}
       {tab === 'timeline' && <Timeline f={f} d={d} />}
       {tab === 'interviews' && <Interviews game={game} f={f} d={d} />}
       {tab === 'conclusion' && <Conclusion game={game} f={f} d={d} onContinue={() => setTab('board')} />}
     </div>
+  );
+}
+
+function SandboxCaseSummary({ game, f, d }: { game: GameState; f: CaseFile; d: CaseDef }) {
+  const next = caseNextStep(game, f);
+  const checked = f.evidence.filter((e) => e.analysis !== 'none').length;
+  const working = d.hypotheses.find((h) => h.id === f.working);
+  return (
+    <dl className="sandbox-case-summary" data-testid="sandbox-case-summary">
+      <div><dt>Что произошло</dt><dd>{houseText(d.summary)}</dd></div>
+      <div><dt>Что установлено</dt><dd>Проверено улик: {checked} из {f.evidence.length}; действий выполнено: {f.actionsDone.length}; подтверждённых сопоставлений: {supportedEdges(game, f)}.</dd></div>
+      <div><dt>Главный вопрос</dt><dd>{working ? `Подтверждают ли материалы рабочую версию «${working.title}» или опровергают её?` : 'Какая из версий подтверждается проверенными уликами и реконструкцией?'}</dd></div>
+      <div><dt>Следующий шаг</dt><dd>{next?.text ?? 'Материалы дела собраны. Итог уже вынесен; новые события открываются на карте.'}</dd></div>
+    </dl>
   );
 }
 
@@ -432,25 +453,27 @@ function PinnedPanel({ game, f, d, r, onClose }: { game: GameState; f: CaseFile;
 
 // ---------- Следственные действия и разрешения ----------
 
-function Actions({ game, f, d }: { game: GameState; f: CaseFile; d: CaseDef }) {
+function Actions({ game, f, d, onOpenIncident }: { game: GameState; f: CaseFile; d: CaseDef; onOpenIncident?: (incidentId: string) => void }) {
   return (
     <div className="career" data-testid="case-actions">
       <p className="hint">Следственные действия добывают новые улики. Закрытые записи Домов и обыски требуют разрешения: ордер выдаёт суд, допуск — Дом. Запрос стоит пошлину и рассматривается до часа; отказ возможен.</p>
       <div className="card-grid">
-        {d.actions.map((a) => <ActionCard key={a.id} game={game} f={f} d={d} id={a.id} />)}
+        {d.actions.map((a) => <ActionCard key={a.id} game={game} f={f} d={d} id={a.id} onOpenIncident={onOpenIncident} />)}
       </div>
     </div>
   );
 }
 
-function ActionCard({ game, f, d, id }: { game: GameState; f: CaseFile; d: CaseDef; id: string }) {
+function ActionCard({ game, f, d, id, onOpenIncident }: { game: GameState; f: CaseFile; d: CaseDef; id: string; onOpenIncident?: (incidentId: string) => void }) {
   const a = d.actions.find((x) => x.id === id)!;
   const roles = CASE_RULES.actionRoles[a.kind];
   const [who, setWho] = useWorker(game, roles);
   const done = f.actionsDone.includes(a.id);
   const task = f.tasks.find((t) => t.target === a.id);
+  const sandboxField = game.mode === 'sandbox' && a.kind === 'field';
+  const existingEvent = sandboxField ? game.incidents.find((i) => isOpen(i) && i.sandbox?.caseId === f.id && i.sandbox.actionId === a.id) : undefined;
   const permit = actionPermitState(game, f, a);
-  const why = actionBlocker(game, f.id, a.id, who || undefined);
+  const why = actionBlocker(game, f.id, a.id, sandboxField ? undefined : who || undefined);
   const permitWhy = a.permit ? casePermitBlocker(game, f.id, a.id) : null;
   const fee = a.permit ? POLITICS.permits[a.permit].fee : 0;
   const permitName = a.permit === 'judicial' ? 'ордер суда' : `допуск: ${houseById(a.houseId ?? '')?.label}`;
@@ -490,9 +513,26 @@ function ActionCard({ game, f, d, id }: { game: GameState; f: CaseFile; d: CaseD
         <span className="tag">идёт: {game.staff.find((p) => p.id === task.staffId)?.name} · {minutesLeft(game, task.doneAt)} мин</span>
       ) : f.status === 'open' && (
         <>
-          <StaffPick game={game} roles={roles} value={who} onChange={setWho} why={() => null} testid={`actor-${a.id}`} />
-          <button className="btn primary" disabled={!who || !!why} onClick={() => dispatch({ type: 'CASE_ACTION', caseId: f.id, actionId: a.id, staffId: who })} data-testid={`action-start-${a.id}`}>Начать</button>
-          {why && <small className="why">{why}</small>}
+          {sandboxField ? (
+            <>
+              <small className="muted">Это выезд активного дела. Кабинетный сотрудник не нужен: отряд и тактику вы выберете на карте.</small>
+              {existingEvent ? (
+                <button className="btn primary" onClick={() => onOpenIncident?.(existingEvent.id)} data-testid={`action-event-${a.id}`}>Перейти к выезду</button>
+              ) : (
+                <button className="btn primary" disabled={!!why} onClick={() => {
+                  if (!dispatch({ type: 'CASE_ACTION', caseId: f.id, actionId: a.id })) return;
+                  const created = getGame().incidents.find((i) => isOpen(i) && i.sandbox?.caseId === f.id && i.sandbox.actionId === a.id);
+                  if (created) onOpenIncident?.(created.id);
+                }} data-testid={`action-start-${a.id}`}>Создать выезд на карте</button>
+              )}
+            </>
+          ) : (
+            <>
+              <StaffPick game={game} roles={roles} value={who} onChange={setWho} why={() => null} testid={`actor-${a.id}`} />
+              <button className="btn primary" disabled={!who || !!why} onClick={() => dispatch({ type: 'CASE_ACTION', caseId: f.id, actionId: a.id, staffId: who })} data-testid={`action-start-${a.id}`}>Начать</button>
+            </>
+          )}
+          {why && !existingEvent && <small className="why">{why}</small>}
         </>
       )}
     </article>
@@ -623,9 +663,9 @@ function Conclusion({ game, f, d, onContinue }: { game: GameState; f: CaseFile; 
     const h = d.hypotheses.find((x) => x.id === f.decision?.hypothesisId);
     return (
       <div className="career" data-testid="case-decided">
-        <p><b>{c?.label}</b>{h ? ` по версии «${h.title}»` : ''} · смена {f.decision!.shift}.</p>
+        <p><b>{c?.label}</b>{h ? ` по версии «${h.title}»` : ''} · {game.sandbox ? `минута ${game.minute}` : `смена ${f.decision!.shift}`}.</p>
         <p className="muted">{c?.hint}</p>
-        <p className="muted">Решение записано в журнал. Если оно было ошибочным, это может вскрыться позже.</p>
+        <p className="muted">{game.sandbox ? 'Итог дела уже определён. Его результат показан в отдельном окне; правильность других версий не раскрывается.' : 'Решение записано в журнал. Если оно было ошибочным, это может вскрыться позже.'}</p>
         {f.revealed && <p className="warn" data-testid="case-revealed">{f.status === 'charged' ? CASE_RULES.revealFalse.text : c?.reveal?.text}</p>}
       </div>
     );
@@ -638,7 +678,8 @@ function Conclusion({ game, f, d, onContinue }: { game: GameState; f: CaseFile; 
   const cur = confirm ? conclusionDef(d, confirm) : undefined;
   return (
     <div className="career" data-testid="conclusion">
-      <p className="hint">Прогноз говорит о пригодности доказательств, а не о том, какая версия верна. Обвинить можно и по ошибочной версии: истина может вскрыться позже.</p>
+      <p className="hint">Прогноз говорит о пригодности доказательств, а не о том, какая версия верна. {game.sandbox ? 'Проверяйте связи и реконструкцию: игра не выбирает верное заключение за вас.' : 'Обвинить можно и по ошибочной версии: истина может вскрыться позже.'}</p>
+      {game.sandbox && <p className="warn" data-testid="sandbox-conclusion-warning"><b>Перед заключением.</b> Полный или частичный итог открывает следующий район. Ошибочное итоговое заключение будет опровергнуто: улики, связи, действия, допросы и события текущего дела начнутся заново. Ранения, ресурсы, купленные слоты и прошлые районы сохранятся. Неудача отдельного выезда дело не перезапускает.</p>}
       {f.decision?.court === 'returned' && <p className="warn">Суд продолжения вернул прошлое обвинение. Укрепите доказательства или выберите другое решение.</p>}
       <div className="table-scroll">
         <table className="staff-table" data-testid="forecast">
@@ -668,7 +709,7 @@ function Conclusion({ game, f, d, onContinue }: { game: GameState; f: CaseFile; 
       {cur ? (
         <div className="sq-card confirm" data-testid="confirm-box">
           <p><b>{cur.label}{cur.kind === 'charge' ? ` по версии «${d.hypotheses.find((h) => h.id === hyp)?.title}»` : ''}?</b></p>
-          <small className="muted">Решение необратимо. {cur.hint}{cur.kind === 'charge' ? ' Суд может вернуть обвинение, если доказательств мало или они сомнительны.' : ''}</small>
+          <small className="muted">Решение необратимо. {game.sandbox && 'Ошибка перезапустит материалы текущего дела, но не покажет правильный ответ. '}{cur.hint}{cur.kind === 'charge' ? ' Суд может вернуть обвинение, если доказательств мало или они сомнительны.' : ''}</small>
           <span className="row-actions">
             <button className="btn primary" onClick={() => decide(cur)} data-testid="confirm-decision">Подтвердить</button>
             <button className="btn" onClick={() => setConfirm(null)}>Отмена</button>
@@ -681,7 +722,7 @@ function Conclusion({ game, f, d, onContinue }: { game: GameState; f: CaseFile; 
             return (
               <div key={c.id}>
                 <button className={`btn${c.kind === 'charge' ? ' primary' : ''}`} disabled={!!why} onClick={() => setConfirm(c.id)} data-testid={`decide-${c.id}`}>
-                  {c.label}{c.money ? ` · ${c.money > 0 ? '+' : ''}${formatRe(c.money * 100)} РЕ` : ''}
+                  {c.label}{!game.sandbox && c.money ? ` · ${c.money > 0 ? '+' : ''}${formatRe(c.money * 100)} РЕ` : ''}
                 </button>
                 <small className={why ? 'why' : 'muted'}><span className="tag">{KIND_TAG[c.kind]}</span> {why ?? c.hint}</small>
               </div>
@@ -707,7 +748,7 @@ function Conclusion({ game, f, d, onContinue }: { game: GameState; f: CaseFile; 
 // ---------- Обучение ----------
 
 /** Подсказка «что дальше» и шесть учебных шагов (отмечаются по настоящим действиям; обучение можно скрыть). */
-function CaseGuide({ game, f, tab, onGo }: { game: GameState; f: CaseFile; tab: Tab; onGo: (t: Tab, target?: string) => void }) {
+function CaseGuide({ game, f, tab, onGo, onOpenIncident }: { game: GameState; f: CaseFile; tab: Tab; onGo: (t: Tab, target?: string) => void; onOpenIncident?: (incidentId: string) => void }) {
   const [hidden, setHidden] = useState(() => readFlag(TRAINING_KEY));
   const next = caseNextStep(game, f);
   const steps = caseTraining(f);
@@ -725,7 +766,10 @@ function CaseGuide({ game, f, tab, onGo }: { game: GameState; f: CaseFile; tab: 
       {next && (
         <p className="next" data-testid="case-next">
           {next.text}{' '}
-          {next.tab !== tab || next.target ? <button className="btn primary" onClick={() => onGo(next.tab, next.target)} data-testid="case-next-go">Перейти</button> : null}
+          {next.tab !== tab || next.target || next.incidentId ? <button className="btn primary" onClick={() => {
+            if (next.incidentId && onOpenIncident) onOpenIncident(next.incidentId);
+            else onGo(next.tab, next.target);
+          }} data-testid="case-next-go">{next.incidentId ? 'Перейти к выезду' : 'Перейти'}</button> : null}
         </p>
       )}
       {!hidden && (
@@ -744,19 +788,19 @@ function CaseGuide({ game, f, tab, onGo }: { game: GameState; f: CaseFile; tab: 
 }
 
 /** Страница «Как вести дело»: открывается сама при первом деле и по кнопке в заголовке. */
-function CaseHelp({ onClose }: { onClose: () => void }) {
+function CaseHelp({ onClose, sandbox }: { onClose: () => void; sandbox: boolean }) {
   return (
     <Modal title="Как вести дело" subtitle="Расследования: коротко и по шагам" onClose={onClose} testId="case-help" className="wide case-help"
       footer={<button className="btn primary" onClick={onClose} data-testid="case-help-close">Понятно</button>}>
       <ol>
-        <li><b>Выезд на вызов открывает дело.</b> Вызовы, связанные с делом, отмечены на карте золотым ярлыком «№…». Задача операции «Сохранность улик» решает, сколько улик с места дойдёт до дела.</li>
+        <li><b>Выезд на вызов открывает дело.</b> Вызовы, связанные с делом, отмечены на карте золотым ярлыком «№…». {sandbox ? 'В песочнице все события относятся к активному делу; на карточке указаны цель выезда, успех и последствие провала.' : 'Задача операции «Сохранность улик» решает, сколько улик с места дойдёт до дела.'}</li>
         <li><b>Проверьте улики.</b> На доске нажмите на улику и выберите следователя, аналитика или биокриминалиста. Проверка идёт 45–90 игровых минут и иногда бывает неубедительной: тогда её повторяют, повторная точнее.</li>
-        <li><b>Добывайте новые сведения.</b> «Действия» — выезды и запросы (некоторым нужен ордер суда или допуск Дома). «Допросы» — люди отвечают на вопросы, когда у вас есть улики, на которые можно сослаться. Усиленный допрос быстрее, но суд может исключить такие показания.</li>
+        <li><b>Добывайте новые сведения.</b> «Действия» — выезды и запросы (некоторым нужен ордер суда или допуск Дома). {sandbox && 'Полевое действие сначала создаёт событие на карте: кабинетный сотрудник для него не нужен. '}«Допросы» — люди отвечают на вопросы, когда у вас есть улики, на которые можно сослаться. Усиленный допрос быстрее, но суд может исключить такие показания.</li>
         <li><b>Стройте связи на доске.</b> Свяжите улику с версией. Пока улика не проверена, связь только «предложена». Доска не говорит, какая версия верна: решаете вы.</li>
         <li><b>Усильте дело (по желанию).</b> Сопоставьте две улики между собой и восстановите порядок событий в «Реконструкции». Это повышает шансы в суде.</li>
-        <li><b>Вынесите заключение.</b> Для обвинения нужно минимум 3 проверенные и допустимые улики, подтверждающие одну версию. Суд может вернуть обвинение, а ошибочное решение может вскрыться через пару смен.</li>
+        <li><b>Вынесите заключение.</b> Для обвинения нужно минимум 3 проверенные и допустимые улики, подтверждающие одну версию. {sandbox ? 'Полный или частичный итог открывает следующий район. Ошибочное итоговое заключение опровергается и перезапускает только материалы текущего дела; правильный ответ не раскрывается.' : 'Суд может вернуть обвинение, а ошибочное решение может вскрыться через пару смен.'}</li>
       </ol>
-      <p className="note"><b>Сколько времени.</b> Дело не нужно раскрывать за одну смену: оно остаётся открытым, а начатая работа доделывается к следующей смене. Подгоняют только события кампании: предложения Домов и сроки особых операций.</p>
+      <p className="note"><b>Сколько времени.</b> {sandbox ? 'Время непрерывно, смен нет. Окна расследования, отправки и решений ставят игру на автопаузу; ручную паузу ставите и снимаете вы сами. Неудачный выезд создаёт альтернативную ветвь, а не перезапускает дело.' : 'Дело не нужно раскрывать за одну смену: оно остаётся открытым, а начатая работа доделывается к следующей смене. Подгоняют только события кампании: предложения Домов и сроки особых операций.'}</p>
       <p className="note">Внутри дела всегда есть подсказка «Следующий шаг» и шесть учебных шагов первого дела. Обучение можно скрыть.</p>
     </Modal>
   );

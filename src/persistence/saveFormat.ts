@@ -82,6 +82,8 @@ const MIGRATIONS: Record<number, (s: Record<string, unknown>) => Record<string, 
   9: (s) => ({ ...s, investigations: initialInvestigations(), campaign: initialCampaign() }),
   /** v10 → v11: вызовы приходят в течение смены; у старых сохранений очередь пуста (все вызовы смены уже на карте). */
   10: (s) => ({ ...s, incoming: [] }),
+  /** v11 → v12: поля песочницы добавочные; кампания переносится без изменений. */
+  11: (s) => ({ ...s }),
 };
 
 export function toSaveFile(state: GameState, label: string, now: Date): SaveFile {
@@ -127,7 +129,20 @@ function validateState(s: Record<string, unknown>): string | null {
   if (!isObject(camp) || !Array.isArray(camp.flags) || !Array.isArray(camp.ops) || !isObject(camp.choices)) return 'нет раздела campaign';
   if (!Number.isInteger(s.shift) || (s.shift as number) < 1) return 'неверный номер смены';
   if (!Number.isInteger(s.minute) || (s.minute as number) < 0) return 'неверное время';
+  if (s.mode !== undefined && s.mode !== 'sandbox') return 'неверный режим игры';
   if (!['BRIEFING', 'ACTIVE', 'REVIEW_PENDING', 'SHIFT_REPORT'].includes(s.phase as string)) return 'неверная фаза смены';
+  if (s.mode === 'sandbox') {
+    const sb = s.sandbox as Record<string, unknown> | undefined;
+    if (!isObject(sb)) return 'нет состояния песочницы';
+    if (s.phase !== 'ACTIVE') return 'неверная фаза песочницы';
+    for (const key of ['unlockedDistricts', 'controlledDistricts', 'rewardedCases'] as const)
+      if (!Array.isArray(sb[key])) return `нет раздела sandbox.${key}`;
+    for (const key of ['caseRuns', 'recovery'] as const)
+      if (!isObject(sb[key])) return `нет раздела sandbox.${key}`;
+    for (const key of ['squadSlots', 'order', 'legitimacy', 'readiness'] as const)
+      if (!Number.isFinite(sb[key])) return `неверное значение sandbox.${key}`;
+    if (typeof sb.activeCaseId !== 'string') return 'нет активного дела песочницы';
+  } else if (s.sandbox !== undefined) return 'состояние песочницы без режима песочницы';
   const rng = s.rng as Record<string, unknown> | undefined;
   if (!isObject(rng) || !Number.isInteger(rng.state) || !Number.isInteger(rng.cursor)) return 'нет состояния генератора';
   const eco = s.economy as Record<string, unknown> | undefined;

@@ -19,6 +19,7 @@ import { groupMods } from '../../core/career';
 import { SQUAD_STATUS } from '../labels';
 import { SquadMember, memberSummary } from '../shell/SquadStrip';
 import { PERMIT_NAME, POLITICS, emergencyRisk, legalRequirement, permitBlocker, requestBlocker, riskWord } from '../../core/politics';
+import { SANDBOX_GOAL_LABEL, sandboxEventFor, sandboxGoalFor } from '../../core/sandbox';
 
 interface Props {
   game: GameState;
@@ -122,7 +123,22 @@ export function DispatchDialog({ game, incidentId, initialSquadId, onClose, onPr
             {game.paused && active && <div className="paused-chip" data-testid="dispatch-paused"><dt>⏸</dt><dd>Пауза, пока окно открыто</dd></div>}
           </dl>
           {prof.known && <p className="known" data-testid="dispatch-known">{houseText(prof.known)}</p>}
+          {inc.sandbox && (() => {
+            const def = sandboxEventFor(inc)!;
+            const goal = sandboxGoalFor(inc)!;
+            const purpose = inc.sandbox!.fallback ? def.fallbackPurpose ?? def.purpose : def.purpose;
+            return (
+              <section className="sandbox-event-brief" data-testid="dispatch-sandbox-goal">
+                <span className="tag good">Цель: {SANDBOX_GOAL_LABEL[goal]}</span>
+                <p><b>Цель выезда.</b> {purpose}</p>
+                <p><b>Успех.</b> {def.successText}</p>
+                <p><b>Провал.</b> {def.failureText} Откроется альтернативная ветвь, а не перезапуск дела.</p>
+                <small className="muted">Тактику ниже выбираете отдельно: она определяет, как отряд выполнит эту цель.</small>
+              </section>
+            );
+          })()}
           {(() => {
+            if (inc.sandbox) return null;
             const t = templateOf(inc);
             const stakes = publicAftermath(t);
             const late = t?.lateText;

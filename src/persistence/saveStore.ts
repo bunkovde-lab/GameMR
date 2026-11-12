@@ -1,13 +1,28 @@
 import type { GameState } from '../core/types';
 import { parseSave, toSaveFile, type LoadResult, type SaveFile } from './saveFormat';
 
-export type SlotId = 'auto' | 'slot1' | 'slot2' | 'slot3';
-export const SLOTS: { id: SlotId; label: string }[] = [
+export type CampaignSlotId = 'auto' | 'slot1' | 'slot2' | 'slot3';
+export type SandboxSlotId = 'sandbox-auto' | 'sandbox-slot1' | 'sandbox-slot2' | 'sandbox-slot3';
+export type SlotId = CampaignSlotId | SandboxSlotId;
+export type SaveMode = 'campaign' | 'sandbox';
+
+export const SLOTS: { id: CampaignSlotId; label: string }[] = [
   { id: 'auto', label: 'Автосохранение' },
   { id: 'slot1', label: 'Слот 1' },
   { id: 'slot2', label: 'Слот 2' },
   { id: 'slot3', label: 'Слот 3' },
 ];
+export const SANDBOX_SLOTS: { id: SandboxSlotId; label: string }[] = [
+  { id: 'sandbox-auto', label: 'Автосохранение песочницы' },
+  { id: 'sandbox-slot1', label: 'Слот песочницы 1' },
+  { id: 'sandbox-slot2', label: 'Слот песочницы 2' },
+  { id: 'sandbox-slot3', label: 'Слот песочницы 3' },
+];
+const ALL_SLOTS: { id: SlotId; label: string }[] = [...SLOTS, ...SANDBOX_SLOTS];
+
+export const autoSlotFor = (state: GameState): SlotId => state.mode === 'sandbox' ? 'sandbox-auto' : 'auto';
+export const saveModeFor = (slot: SlotId): SaveMode => slot.startsWith('sandbox-') ? 'sandbox' : 'campaign';
+export const slotsForMode = (mode: SaveMode): { id: SlotId; label: string }[] => mode === 'sandbox' ? SANDBOX_SLOTS : SLOTS;
 
 export const EMPTY_SLOT = 'Слот пуст.';
 
@@ -40,7 +55,9 @@ async function tx<T>(mode: IDBTransactionMode, fn: (store: IDBObjectStore) => ID
 
 /** Запись — одна атомарная операция IndexedDB: при ошибке прежнее сохранение остаётся. */
 export async function saveToSlot(slot: SlotId, state: GameState): Promise<void> {
-  const file = toSaveFile(state, SLOTS.find((s) => s.id === slot)!.label, new Date());
+  const expected = state.mode === 'sandbox' ? 'sandbox' : 'campaign';
+  if (saveModeFor(slot) !== expected) throw new Error('Этот слот относится к другому режиму игры.');
+  const file = toSaveFile(state, ALL_SLOTS.find((s) => s.id === slot)!.label, new Date());
   await tx('readwrite', (st) => st.put(file, slot));
 }
 
@@ -53,19 +70,32 @@ export async function loadFromSlot(slot: SlotId): Promise<LoadResult> {
   }
   if (!raw) return { ok: false, reason: EMPTY_SLOT };
   try {
-    return parseSave(raw);
+    const result = parseSave(raw);
+    if (result.ok) {
+      const actual = result.state.mode === 'sandbox' ? 'sandbox' : 'campaign';
+      if (actual !== saveModeFor(slot)) return { ok: false, reason: 'В слоте сохранение другого режима.' };
+    }
+    return result;
   } catch (e) {
     // Битые данные внутри слота (миграция упала) — это повреждённое сохранение, а не отказ хранилища.
     return { ok: false, reason: `Сохранение повреждено: ${(e as Error).message}` };
   }
 }
 
-export async function listSlots(): Promise<Record<SlotId, { savedAt: string; shift: number } | null>> {
-  const result = { auto: null, slot1: null, slot2: null, slot3: null } as Record<SlotId, { savedAt: string; shift: number } | null>;
+export interface SlotInfo { savedAt: string; shift: number; minute: number; mode: SaveMode }
+export type SlotListing = Record<SlotId, SlotInfo | null>;
+
+export async function listSlots(): Promise<SlotListing> {
+  const result = Object.fromEntries(ALL_SLOTS.map(({ id }) => [id, null])) as SlotListing;
   try {
-    for (const { id } of SLOTS) {
+    for (const { id } of ALL_SLOTS) {
       const raw = await tx<SaveFile | undefined>('readonly', (st) => st.get(id));
-      if (raw?.state) result[id] = { savedAt: raw.savedAt, shift: raw.state.shift };
+      if (raw?.state) result[id] = {
+        savedAt: raw.savedAt,
+        shift: raw.state.shift,
+        minute: raw.state.minute,
+        mode: raw.state.mode === 'sandbox' ? 'sandbox' : 'campaign',
+      };
     }
   } catch {
     /* хранилище недоступно (приватный режим) — показываем пустые слоты */

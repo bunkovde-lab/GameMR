@@ -1219,3 +1219,45 @@ img.nav-art { width: 36px; height: 36px; margin: -6px 0; object-fit: contain; fl
 .aft-ico.cat-politics { color: #c07ad0; }
 .aft-ico.cat-staff { color: #8fc0d8; }
 .aft-ico.cat-science { color: #69c1d0; }
+
+
+/* ---------- Песочница: интерфейсный слой поверх утверждённой карты ---------- */
+.district-hit.locked { cursor: help; }
+.district-label.locked {
+  display: grid; justify-items: center; gap: 3px; color: #aaa39a;
+  background: #090c10b8; border-color: #68635b66;
+}
+.district-label.locked small {
+  font: 500 9px/1.2 var(--font-ui); letter-spacing: .2px; text-transform: none;
+  color: var(--amber); white-space: normal; text-align: center;
+}
+.sandbox-dock .goals-panel { width: min(340px, calc(100vw - 40px)); }
+.sandbox-active-case { display: grid; gap: 4px; margin: 0 0 10px; }
+.sandbox-active-case b { color: var(--gold-light); }
+.sandbox-active-case small { color: var(--muted); }
+.sandbox-vitals { margin: 12px 0; }
+.sandbox-event-brief {
+  display: grid; gap: 8px; padding: 10px 12px; margin: 8px 0;
+  border: 1px solid #c9a46a88; border-radius: var(--radius);
+  background: linear-gradient(135deg, #c9a46a12, #0c121a80);
+}
+.sandbox-event-brief dl { display: grid; grid-template-columns: minmax(110px, .42fr) 1fr; gap: 6px 10px; margin: 0; }
+.sandbox-event-brief dt { color: var(--gold-light); font-weight: 600; }
+.sandbox-event-brief dd { margin: 0; }
+.sandbox-event-brief p { margin: 0; }
+.sandbox-case-summary {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 10px 0;
+}
+.sandbox-case-summary > div {
+  padding: 10px 12px; border: 1px solid var(--stroke2); border-radius: 8px; background: #0c121a99;
+}
+.sandbox-case-summary dt { margin-bottom: 4px; color: var(--gold-light); font: 400 16px/1.2 var(--font-title); }
+.sandbox-case-summary dd { margin: 0; color: var(--text); font-size: 13px; line-height: 1.45; }
+.sandbox-story-episode { padding: 10px 12px; border-left: 3px solid var(--gold); background: #c9a46a0d; }
+.sandbox-story-episode p:last-child { margin-bottom: 0; }
+@media (max-width: 650px) {
+  .sandbox-case-summary { grid-template-columns: 1fr; }
+  .sandbox-event-brief dl { grid-template-columns: 1fr; gap: 2px; }
+  .sandbox-event-brief dd + dt { margin-top: 6px; }
+  .sandbox-dock .goals-panel { width: min(320px, calc(100vw - 20px)); }
+}

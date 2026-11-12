@@ -2,7 +2,7 @@
  * Доменная модель W2 — подмножество ТЗ §5.2, необходимое для одной смены.
  * Деньги хранятся целым числом в сотых долях РЕ (cents), чтобы избежать ошибок округления.
  */
-export const SCHEMA_VERSION = 12;
+export const SCHEMA_VERSION = 13;
 
 import type { Route } from './map/graph';
 
@@ -215,6 +215,21 @@ export interface SandboxIncidentLink {
   fallback: boolean;
 }
 
+export type DutyKind = 'conflict' | 'theft' | 'brawl' | 'missing' | 'hazard';
+
+/** Обычный городской вызов: не связан с делом и не создаёт следственных ветвей. */
+export interface DutyIncidentLink {
+  kind: DutyKind;
+  urgent: boolean;
+  rewardRe: number;
+}
+
+export interface SandboxDutyState {
+  /** null — генератор ещё не запущен: ждёт первый завершённый выезд по делу. */
+  nextAt: number | null;
+  generated: number;
+}
+
 export interface SandboxCaseRun {
   attempts: number;
   failures: number;
@@ -242,6 +257,7 @@ export interface SandboxState {
   rewardedCases: string[];
   /** Сотрудник → игровая минута автоматического возвращения после тяжёлого ранения. */
   recovery: Record<string, number>;
+  duty: SandboxDutyState;
   result: SandboxResult | null;
   defeatReason: string | null;
   sliceComplete: boolean;
@@ -259,8 +275,10 @@ export interface Incident {
   /** Игровая минута смены, когда наступает ухудшение */
   deadlineMinute: number;
   createdShift: number;
-  /** Есть только у событий отдельного режима «Песочница». */
+  /** Есть только у событий дела отдельного режима «Песочница». */
   sandbox?: SandboxIncidentLink;
+  /** Обычный дежурный вызов песочницы, вне активного дела. */
+  duty?: DutyIncidentLink;
 }
 
 export type TransactionKind =
@@ -554,6 +572,8 @@ export type Command =
   | { type: 'REQUEST_EXPERTISE'; caseId: string }
   | { type: 'CONCLUDE_CASE'; caseId: string; conclusionId: string; hypothesisId?: string }
   | { type: 'BUY_SANDBOX_SQUAD' }
+  | { type: 'DELEGATE_DUTY_INCIDENT'; incidentId: string }
+  | { type: 'IGNORE_DUTY_INCIDENT'; incidentId: string }
   | { type: 'ACK_SANDBOX_RESULT' }
   | { type: 'STORY_CHOICE'; shift: number; optionId: string }
   | { type: 'START_SPECIAL_OP'; opId: string; squadId: string }

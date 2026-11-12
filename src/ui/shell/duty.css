@@ -1,0 +1,29 @@
+/* Обычные дежурные вызовы: холодный цвет вместо золотой маркировки дела. */
+.marker.incident.duty-call:not(.case-link) {
+  border-color: #b9e5f2;
+  box-shadow: 0 0 0 3px #0b1118, 0 0 0 5px #72b8cf, 0 2px 10px #000c;
+}
+.marker.incident.shield.duty-call:not(.case-link) {
+  box-shadow: none;
+  filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 6px #72b8cf) drop-shadow(0 3px 5px #000);
+}
+.marker.incident.duty-call.selected:not(.shield) { box-shadow: 0 0 0 3px #0b1118, 0 0 0 6px #d7f5ff, 0 2px 12px #000; }
+.duty-no { color: #d7f5ff; font-weight: 800; margin-left: 4px; }
+.duty-brief {
+  display: grid; gap: 8px; padding: 10px 12px; margin: 8px 0;
+  border: 1px solid #72b8cf99; border-radius: var(--radius);
+  background: linear-gradient(135deg, #72b8cf16, #0c121a90);
+}
+.duty-brief.urgent { border-color: #d7f5ff; background: linear-gradient(135deg, #72b8cf28, #28141a80); }
+.duty-brief-head { display: flex; flex-wrap: wrap; gap: 6px; }
+.duty-tag { color: #d7f5ff; border-color: #72b8cf; }
+.duty-brief p { margin: 0; }
+.duty-brief dl { display: grid; grid-template-columns: minmax(110px, .42fr) 1fr; gap: 6px 10px; margin: 0; }
+.duty-brief dt { color: #b9e5f2; font-weight: 600; }
+.duty-brief dd { margin: 0; }
+.duty-actions { display: grid; gap: 6px; }
+.sandbox-duty-status { margin: 10px 0; padding-top: 8px; border-top: 1px solid var(--stroke2); }
+@media (max-width: 650px) {
+  .duty-brief dl { grid-template-columns: 1fr; gap: 2px; }
+  .duty-brief dd + dt { margin-top: 6px; }
+}

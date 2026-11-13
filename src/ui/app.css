@@ -295,969 +295,296 @@ svg.icon {
 .map-world { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
 .map-world img { display: block; width: 100%; height: 100%; pointer-events: auto; -webkit-user-drag: none; }
 .map-geo { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
-/* ART-019: ночная карта поверх дневной, прозрачность = уровень ночи (плавно между минутами) */
-.map-world .map-night { position: absolute; inset: 0; transition: opacity 1.2s linear; }
-/* Поля по краям (окно шире/уже 16:9): та же карта, размытая и затемнённая */
-.map-backdrop { position: absolute; inset: -40px; width: calc(100% + 80px); height: calc(100% + 80px); object-fit: cover; filter: blur(22px) brightness(0.4) saturate(0.7); pointer-events: none; }
-.map-life { position: absolute; left: 0; top: 0; pointer-events: none; }
-.map-ambient {
-  position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); z-index: 1;
-  display: flex; gap: 6px; pointer-events: auto; font-size: 12px; white-space: nowrap;
+/* ART-019: ночная карта поверх дневной, прозрачность = уровень ночи (плавно меняется при каждом тике). */
+.map-night { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; opacity: var(--night, 0); transition: opacity 0.6s ease; }
+.map-night img { filter: brightness(0.4) contrast(1.15) saturate(0.65); }
+/* Освещение по краю: закат снизу — фоновый div, чтобы не перекрывать карту и не привязываться к её размеру. */
+.map-horizon {
+  position: absolute; left: 0; bottom: 0; width: 100%; height: 180px; z-index: 1; pointer-events: none;
+  background: radial-gradient(ellipse 70% 100% at 50% 120%, #d68b3baa, #7a382a44, transparent 70%);
 }
-.map-ambient span { padding: 3px 9px; border-radius: 999px; background: #0c1016d9; border: 1px solid var(--stroke2); color: var(--muted, #b9b0a0); }
-.map-ambient .hot { color: #ff9a6a; border-color: #8d3138; }
-/* Широкий экран: подпись — по центру закреплённой области карты между местами панелей (открыты они или нет). */
-/* Подпись — по центру города (он прижат к левому краю окна). */
-.map-ambient { left: calc((100% - var(--map-free-right, 0px)) / 2); }
-.city-splash { position: fixed; inset: 0; z-index: 19; background: #05070b center / cover no-repeat; }
-.city-splash + .overlay { background: #0405078c; }
-.district-hit {
-  pointer-events: auto; cursor: pointer; fill: transparent; stroke: none;
+/* Метки объектов */
+.marker { position: absolute; transform: translate(-50%, -100%); cursor: pointer; z-index: 2; }
+.marker .icon { position: absolute; left: 50%; bottom: 0; transform: translate(-50%, 0); width: 22px; height: 22px; }
+.marker:hover .icon, .marker.selected .icon { filter: brightness(1.2); }
+.marker::after {
+  content: ''; position: absolute; left: 50%; top: 100%; width: 18px; height: 5px; transform: translate(-50%, 1px);
+  border-radius: 50%; background: #00000088; filter: blur(2px);
 }
-/* Границы и заливка районов не рисуются: наведение, фокус и выбор подсвечивают только название района. */
-.district-hit:focus, .district-hit:focus-visible { outline: none; }
-.road { fill: none; stroke: #6fc7d2aa; stroke-width: 3; vector-effect: non-scaling-stroke; stroke-linecap: round; }
-.road.closed { stroke: #ff5a52; stroke-dasharray: 5 5; }
-.route { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }
-.route.active { stroke: #58e0ef; stroke-width: 5; filter: drop-shadow(0 0 4px #58e0efaa); }
-.route.preview { stroke: #f6d27a; stroke-width: 4; stroke-dasharray: 10 7; }
+/* Метки инцидентов: щит с миганием */
+.marker.incident .ico-shield {
+  display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  border: 1.5px solid var(--glow); background: #0b1118; box-shadow: 0 0 0 1px #000, 0 0 8px var(--glow);
+  color: var(--glow); font-size: 13px; font-weight: 600;
+}
+.marker.incident .ico-shield .icon { position: static; transform: none; width: 16px; height: 16px; }
+.marker.incident.selected .ico-shield { box-shadow: 0 0 0 2px #ff8a78, 0 0 14px #ff8a78; }
+.marker.incident:not(.selected) .ico-shield { animation: marker-blink 2.5s ease-in-out infinite; }
+@keyframes marker-blink { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
+@media (prefers-reduced-motion: reduce) { .marker.incident:not(.selected) .ico-shield { animation: none; } }
+/* Метки отрядов: щит с баннером (дом) */
+.marker.squad .ico-shield {
+  display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  border: 1.5px solid var(--glow); background: #0b1118; box-shadow: 0 0 0 1px #000, 0 0 8px var(--glow);
+  color: var(--glow); font-size: 10px; font-weight: 600;
+}
+.marker.squad .ico-shield .icon { position: static; transform: none; width: 16px; height: 16px; }
+/* Номер отряда внутри щита (пока нет портрета командира) */
+.squad-num { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: 600; }
 
-.map-screen { position: absolute; inset: 0; pointer-events: none; }
-.map-screen > * { position: absolute; transform: translate(-50%, -50%); }
-/* Маркер отряда носит класс .squad, как и карточка в ленте: общие правила карточки (position: relative, отступы, обрезка)
-   сдвигали щиты отрядов с их точки на карте. */
-.map-screen > .marker.squad { position: absolute; padding: 0; overflow: visible; flex: none; min-width: 0; }
-.district-label {
-  font-family: Georgia, serif; font-size: 13px; letter-spacing: 1.2px; text-transform: uppercase; white-space: nowrap;
-  color: #f4e7c8; text-shadow: 0 1px 3px #000, 0 0 8px #000;
-  transition: color 0.15s, text-shadow 0.15s, transform 0.15s;
+/* ---------- Нижняя навигация ---------- */
+.map-nav {
+  position: absolute; left: 8px; bottom: 8px; z-index: 5;
+  display: flex; flex-direction: column; gap: 4px;
 }
-.district-label.selected { color: #ffd38a; text-shadow: 0 1px 3px #000, 0 0 8px #000, 0 0 14px #c9454acc; }
-.district-label { padding: 2px 8px; border-radius: 4px; border: 1px solid transparent; }
-.district-label.hover {
-  z-index: 2; color: #ffe39a; transform: translate(-50%, -50%) scale(1.15);
-  background: #0b0d10d9; border-color: #c9a46a; box-shadow: 0 0 14px #f6d27a66;
-  text-shadow: 0 1px 3px #000, 0 0 10px #f6d27acc;
-}
-.risk-badge {
-  display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; font-size: 11px;
-  padding: 2px 8px; border-radius: 99px; background: #2a1517e6; border: 1px solid #a84448; color: #ffc9c2;
-}
-.risk-badge svg.icon { width: 13px; height: 13px; }
-.depot { width: 12px; height: 12px; border-radius: 3px; background: #6fc7d2; border: 2px solid #0b1118; box-shadow: 0 0 0 1px #6fc7d2; }
-.marker {
-  pointer-events: auto; width: var(--tap); height: var(--tap); padding: 0; border-radius: 50%;
-  display: grid; place-items: center; border: 2px solid #e8d7b4; background: #1b2028f0; color: #fff;
-  box-shadow: 0 2px 10px #000c;
-}
-.marker svg.icon { width: 22px; height: 22px; }
-/* W10 (MAP-05): кластер вызовов и линии от сдвинутой метки к истинной точке. */
-.marker.cluster { border-radius: 50%; font-size: 17px; border-width: 2px; }
-.marker.cluster.sev-medium { border-color: var(--cyan); }
-.marker.cluster.sev-high { border-color: var(--amber); background: #3a2a12f0; }
-.marker.cluster.sev-critical { border-color: var(--red); background: #4a1a20f0; }
-.map-screen > .marker-leaders { position: absolute; inset: 0; width: 100%; height: 100%; transform: none; pointer-events: none; overflow: visible; }
-.marker-leaders line { stroke: var(--gold-light); stroke-width: 2.5; filter: drop-shadow(0 0 2px #000); }
-.marker-leaders circle { fill: var(--gold-light); stroke: #000; stroke-width: 1.5; }
-.cluster-collapse { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 3; }
-.marker.incident.sev-low, .marker.incident.sev-medium { border-color: var(--cyan); }
-.marker.incident.sev-high { border-color: var(--amber); background: #3a2a12f0; }
-.marker.incident.sev-critical { border-color: var(--red); background: #4a1a20f0; }
-.marker.incident.st-escalated { animation: pulse 1.4s ease-in-out infinite; }
-.marker.incident.st-en_route, .marker.incident.st-on_scene { opacity: 0.8; border-style: dashed; }
-.marker.squad { border-radius: 10px; background: #10161df2; }
-.marker.squad svg.icon { width: 18px; height: 18px; }
-.marker.squad.tone-green { border-color: var(--green); color: var(--green); }
-.marker.squad.tone-cyan { border-color: var(--cyan); color: var(--cyan); }
-.marker.squad.tone-amber { border-color: var(--amber); color: var(--amber); }
-.marker.squad.tone-red { border-color: var(--bad); color: var(--bad); }
-.marker.squad.tone-grey { border-color: var(--dim); color: var(--dim); }
-.marker.selected { box-shadow: 0 0 0 3px #0b1118, 0 0 0 6px #ff8a78, 0 2px 12px #000; z-index: 1; }
-@keyframes pulse { 50% { box-shadow: 0 0 0 7px #ff5a5233, 0 2px 10px #000c; } }
+.map-nav .btn { width: 36px; height: 36px; padding: 0; }
+.map-nav .btn .icon { width: 18px; height: 18px; }
 
-/* ART-003/004: щиты карты вместо временных кружков. Кончик щита стоит в точке вызова;
-   серьёзность, состояние и выбор — подсветкой кодом, а не в самом файле значка. */
-.marker.shield, .marker.incident.shield, .marker.cluster.shield, .marker.squad.shield {
-  --glow: #6fc7d2; --mk-h: 56px; width: calc(var(--mk-h) * 0.8); height: var(--mk-h); border: 0; border-radius: 0; background: none; box-shadow: none;
-  transform: translate(-50%, -97%); filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 4px var(--glow)) drop-shadow(0 3px 5px #000);
+/* ---------- W4: карточки, вкладки, формы ---------- */
+.card-tabs {
+  display: flex; gap: 4px; padding: 6px 10px 0; border-bottom: 1px solid var(--stroke2); overflow-x: auto;
 }
-@media (min-width: 1400px) { .marker.shield { --mk-h: 64px; } }
-/* Щиты вызовов вдвое крупнее прежних (56/64 px → 112/128 px); на низком окне телефона — 64 px, иначе закрыли бы полкарты. */
-.map-stage { --mk-inc: 112px; }
-@media (min-width: 1400px) { .map-stage { --mk-inc: 128px; } }
-@media (max-height: 560px) { .map-stage { --mk-inc: 64px; } }
-.marker.incident.shield, .marker.cluster.shield { --mk-h: var(--mk-inc); }
-.marker.cluster.shield > b { font-size: calc(var(--mk-inc) * 0.3); }
-/* Таймер над щитом вызова: время до ухудшения, у вызовов по делу — ещё и номер дела. */
-.mk-timer {
-  position: absolute; left: 50%; bottom: calc(100% + 3px); transform: translateX(-50%); white-space: nowrap; pointer-events: none;
-  display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px 2px 6px; border-radius: 99px;
-  font: 700 14px/20px var(--font-ui, inherit); font-variant-numeric: tabular-nums; letter-spacing: 0.2px;
-  color: #f4e7c8; background: #0c1016f0; border: 1px solid #8c785a; box-shadow: 0 1px 6px #000d;
+.card-tabs .tab {
+  padding: 6px 12px; border: 1px solid transparent; border-bottom: 0; border-radius: 8px 8px 0 0;
+  background: none; color: var(--muted); font-size: 13px; white-space: nowrap;
 }
-.mk-timer svg.icon { width: 14px; height: 14px; }
-.mk-timer.tone-urgent { color: #ffd2cc; border-color: var(--bad); background: #4a1a20f2; }
-.mk-timer.tone-state { color: var(--muted); font-weight: 600; }
-.mk-timer.case { border-color: var(--gold-light); box-shadow: 0 0 8px #e6c58d88, 0 1px 6px #000d; }
-.mk-timer .case-no { margin-left: 2px; padding: 0 7px; border-radius: 99px; color: #1a1408; background: var(--gold-light); }
-.marker.incident.st-new .mk-timer { border-color: #f4e7c8; }
-@media (max-height: 560px) {
-  .mk-timer { font-size: 11px; line-height: 15px; padding: 1px 6px 1px 4px; gap: 2px; }
-  .mk-timer svg.icon { width: 11px; height: 11px; }
+.card-tabs .tab:hover:not(:disabled) { color: var(--text); }
+.card-tabs .tab[aria-selected='true'] {
+  background: var(--raised); border-color: var(--stroke2); color: var(--text); font-weight: 500;
 }
-.marker.shield > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; }
-.marker.shield::after { content: ''; position: absolute; inset: -4px -1px; } /* запас для пальца ≥ 44×60 */
-.marker.shield.sev-high { --glow: var(--amber); }
-.marker.shield.sev-critical { --glow: var(--red); filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 5px var(--glow)) drop-shadow(0 0 2px var(--glow)) drop-shadow(0 3px 5px #000); }
-.marker.incident.shield.st-en_route, .marker.incident.shield.st-on_scene { opacity: 0.85; }
-.marker.incident.shield.st-escalated { animation: shield-pulse 1.4s ease-in-out infinite; }
-@keyframes shield-pulse { 50% { filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 10px var(--glow)) drop-shadow(0 3px 5px #000); } }
-.marker.cluster.shield > b {
-  position: relative; margin-top: -6px; font: 700 18px/1 Georgia, serif; color: #f4e7c8; text-shadow: 0 1px 2px #000, 0 0 6px #000;
-}
-/* Отряд: щит транспорта рядом с точкой, цвет подсветки = статус отряда. */
-.marker.squad.shield { --mk-h: 56px; transform: translate(-50%, -50%); }
-.marker.squad.shield.tone-green { --glow: var(--green); }
-.marker.squad.shield.tone-cyan { --glow: var(--cyan); }
-.marker.squad.shield.tone-amber { --glow: var(--amber); }
-.marker.squad.shield.tone-red { --glow: var(--bad); }
-.marker.squad.shield.tone-grey { --glow: var(--dim); opacity: 0.8; }
-.marker.shield.selected, .marker.incident.shield.selected, .marker.squad.shield.selected {
-  box-shadow: none; z-index: 1;
-  filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 2px #fff) drop-shadow(0 0 8px #ff8a78) drop-shadow(0 3px 5px #000);
-}
-.mk-icon { display: inline-block; flex: none; vertical-align: -3px; background: currentColor; mask-size: contain; mask-repeat: no-repeat; mask-position: center; -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; }
+.card-body { padding: 10px 12px; }
+.card-body > *:first-child { margin-top: 0; }
+.card-body > *:last-child { margin-bottom: 0; }
 
-.map-warning {
-  position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 2; max-width: min(560px, 90%);
-  padding: 10px 14px; border-radius: 10px; background: #3a1418f2; border: 1px solid var(--bad);
-}
+.form-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
+.form-row label { flex: 1 1 120px; min-width: 0; }
+.form-row input, .form-row select { flex: 2 1 180px; min-width: 0; }
+.form-row .hint { flex-basis: 100%; }
 
-/* ---------- W3: список вызовов и карточки ---------- */
-.squad.selected { border-color: #ff8a78; box-shadow: inset 0 0 0 1px #ff8a78; }
-.card-body { padding: 12px 14px; display: grid; gap: 10px; align-content: start; }
-.card-title { margin: 0; font-size: 17px; }
-.muted { color: var(--muted); }
-.sev-text { font-weight: 600; }
-.sev-text.sev-critical { color: var(--bad); }
-.sev-text.sev-high { color: var(--amber); }
-.section-title { margin: 6px 0 0; font-size: 12px; color: var(--gold); letter-spacing: 1px; text-transform: uppercase; }
-.btn.wide { width: 100%; }
-.dispatch-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.dispatch-option { width: 100%; justify-content: space-between; text-align: left; padding: 6px 12px; }
-.dispatch-option small { color: var(--muted); }
-.plain-list { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
-.link { background: none; border: 0; padding: 0; color: var(--cyan); text-decoration: underline; min-height: var(--tap); }
+input, select, textarea {
+  background: var(--bg); color: var(--text); border: 1px solid var(--stroke2); border-radius: 6px;
+  padding: 6px 10px; font: inherit;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--cyan); outline: none; }
 
-@media (max-width: 950px) {
-  .right-panel { width: min(var(--right-w), 86vw); }
-  .map-ambient { font-size: 11px; bottom: 6px; }
-  .map-screen .district-label { font-size: 10px; letter-spacing: 0.6px; padding: 1px 5px; }
+/* ---------- W5: операции ---------- */
+.op-timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.op-timeline li {
+  display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start;
+  padding: 8px 10px; border-radius: 8px; background: var(--raised);
 }
-@media (prefers-reduced-motion: reduce) {
-  .marker.incident.st-escalated, .marker.incident.shield.st-escalated { animation: none; }
-  .district-label { transition: none; }
-}
+.op-timeline time { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.op-timeline p { margin: 0; }
 
-/* ---------- W4: окно отправки ---------- */
-.modal.wide { width: min(1080px, 100%); }
-.modal-footer {
-  display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap;
-  padding: 10px 16px; border-top: 1px solid var(--stroke2); background: var(--surface);
+/* ---------- W6: отряды / персонал / лечение ---------- */
+.roster-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
+.roster-card {
+  display: grid; gap: 6px; padding: 10px; border: 1px solid var(--stroke2); border-radius: var(--radius); background: var(--raised);
 }
-.dispatch-blocker { margin: 0 auto 0 0; color: var(--amber); font-size: 13px; flex: 1 1 260px; }
-.dispatch-brief { display: grid; grid-template-columns: minmax(200px, 320px) minmax(0, 1fr); gap: 14px; align-items: start; margin-bottom: 12px; }
-.dispatch-brief p { margin: 0; }
-.dispatch-brief .inc-hero { aspect-ratio: 16 / 10; }
-.dispatch-brief-text { display: grid; gap: 8px; min-width: 0; }
-.dispatch-brief .stakes { margin: 0; }
-.chips > div.urgent { border-color: #e0504f; }
-.chips > div.urgent dd { color: #ff8f86; }
-.chips > div.paused-chip { border-color: var(--gold); }
-.chips > div.paused-chip dt, .chips > div.paused-chip dd { color: var(--gold); }
-@media (max-width: 700px) { .dispatch-brief { grid-template-columns: 1fr; } .dispatch-brief .inc-hero { aspect-ratio: 3 / 1; } }
-@media (max-height: 560px) { .dispatch-brief { grid-template-columns: minmax(150px, 220px) minmax(0, 1fr); gap: 10px; } .dispatch-brief .inc-hero { aspect-ratio: 4 / 3; min-height: 0; } }
-.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
-.chips > div { display: flex; gap: 6px; padding: 3px 10px; border: 1px solid var(--stroke2); border-radius: 99px; font-size: 12px; }
-.chips dt { color: var(--muted); }
-.chips dd { margin: 0; font-weight: 600; }
-.tabs { display: flex; gap: 6px; margin-bottom: 10px; }
-.tabs .btn { flex: 1; }
-.dispatch-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
-.dispatch-main { display: grid; gap: 8px; min-width: 0; }
-.dispatch-main .section-title:first-child { margin-top: 0; }
-.pick-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px; }
-.pick-list.people { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
-.pick-list.tactics { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
-.btn.pick { width: 100%; height: 100%; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; padding: 6px 12px; text-align: left; }
-.btn.pick small { color: var(--muted); font-size: 12px; line-height: 1.3; }
-.btn.pick[aria-pressed='true'] small { color: #f3d9d4; }
-/* «Готовые отряды» в окне отправки — как карточки на главном экране: вымпел, название, лица бойцов справа. */
-.btn.pick.squad-pick { flex-direction: row; align-items: center; justify-content: flex-start; gap: 10px; padding: 6px 12px 6px 8px; min-height: 64px; }
-.squad-pick .monogram[class*='banner-'] {
-  flex: none; align-self: stretch; width: 40px; height: auto; min-height: 50px; border: 0; border-radius: 0; clip-path: none; box-shadow: none;
-  background: center / contain no-repeat; filter: drop-shadow(0 2px 3px #000a);
-}
-.squad-pick-text { display: grid; gap: 2px; min-width: 0; flex: 1; }
-.squad-pick-text b, .squad-pick-text small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.squad-pick .squad-members { flex: none; margin-left: auto; gap: 0; }
-.squad-pick .sq-member + .sq-member { margin-left: -6px; }
-.squad-pick .sq-member, .squad-pick .sq-member .portrait.xs { width: 34px; }
-.squad-pick .sq-member .portrait.xs { height: 34px; box-shadow: 0 0 0 1px #000; }
-.btn.pick.squad-pick:disabled .squad-members { opacity: .75; }
-@media (max-height: 560px) {
-  .btn.pick.squad-pick { min-height: 48px; gap: 8px; }
-  .squad-pick .monogram[class*='banner-'] { width: 26px; min-height: 36px; display: block; }
-  .squad-pick .sq-member, .squad-pick .sq-member .portrait.xs { width: 26px; }
-  .squad-pick .sq-member .portrait.xs { height: 26px; }
-}
-.seg { display: flex; flex-wrap: wrap; gap: 6px; }
-.gear-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.gear-list li { display: grid; grid-template-columns: 1fr auto 28px auto; align-items: center; gap: 8px; padding: 4px 4px 4px 12px; border: 1px solid var(--stroke2); border-radius: 10px; }
-.gear-list li.relevant { border-color: #8c785a; }
-.gear-list span { display: grid; }
-.gear-list small { color: var(--muted); font-size: 12px; }
-.gear-list output { text-align: center; font-weight: 700; }
-.dispatch-summary { position: sticky; top: 0; display: grid; gap: 8px; padding: 12px; border: 1px solid var(--stroke2); border-radius: 12px; background: var(--raised); }
-.forecast { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.forecast b { font-size: 18px; color: var(--gold); font-family: Georgia, serif; }
-.forecast span { font-size: 22px; font-weight: 700; }
-.warn { margin: 0; color: var(--amber); font-size: 13px; }
-.known { margin: 0; color: var(--text); line-height: 1.4; }
-.footer-forecast { display: none; margin: 0 auto 0 0; font-size: 13px; }
-.footer-forecast b { color: var(--gold); }
+.roster-card .name { font-weight: 600; }
+.roster-card .role { color: var(--muted); font-size: 12px; }
+.roster-card .hp { display: flex; gap: 4px; align-items: center; }
+.roster-card .hp-bar { flex: 1; height: 6px; border-radius: 3px; background: #2a2d33; overflow: hidden; }
+.roster-card .hp-bar i { display: block; height: 100%; border-radius: inherit; background: var(--green); }
 
-@media (max-width: 950px) {
-  .dispatch-grid { grid-template-columns: 1fr; }
-  .dispatch-summary { position: static; }
-  .footer-forecast { display: block; }
+/* ---------- W7: здания / исследования ---------- */
+.facility-card {
+  display: grid; gap: 6px; padding: 10px; border: 1px solid var(--stroke2); border-radius: var(--radius); background: var(--raised);
 }
-@media (max-height: 560px) {
-  .modal.wide { max-height: calc(100dvh - 12px); }
-  .overlay:has(.modal.wide) { padding: 6px; }
-  .modal.wide .panel-header { padding-top: 2px; padding-bottom: 2px; }
-  .modal.wide .modal-body { padding: 8px 12px; }
-  .modal-footer { padding: 6px 12px; }
-  .dispatch-blocker { flex-basis: 100%; font-size: 12px; }
-  .footer-forecast { display: block; flex: 1 1 auto; }
-  .dispatch-blocker { order: -1; }
-}
+.facility-card h3 { margin: 0; font-size: 15px; }
+.facility-card .level { color: var(--gold-light); font-weight: 600; }
+.facility-card .desc { color: var(--muted); font-size: 12px; }
 
-/* ---------- W5: решения и отчёты операций ---------- */
-.report-quote {
-  margin: 0 0 10px; padding: 12px 14px; border-left: 3px solid var(--red); border-radius: 8px;
-  background: linear-gradient(90deg, #3a1a1f88, transparent); font-size: 15px; line-height: 1.45;
+/* ---------- W8: политика ---------- */
+.deal-card {
+  display: grid; gap: 6px; padding: 10px; border: 1px solid var(--stroke2); border-radius: var(--radius); background: var(--raised);
 }
-.report-quote footer { margin-top: 6px; color: var(--muted); font-size: 12px; }
-.decisions-so-far { margin-bottom: 8px; color: var(--muted); font-size: 13px; }
-.pick-list.options { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
-.outcome { margin: 0 0 8px; font-family: Georgia, serif; font-size: 24px; letter-spacing: 0.5px; }
-.outcome.good { color: var(--green); }
-.outcome.mid { color: var(--amber); }
-.outcome.bad { color: var(--bad); }
-.report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-.report-grid section { display: grid; gap: 6px; align-content: start; }
-.task-list { list-style: none; padding: 0; }
-.task { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--stroke2); }
-.task.done b { color: var(--green); }
-.task.partial b { color: var(--amber); }
-.task.failed b { color: var(--bad); }
-.kia, .kia td { color: var(--dim); }
-li.kia b { color: var(--bad); }
-.health.h-light_injury { color: var(--amber); }
-.health.h-serious_injury, .health.h-critical { color: var(--bad); }
-@media (max-width: 950px) {
-  .report-grid { grid-template-columns: 1fr; }
-}
-@media (max-height: 560px) {
-  .report-quote { font-size: 13px; padding: 8px 10px; }
-  .outcome { font-size: 19px; }
-}
+.deal-card h4 { margin: 0; font-size: 14px; }
+.deal-card .house { color: var(--muted); font-size: 12px; }
+.deal-card .terms { color: var(--dim); font-size: 12px; }
 
-/* ---------- W6: кадры ---------- */
-.screen .panel-header { flex-wrap: wrap; }
-.screen-tabs { flex: 1; margin: 0; overflow-x: auto; }
-.screen-tabs .btn { flex: 0 0 auto; }
-.table-scroll { overflow-x: auto; }
-.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; margin-top: 8px; }
-.sq-card { border: 1px solid var(--stroke2); border-radius: 12px; background: var(--raised); padding: 10px 12px; display: grid; gap: 6px; align-content: start; }
-.sq-card header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.sq-card header small { color: var(--muted); }
-.sq-card.reserve { border-style: dashed; }
-.member-rows { list-style: none; padding: 0; gap: 6px; }
-.member-rows li { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
-.member-rows li > span:first-child { display: grid; }
-.member-rows small { color: var(--muted); font-size: 12px; }
-.row-actions { display: flex; gap: 6px; }
-.row-actions.wrap { flex-wrap: wrap; }
-.row-actions .btn { min-height: var(--tap); padding: 0 10px; font-size: 13px; }
-.cmd { color: var(--gold); font-style: normal; }
-.pick-list.one-col { grid-template-columns: 1fr; }
-.fit { margin: 0; }
-.dossier { font-size: 13px; }
-.deficit { margin: 0; }
-@media (max-width: 950px) {
-  .screen .panel-body { padding: 10px; }
-  .card-grid { grid-template-columns: 1fr; }
-  .screen-tabs { order: 3; flex-basis: 100%; }
+/* ---------- W9: дела ---------- */
+.evidence-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.evidence-list li {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center;
+  padding: 8px 10px; border-radius: 8px; background: var(--raised);
 }
-.screen.panel { background: linear-gradient(var(--panel), var(--panel)), var(--bg); }
+.evidence-list .icon { width: 20px; height: 20px; }
+.evidence-list .status { color: var(--muted); font-size: 12px; }
 
-/* ---------- W6.2: развитие, модификации, отношения, история ---------- */
-.person-split { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 14px; align-items: start; }
-.person-picker { display: grid; gap: 6px; position: sticky; top: 0; max-height: 100%; }
-.person-picker .btn.pick { min-height: var(--tap); }
-.person-picker .kia b { text-decoration: line-through; }
-.person-name { margin: 0 0 8px; font-size: 20px; }
-.career { display: grid; gap: 10px; }
-.branch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
-.node-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.node-list li { display: grid; gap: 6px; }
-.node-list li > span { display: grid; gap: 2px; }
-.node-list small, .why { color: var(--muted); font-size: 12px; line-height: 1.35; }
-.why { color: var(--amber); display: block; }
-.node-list li.learned b { color: var(--green); }
-.tag { justify-self: start; font-size: 12px; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--stroke2); }
-.tag.good { color: var(--green); border-color: var(--green); }
-.promo { display: grid; gap: 8px; justify-items: start; }
-td.good { color: var(--green); }
-td.bad { color: var(--bad); }
-.history-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.history-list li { display: grid; gap: 2px; padding: 6px 0; border-bottom: 1px solid var(--stroke2); }
-.history-list small { color: var(--muted); }
-.group-notes { font-size: 13px; color: var(--cyan); }
-@media (max-width: 950px) {
-  .person-split { grid-template-columns: 1fr; }
-  .person-picker { position: static; display: flex; overflow-x: auto; gap: 6px; padding-bottom: 4px; }
-  .person-picker .btn.pick { flex: 0 0 auto; width: auto; }
-  .branch-grid { grid-template-columns: 1fr; }
+/* ---------- Портреты ---------- */
+.portrait {
+  display: grid; place-items: center; border-radius: 6px; background: linear-gradient(180deg, #2a2d33, #1a1d23);
+  border: 1px solid var(--stroke2); color: var(--muted); font-weight: 600;
 }
-
-/* ---------- W7: дирекция ---------- */
-.fin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
-.neg { color: var(--bad); }
-.problems li.bad { color: var(--bad); }
-.problems li.warn { color: var(--amber); }
-.fin-legend { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
-.fin-legend .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
-.sw.inc, .bar.inc { background: #2f9fb8; }
-.sw.exp, .bar.exp { background: #e0484c; }
-.fin-chart { display: flex; gap: 14px; align-items: flex-end; height: 140px; padding: 8px 4px 0; border-bottom: 1px solid var(--stroke2); }
-.fin-col { flex: 0 1 72px; height: 100%; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.fin-col small { color: var(--muted); font-size: 12px; }
-.fin-bars { flex: 1; width: 100%; display: flex; gap: 2px; align-items: flex-end; justify-content: center; }
-.fin-bars .bar { width: 22px; min-height: 2px; border-radius: 4px 4px 0 0; }
-.fin-bars .bar:hover { filter: brightness(1.25); }
-.facility { gap: 6px; }
-/* ART-016: полоса помещения сверху карточки и миниатюра предмета исследования. */
-.facility .fac-art {
-  height: 110px; margin: -2px -2px 2px; border-radius: 6px; background: #141922 center / cover no-repeat;
-  box-shadow: inset 0 0 0 1px #c9a46a55, inset 0 -30px 30px -20px #0b1118cc;
-}
-.node-list .with-thumb { display: flex; gap: 10px; align-items: center; }
-.node-list .with-thumb > span { display: grid; gap: 2px; min-width: 0; }
-.res-thumb { flex: none; width: 56px; height: 56px; border-radius: 6px; object-fit: cover; box-shadow: 0 0 0 1px #c9a46a66; }
-.fac-now { margin: 0; }
-.facility .btn { justify-self: start; }
-.start-form { display: grid; gap: 8px; padding: 8px; border: 1px dashed var(--stroke2); border-radius: 8px; }
-.pstatus { font-size: 12px; color: var(--muted); }
-.pstatus.st-active, .pstatus.st-completed { color: var(--green); }
-.pstatus.st-blocked_inputs, .pstatus.st-blocked_staff, .pstatus.st-queued { color: var(--amber); }
-.pstatus.st-failed { color: var(--bad); }
-.node-list .btn { justify-self: start; }
-
-/* ART-005: портреты сотрудников. Состояния рисует код. */
-.portrait { position: relative; flex: none; display: inline-grid; place-items: center; overflow: hidden; background: #141922; border: 1px solid var(--gold-dim, #6b5636); border-radius: 6px; color: var(--gold, #c9a46a); font-family: var(--font-title); }
-.portrait img { width: 100%; height: 100%; object-fit: cover; display: block; user-select: none; }
-.portrait.xs { width: 28px; height: 28px; border-radius: 4px; font-size: 12px; }
+.portrait.xs { width: 32px; height: 32px; font-size: 12px; }
 .portrait.sm { width: 44px; height: 44px; font-size: 16px; }
-.portrait.lg { width: 128px; height: 160px; font-size: 40px; box-shadow: 0 0 0 1px #000, 0 0 0 3px rgba(201, 164, 106, .35); }
-.portrait.injured { border-color: var(--crimson-glow, #e84c50); }
-.portrait.dead img, .portrait.missing img { filter: grayscale(1) brightness(.55); }
-.portrait.dead::after { content: ''; position: absolute; top: 6px; right: -14px; width: 48px; height: 6px; background: #000; transform: rotate(45deg); box-shadow: 0 0 0 1px rgba(201, 164, 106, .5); }
-.portrait.xs.dead::after { top: 3px; right: -10px; width: 30px; height: 4px; }
-.portrait-mark { position: absolute; left: 0; right: 0; bottom: 0; padding: 1px 2px; font: 600 9px/1.3 var(--font-ui); text-align: center; text-transform: uppercase; letter-spacing: .02em; color: #fff; background: rgba(170, 37, 48, .88); }
-.portrait.lg .portrait-mark { font-size: 12px; padding: 3px; }
-.portrait.dead .portrait-mark, .portrait.missing .portrait-mark { background: rgba(0, 0, 0, .8); color: var(--muted); }
-.portrait-initials { line-height: 1; }
-.btn.pick.with-face { flex-direction: row; align-items: center; justify-content: flex-start; gap: 10px; padding-left: 6px; }
-.btn.pick.with-face .pick-text { display: grid; gap: 2px; min-width: 0; }
-.name-cell { display: inline-flex; align-items: center; gap: 8px; }
-.person-head { display: flex; gap: 14px; align-items: flex-end; margin-bottom: 10px; }
-.person-head .person-name { margin: 0; }
-.person-head small { color: var(--muted); }
-.face-row { display: flex; align-items: center; gap: 8px; }
-.report-quote.with-face { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; }
-@media (max-width: 900px), (max-height: 500px) {
-  .portrait.lg { width: 88px; height: 110px; }
-  .person-picker .btn.pick.with-face { min-width: 170px; }
-}
-.report-faces { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
-.member-rows li > span.face-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.face-row .pick-text { display: grid; gap: 2px; min-width: 0; }
-.face-row .pick-text small { color: var(--muted); font-size: 12px; }
+.portrait.lg { width: 120px; height: 150px; font-size: 36px; }
 
-/* W8: полномочия и политика Домов */
-.legal-box { display: grid; gap: 8px; margin-top: 8px; padding: 10px 12px; border: 1px solid #7a5a3a; border-radius: 8px; background: #1a130e; }
-.legal-box p { margin: 0; }
-.case-req { display: grid; gap: 6px; padding-top: 8px; border-top: 1px solid var(--stroke2); }
-.case-req:first-of-type { border-top: 0; padding-top: 0; }
-.case-req p { margin: 0; }
-.staff-table td.wrap { white-space: normal; min-width: 160px; }
-.staff-table td.good, .good { color: var(--green, #6fbf73); }
-.staff-table td.bad, .bad { color: var(--bad, #e06666); }
-.staff-table td.mid { color: var(--gold, #c9a46a); }
-.coalitions { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
-.coalition { display: grid; gap: 6px; }
-.coalition.strong { border-color: var(--gold, #c9a46a); }
-.meter { position: relative; height: 10px; border-radius: 5px; background: #23262d; overflow: hidden; }
-.meter span { position: absolute; inset: 0 auto 0 0; background: #2f9fb8; border-radius: 5px; }
-.meter i { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--text, #eee); opacity: .7; }
-.currents { font-size: 13px; }
-.deal .terms { grid-template-columns: max-content 1fr; font-size: 13px; }
-.deal .terms dd { white-space: normal; text-align: left; font-weight: 400; }
-.deal .btn.danger { white-space: normal; text-align: left; height: auto; min-height: var(--tap); }
-
-/* W9: расследования (ТЗ §11). Доска — карточки улик слева, версии справа, связи линиями поверх. */
-.case-head p { margin: 0 0 4px; }
-.case-tabs { flex-wrap: wrap; }
-.case-tabs .btn { flex: 1 1 auto; }
-.board { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 300px); gap: 10px 56px; align-items: start; }
-.board-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 1; }
-.board-lines .link { fill: none; stroke-width: 2; }
-.board-lines .link.proposed { stroke: var(--muted); stroke-dasharray: 6 5; }
-.board-lines .link.supported { stroke: var(--green); }
-.board-lines .link.contradicted { stroke: var(--red); stroke-dasharray: 2 4; stroke-width: 2.5; }
-.evidence-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
-.evidence-card {
-  position: relative; z-index: 2; display: grid; gap: 4px; align-content: start; text-align: left; min-height: 96px; padding: 10px 12px;
-  border: 1px solid var(--stroke2); border-radius: 10px; background: var(--raised); color: inherit; font: inherit; cursor: pointer;
-}
-.evidence-card:hover { border-color: var(--crimson-glow); }
-.evidence-card.selected { border-color: #ff8a78; box-shadow: inset 0 0 0 1px #ff8a78; }
-.evidence-card .ev-type { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
-.evidence-card .ev-tags { display: flex; flex-wrap: wrap; gap: 4px; }
-.link-chip { font-size: 12px; color: var(--muted); }
-.link-chip.supported { color: var(--green); }
-.link-chip.contradicted { color: var(--red); }
-.hypotheses { display: grid; gap: 8px; }
-.hyp-card { position: relative; z-index: 2; display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--stroke2); border-radius: 10px; background: var(--raised); }
-.hyp-card header { display: flex; justify-content: space-between; gap: 6px; align-items: baseline; }
-.hyp-card.working { border-color: var(--green); }
-.evidence-panel { margin-top: 10px; }
-.evidence-panel .kv dd { text-align: left; font-weight: 400; }
-.evidence-panel .kv { grid-template-columns: max-content 1fr; }
-.result-text { margin: 0; padding: 8px 10px; border-left: 3px solid var(--crimson); background: #0000002e; }
-.seg.wrap .btn { flex: 0 1 auto; }
-.slots { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
-.slot { display: grid; gap: 6px; align-content: start; min-height: 90px; padding: 8px 10px; border: 1px dashed var(--stroke2); border-radius: 10px; }
-.slot-item { display: grid; padding: 6px 8px; border-radius: 8px; background: var(--raised); border: 1px solid var(--stroke2); font-size: 13px; }
-.slot-item.misfit { border-color: var(--amber); }
-.place-list li { display: grid; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--stroke2); }
-.person-card .face-row { display: flex; gap: 10px; align-items: center; justify-content: flex-start; }
-.statement { margin: 0; font-size: 14px; }
-.method-list, .decision-list { display: grid; gap: 8px; }
-.method-list > div, .decision-list > div { display: grid; gap: 2px; justify-items: start; }
-.radio { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; }
-.radio input { width: 20px; height: 20px; accent-color: var(--crimson); }
-.confirm { border-color: var(--amber); }
-@media (max-width: 949px) {
-  .board { grid-template-columns: 1fr; gap: 10px; }
-  .board-lines { display: none; }
+/* ---------- Цветовые токены ---------- */
+:root {
+  --bg: #0b0f14;
+  --surface: #111820;
+  --panel: #111820;
+  --raised: #161d26;
+  --text: #e8e4df;
+  --muted: #8c857a;
+  --dim: #5a554e;
+  --gold: #c9a46a;
+  --gold-light: #e6c58d;
+  --cyan: #6ec0d0;
+  --green: #7fc79a;
+  --amber: #e0a840;
+  --bad: #e0504f;
+  --red-deep: #8d3138;
+  --crimson-glow: #e84c50;
+  --stroke: #2a3038;
+  --stroke2: #1e242c;
+  --shadow: 0 4px 16px #00000088;
+  --radius: 10px;
+  --font: 14px;
+  --font-ui: 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-title: Georgia, serif;
+  --tap: 40px;
+  --hud-h: 56px;
+  --squads-h: 96px;
+  --nav-h: 52px;
+  --gap: 8px;
+  --right-w: 340px;
 }
 
-/* W9 (сценарий «Неисполненный жребий»): сопоставления, действия, кампания, особые операции, финалы. */
-.board[style] { padding: 12px; border-radius: 12px; }
-.board-lines .link.pair { stroke-width: 2.5; }
-.board-lines .link.pair.supported { stroke: var(--gold-light); }
-.evidence-card.pinned { border-style: dashed; background: #1a1712f0; }
-.pinned-title { grid-column: 1 / -1; margin: 6px 0 0; }
-.pair-list { margin-top: 10px; }
-.pair-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--stroke2); }
-.pair-row .insight { grid-column: 1 / -1; color: var(--gold-light); }
-.pair-row.contradicted b { color: var(--red); }
-.pair-row.supported b { color: var(--green); }
-.action-card { display: grid; gap: 6px; align-content: start; }
-.action-card header { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap; }
-.action-card.done { opacity: 0.8; }
-.action-card .btn.primary { justify-self: start; }
-.permit-row { display: grid; gap: 4px; justify-items: start; padding: 6px 8px; border-left: 3px solid var(--gold); background: #0000002e; }
-.staff-pick { display: inline-flex; align-items: center; gap: 6px; }
-/* Компактное назначение: текущий исполнитель + кнопка, список — в небольшом окне. */
-.staff-assign, .method-list > .staff-assign { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.staff-assign-cur { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
-.modal.staff-pick-modal { width: min(440px, 100%); }
-.staff-pick-list { display: grid; gap: 6px; margin-top: 8px; }
-.staff-pick-list .staff-pick { display: grid; grid-template-columns: auto 1fr auto; text-align: left; min-height: 48px; width: 100%; }
-.staff-pick-text { display: grid; min-width: 0; }
-.staff-pick-text small { color: var(--muted); }
-.staff-pick-why { color: var(--muted); font-size: 12px; text-align: right; }
-.staff-pick-best { color: var(--gold-light); font-size: 12px; font-weight: 600; }
-.staff-pick-list .staff-pick.best { box-shadow: inset 0 0 0 1px var(--gold); }
-.statement.tainted { border-left: 3px solid var(--amber); padding-left: 8px; }
-.interviews[style] { padding: 12px; border-radius: 12px; }
-.case-head.with-art { padding: 14px 16px; border-radius: 12px; background-size: cover; background-position: center; }
-/* ART-013: место дела видно полосой y 300–600 исходника; на широком экране шапка выше, чтобы в кадр попал сам объект. */
-.case-head.with-art { min-height: clamp(96px, 9vw, 180px); display: flex; flex-direction: column; justify-content: center; background-position: right center; }
-@media (min-width: 900px) { .case-head.with-art > * { max-width: 58%; } }
-.good { color: var(--green); }
-.bad { color: var(--red); }
-.mid { color: var(--amber); }
+/* ---------- Служебные ---------- */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.flex { display: flex; }
+.flex-col { display: flex; flex-direction: column; }
+.gap-2 { gap: 2px; }
+.gap-4 { gap: 4px; }
+.gap-6 { gap: 6px; }
+.gap-8 { gap: 8px; }
+.gap-10 { gap: 10px; }
+.gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; }
+.mt-4 { margin-top: 4px; }
+.mt-6 { margin-top: 6px; }
+.mt-8 { margin-top: 8px; }
+.mt-10 { margin-top: 10px; }
+.mt-12 { margin-top: 12px; }
+.mb-4 { margin-bottom: 4px; }
+.mb-6 { margin-bottom: 6px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-10 { margin-bottom: 10px; }
+.mb-12 { margin-bottom: 12px; }
+.ml-auto { margin-left: auto; }
+.mr-auto { margin-right: auto; }
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.overflow-auto { overflow: auto; }
+.overflow-hidden { overflow: hidden; }
+.scroll-y { overflow-y: auto; }
+.scroll-x { overflow-x: auto; }
+.nowrap { white-space: nowrap; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.art-slot { position: relative; display: grid; align-content: end; border-radius: 10px; overflow: hidden; background-size: cover; background-position: center; min-height: 120px; }
-.art-slot.placeholder { background: repeating-linear-gradient(135deg, #141922 0 14px, #10141b 14px 28px); border: 1px dashed var(--stroke2); }
-.art-missing { position: absolute; top: 8px; right: 10px; color: var(--dim); font-size: 11px; }
-.campaign-title { min-height: 150px; padding: 14px 18px; }
-.campaign-title h3 { margin: 0; font-family: var(--font-title); font-size: 30px; color: var(--gold-light); text-shadow: 0 2px 10px #000; }
-.story-card { display: grid; gap: 6px; border-color: var(--gold); }
-.story-card p { margin: 0; }
-.op-card { display: grid; gap: 6px; align-content: start; }
-.op-card header { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-.op-card .btn.primary { justify-self: start; }
-.op-thumb { min-height: 90px; }
-.chronicle li { padding: 3px 0; }
-.op-art { min-height: 180px; margin-bottom: 8px; }
-.op-art.short { min-height: 110px; }
-.op-steps { list-style: none; display: flex; gap: 4px; padding: 0; margin: 0 0 8px; flex-wrap: wrap; }
-.op-steps li { flex: 1 1 0; text-align: center; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--stroke2); color: var(--dim); font-size: 13px; }
-.op-steps li.done { color: var(--muted); border-color: var(--stroke); }
-.op-steps li.current { color: var(--text); border-color: var(--crimson-glow); background: var(--red-deep); }
-.op-side { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.op-team li { display: flex; align-items: center; gap: 8px; padding: 2px 0; }
-.op-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.op-option { display: grid; gap: 6px; align-content: start; text-align: left; padding: 10px 12px; min-height: var(--tap); border: 1px solid var(--stroke2); border-radius: 10px; background: var(--raised); }
-.op-option:hover:not(:disabled) { border-color: var(--crimson-glow); }
-.op-option.emergency { border-color: var(--amber); }
-.op-option .ev-tags { display: flex; flex-wrap: wrap; gap: 4px; }
-.tag.bad { color: var(--red); border-color: var(--red); }
-.tag.mid { color: var(--amber); border-color: var(--amber); }
-@media (max-width: 949px) {
-  .op-options { grid-template-columns: 1fr; }
-  .op-side { grid-template-columns: 1fr; }
+/* ---------- Анимации ---------- */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
-@media (max-height: 560px) {
-  .op-art { min-height: 90px; }
-  .campaign-title { min-height: 90px; }
+@keyframes slide-up {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.animate-fade-in { animation: fade-in 0.3s ease; }
+.animate-slide-up { animation: slide-up 0.3s ease; }
+.animate-pulse { animation: pulse 2s ease-in-out infinite; }
+
+/* ---------- Скроллбар ---------- */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a3038; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3a4048; }
+
+/* ---------- W10: мобильные утилиты ---------- */
+@media (max-width: 600px) {
+  .hide-mobile { display: none !important; }
+}
+@media (min-width: 601px) {
+  .hide-desktop { display: none !important; }
 }
 
-/* ART-009: лицо кандидата в карточке найма */
-.candidate-head { display: flex; gap: 12px; align-items: center; justify-content: flex-start !important; }
-.candidate .portrait.lg { width: 96px; height: 120px; flex: 0 0 auto; }
+/* ---------- Sandbox: новые стили для статистики, прогрессии и записей ---------- */
 
-/* W10: карточка вызова — что будет при опоздании и что на кону; находки в отчёте. */
-.stakes { display: grid; gap: 4px; margin: 4px 0 8px; font-size: 13px; color: var(--muted); }
-.stakes .late b { color: var(--amber); font-weight: 600; }
-.findings { margin: 6px 0 10px; padding: 8px 12px; border-left: 2px solid var(--gold); background: #c9a46a12; }
-.sev-text.sev-low { color: var(--cyan); }
-
-/* ---------- Кадры: группировка по составам (сводка и личные вкладки) ---------- */
-.staff-table.grouped { border-collapse: separate; border-spacing: 0; }
-.staff-table.grouped thead th { border-bottom: 0; padding-bottom: 6px; }
-.staff-table.grouped tbody tr.group-gap td { background: none; border: 0; height: 10px; padding: 0; }
-.staff-table.grouped tbody td { background: var(--raised); }
-.staff-table.grouped tbody td:first-child { border-left: 1px solid var(--stroke); }
-.staff-table.grouped tbody td:last-child { border-right: 1px solid var(--stroke); }
-.staff-table.grouped tbody tr:last-child td { border-bottom: 1px solid var(--stroke); }
-.staff-table.grouped tbody tr:last-child td:first-child { border-bottom-left-radius: 10px; }
-.staff-table.grouped tbody tr:last-child td:last-child { border-bottom-right-radius: 10px; }
-.staff-table.grouped tbody tr + tr td { border-top: 0; }
-.staff-table.grouped .group-head th {
-  background: var(--surface); color: var(--text); font-size: 14px; padding: 7px 12px;
-  border: 1px solid var(--stroke); border-left: 3px solid var(--gold); border-radius: 10px 10px 0 0;
+/* Вкладки дока */
+.dock-tabs {
+  display: flex; gap: 2px; padding: 4px 6px 0; border-bottom: 1px solid var(--stroke2); overflow-x: auto;
 }
-.staff-table.grouped .group-head th > * + * { margin-left: 10px; }
-.staff-table.grouped .group-title { font-family: var(--font-title); font-size: 15px; color: var(--gold-light); }
-.staff-table.grouped .reserve .group-head th { border-left-color: var(--muted); }
-.staff-table.grouped .archive .group-head th { border-left-color: var(--bad); }
-.staff-table.grouped .reserve td:first-child, .staff-table.grouped .reserve td:last-child,
-.staff-table.grouped .reserve tr:last-child td { border-style: dashed; }
-
-.person-picker.grouped { display: grid; gap: 8px; align-content: start; }
-.pick-group { border: 1px solid var(--stroke); border-left: 3px solid var(--gold); border-radius: 10px; background: var(--raised); overflow: hidden; }
-.pick-group.reserve { border-left-color: var(--muted); border-style: dashed; border-left-style: solid; }
-.pick-group.archive { border-left-color: var(--bad); }
-.btn.group-toggle {
-  width: 100%; min-height: var(--tap); justify-content: flex-start; gap: 8px; border: 0; border-radius: 0;
-  background: var(--surface); padding: 6px 10px; text-align: left;
+.dock-tab {
+  padding: 5px 10px; border: 1px solid transparent; border-bottom: 0; border-radius: 8px 8px 0 0;
+  background: none; color: var(--muted); font-size: 12px; white-space: nowrap;
 }
-.btn.group-toggle b { font-family: var(--font-title); font-weight: 400; font-size: 15px; color: var(--gold-light); }
-.btn.group-toggle small { margin-left: auto; color: var(--muted); font-size: 12px; }
-.btn.group-toggle .caret { width: 14px; color: var(--gold); }
-.pick-group-body { display: grid; gap: 6px; padding: 6px; border-top: 1px solid var(--stroke2); }
-@media (max-width: 950px) {
-  /* телефон: составы в одну прокручиваемую строку, чтобы карточка сотрудника оставалась на экране */
-  .person-picker.grouped { display: flex; overflow-x: auto; gap: 8px; padding-bottom: 4px; }
-  .person-picker.grouped .pick-group { flex: 0 0 auto; display: flex; align-items: stretch; }
-  .person-picker.grouped .btn.group-toggle { width: auto; flex-direction: column; align-items: flex-start; justify-content: center; gap: 0; padding: 4px 10px 4px 22px; position: relative; }
-  .person-picker.grouped .btn.group-toggle .caret { position: absolute; left: 6px; top: 50%; transform: translateY(-50%); }
-  .person-picker.grouped .btn.group-toggle small { margin-left: 0; }
-  .person-picker.grouped .pick-group-body { display: flex; border-top: 0; border-left: 1px solid var(--stroke2); }
+.dock-tab:hover:not(:disabled) { color: var(--text); }
+.dock-tab.active {
+  background: var(--raised); border-color: var(--stroke2); color: var(--text); font-weight: 500;
 }
 
-/* AUDIO v1: блок «Музыка» в окне настроек */
-.music-settings { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--stroke2); display: grid; gap: 8px; }
-.music-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.music-row .btn { min-width: 120px; }
-.music-volume { flex: 1; min-width: 180px; display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
-.music-volume input[type='range'] { width: 100%; min-height: var(--tap); accent-color: var(--gold); touch-action: pan-x; }
-.music-hint { color: var(--muted); }
+/* Прогресс-бары прогрессии */
+.progress-row {
+  display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: center;
+  padding: 8px 10px; margin: 6px 0; border-radius: 8px; background: var(--raised);
+}
+.progress-row .progress-bar {
+  height: 10px; border-radius: 5px; background: #2a2d33; overflow: hidden;
+}
+.progress-row .progress-fill {
+  height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--gold), var(--gold-light));
+  transition: width 0.5s ease;
+}
+.progress-row small { color: var(--muted); font-size: 11px; }
 
-/* Карточка «Отряд» на карте: сводка и быстрые действия по бойцам */
-.squad-card { display: grid; gap: 10px; }
-.squad-card .kv dd.tone-green { color: var(--green); }
-.squad-card .kv dd.tone-cyan { color: var(--cyan); }
-.squad-card .kv dd.tone-amber { color: var(--amber); }
-.squad-card .kv dd.tone-red { color: var(--bad); }
-.squad-card .kv dd.tone-grey { color: var(--dim); }
-.qs-summary { border: 1px solid var(--stroke2); border-radius: 10px; background: var(--raised); padding: 8px 10px; display: grid; gap: 8px; }
-.qs-chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center; }
-.qs-chips > div { display: grid; gap: 1px; }
-.qs-chips b { font-size: 18px; }
-.qs-chips small, .squad-card .small { color: var(--muted); font-size: 12px; margin: 0; }
-.qs-stats { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
-.qs-stats li { display: grid; grid-template-columns: 80px 1fr 28px; align-items: center; gap: 8px; font-size: 13px; }
-.qs-stats li > span:first-child { color: var(--muted); }
-.qs-stats b { text-align: right; }
-.squad-card .bar { display: block; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.08); overflow: hidden; }
-.squad-card .bar i { display: block; height: 100%; background: var(--gold); }
-.qs-warnings { color: var(--amber); font-size: 12px; display: grid; gap: 2px; }
-.warn-text { color: var(--amber); }
-.qs-members { display: grid; gap: 8px; }
-.qs-member { border-top: 1px solid var(--stroke2); padding-top: 8px; display: grid; gap: 6px; }
-.qs-member .face-row { align-items: flex-start; }
-.qs-member .fatigue { display: grid; grid-template-columns: 70px auto; align-items: center; gap: 6px; }
-.qs-member .fatigue.tone-green .bar i { background: var(--green); }
-.qs-member .fatigue.tone-amber .bar i { background: var(--amber); }
-.qs-member .fatigue.tone-red .bar i { background: var(--bad); }
-.qs-member .row-actions .btn { flex: 1 1 auto; }
-.reserve-pick .btn.pick { padding: 6px 8px; }
-/* ---------- Цели над картой (вкладка «Обзор» Дирекции, раскрывается кнопкой слева сверху) ---------- */
-.workspace { --goals-w: 128px; }
-.goals-dock {
-  position: absolute; top: 10px; left: 10px; bottom: 10px; z-index: 3;
-  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
-  pointer-events: none;
+/* Статистика сессии */
+.sandbox-stats { display: grid; gap: 10px; }
+.stat-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px;
 }
-.goals-dock > * { pointer-events: auto; }
-.goals-toggle { width: var(--goals-w); justify-content: space-between; background: #141a22e8; }
-.goals-toggle .count.bad { background: var(--bad, #c4413f); }
-.goals-toggle .chev { font-size: 11px; color: var(--muted); }
-.goals-dock.open .goals-toggle { border-color: #c96a68; }
-.goals-panel {
-  width: min(400px, calc(100vw - 40px)); flex: 0 1 auto; min-height: 0;
-  display: flex; flex-direction: column; overflow: hidden;
+.stat-grid > div {
+  padding: 8px 10px; border: 1px solid var(--stroke2); border-radius: 8px; background: #0c121a99;
 }
-.goals-panel .panel-body { padding: 12px 14px; }
-.goals-foot { display: flex; gap: 6px; justify-content: flex-end; padding: 8px 10px; border-top: 1px solid var(--stroke2); }
-@media (max-width: 950px) {
-  .workspace { --goals-w: 92px; }
-  .goals-toggle .label { display: none; }
-  .workspace:has(.right-panel) .goals-dock { display: none; }
-  }
-@media (max-height: 560px) {
-  /* Телефон: окно карты низкое — раскрытая панель ложится поверх ленты отрядов до нижней навигации. */
-  .goals-dock .goals-panel {
-    position: fixed; z-index: 12; left: 10px; width: min(440px, calc(100vw - 20px));
-    top: calc(var(--hud-h) + 62px); bottom: calc(var(--nav-h) + 12px);
-  }
-  .goals-panel .panel-body { padding: 8px 10px; }
-  .goals-foot { padding: 6px 8px; }
+.stat-grid > div dt { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; }
+.stat-grid > div dd { margin: 4px 0 0; font-size: 18px; font-weight: 600; }
+
+.subsection-title {
+  margin: 12px 0 6px; font-size: 13px; color: var(--gold-light); letter-spacing: 0.4px; text-transform: uppercase;
 }
 
-/* ---------- Личный кабинет сотрудника ---------- */
-.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.btn.person-link { min-height: var(--tap); padding: 4px 10px 4px 4px; gap: 8px; justify-content: flex-start; text-align: left; background: transparent; border-color: transparent; box-shadow: none; }
-.btn.person-link:hover:not(:disabled), .btn.person-link:focus-visible { border-color: var(--gold); background: #c9a46a14; }
-.btn.person-link:has(.sr-only) { padding: 0; min-width: var(--tap); }
-.cabinet { display: grid; gap: 10px; }
-.dossier-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 12px; border: 1px solid var(--stroke); border-radius: var(--radius); background: linear-gradient(90deg, #1a1416, #0e131a 60%); }
-.dossier-main { display: grid; gap: 6px; min-width: 0; }
-.dossier-line { margin: 0; color: var(--muted); }
-.dossier-chips { margin: 0; }
-.xp-row { display: grid; gap: 4px; max-width: 420px; }
-.xp-row small { color: var(--muted); font-size: 12px; }
-.xp-row .meter span { background: var(--gold); }
-.stat-bars { display: grid; gap: 6px; min-width: 190px; }
-.stat-bars li { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.stat-bars small { color: var(--muted); font-size: 12px; }
-.pips { display: inline-flex; gap: 3px; }
-.pips i { width: 14px; height: 8px; border-radius: 2px; background: #2a2d34; }
-.pips i.on { background: var(--gold); box-shadow: 0 0 4px #c9a46a88; }
+/* Карточки записей */
+.record-card {
+  display: grid; gap: 6px; padding: 10px 12px; margin: 6px 0;
+  border: 1px solid var(--stroke2); border-radius: 8px; background: var(--raised);
+}
+.record-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.record-header b { font-size: 14px; }
+.record-header small { color: var(--muted); font-size: 11px; }
+.record-outcome {
+  display: inline-grid; place-items: center; padding: 2px 8px; border-radius: 99px;
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;
+}
+.record-outcome.victory { background: #1a3a28; color: var(--green); border: 1px solid #3c6b4a; }
+.record-outcome.defeat { background: #3a1a1a; color: var(--bad); border: 1px solid #7a3a3a; }
+.record-outcome.abandoned { background: #2a2216; color: var(--amber); border: 1px solid #8c785a; }
 
-/* Дерево навыков: ветки — колонки, навыки — значки, связанные линией по ступеням. */
-.skill-tree { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.skill-branch { display: grid; gap: 10px; align-content: start; padding: 12px 10px; border: 1px solid var(--stroke2); border-radius: var(--radius); background: #0000002e; }
-.skill-branch header { display: grid; gap: 2px; text-align: center; }
-.skill-branch header b { font-family: var(--font-title); font-weight: 400; font-size: 17px; color: var(--gold-light); }
-.skill-branch header small { color: var(--muted); font-size: 12px; }
-.skill-path { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; justify-items: center; }
-.skill-caption { max-width: 150px; text-align: center; font-size: 13px; line-height: 1.25; }
-.skill-node { position: relative; width: 76px; height: 76px; padding: 0; display: grid; place-items: center; border-radius: 14px; border: 2px solid var(--stroke2); background: radial-gradient(circle at 50% 35%, #2a2226, #0d1117 75%); color: var(--gold-light); cursor: pointer; overflow: visible; }
-.skill-node .icon { width: 34px; height: 34px; }
-.skill-node .skill-img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
-.skill-node.st-open { border-color: var(--gold); box-shadow: 0 0 0 1px #000, 0 0 12px #c9a46a55; }
-.skill-node.st-learned { border-color: var(--green); box-shadow: 0 0 10px #64bf7e44; }
-.skill-node.st-studying { border-color: var(--amber); box-shadow: 0 0 10px #d5a34366; }
-.skill-node.st-locked { color: var(--dim); filter: grayscale(.85) brightness(.75); }
-.skill-node[aria-pressed='true'] { outline: 3px solid var(--crimson-glow); outline-offset: 3px; }
-.skill-node:focus-visible { outline: 3px solid var(--cyan); outline-offset: 3px; }
-.skill-tier { position: absolute; left: -8px; top: -8px; min-width: 24px; height: 24px; padding: 0 4px; display: grid; place-items: center; border-radius: 12px; background: #0b1016; border: 1px solid var(--stroke); font: 600 11px/1 var(--font-ui); color: var(--gold); }
-.skill-badge { position: absolute; right: -8px; bottom: -8px; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 12px; background: #0b1016; border: 1px solid var(--stroke); color: var(--muted); font-size: 13px; }
-.skill-badge .icon { width: 14px; height: 14px; }
-.skill-badge.good { color: var(--green); border-color: var(--green); }
-.skill-badge.warn { color: var(--amber); border-color: var(--amber); }
-.skill-node.big { width: 64px; height: 64px; cursor: default; flex: none; }
+/* Компактный kv */
+.kv.compact { gap: 4px 12px; font-size: 13px; }
+.kv.compact dt { color: var(--muted); }
+.kv.compact dd { font-weight: 500; }
 
-/* Отношения: карточки с портретом и шкалами −5…+5. */
-.btn.rel-who { justify-content: flex-start; gap: 10px; padding: 2px 8px 2px 2px; background: transparent; border-color: transparent; box-shadow: none; text-align: left; }
-.btn.rel-who:disabled { opacity: 1; }
-.btn.rel-who:hover:not(:disabled) { border-color: var(--gold); }
-.rel-meter { display: grid; grid-template-columns: 120px 1fr auto; gap: 8px; align-items: center; }
-.rel-meter small { font-size: 12px; color: var(--muted); }
-.rel-meter small.good { color: var(--green); }
-.rel-meter small.bad { color: var(--bad); }
-.rel-bar { position: relative; height: 8px; border-radius: 4px; background: #23262d; }
-.rel-bar::after { content: ''; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--stroke); }
-.rel-bar i { position: absolute; top: 0; bottom: 0; border-radius: 4px; }
-.rel-bar i.pos { background: var(--green); }
-.rel-bar i.neg { background: var(--bad); }
-
-@media (max-width: 950px) {
-  .dossier-card { grid-template-columns: auto minmax(0, 1fr); }
-  .stat-bars { grid-column: 1 / -1; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-  .skill-tree { gap: 6px; }
-  .skill-branch { padding: 8px 4px; }
-  .skill-branch header small { display: none; }
-  .skill-branch header b { font-size: 14px; }
-  .skill-node { width: 60px; height: 60px; }
-  .skill-caption { font-size: 12px; }
-  .rel-meter { grid-template-columns: 96px 1fr auto; }
-}
-.cabinet-side { display: grid; gap: 8px; align-content: start; position: sticky; top: 0; }
-.cabinet-side .person-picker { position: static; }
-@media (max-height: 860px) {
-  .dossier-card { padding: 8px 12px; gap: 12px; }
-  .dossier-card .portrait.lg { width: 84px; height: 105px; font-size: 28px; }
-  .dossier-card .person-name { font-size: 18px; }
-}
-@media (max-width: 950px) {
-  .cabinet-side { position: static; }
-}
-/* Портрет-ссылка и карточка связи — без рамки кнопки UI-kit, рамка только при наведении. */
-.btn.person-link::before, .btn.rel-who::before { display: none; }
-.btn.person-link, .btn.rel-who { border: 1px solid transparent; background: none; box-shadow: none; }
-.btn.person-link:hover:not(:disabled), .btn.rel-who:hover:not(:disabled), .btn.person-link:focus-visible, .btn.rel-who:focus-visible { border-color: var(--gold); background: #c9a46a14; box-shadow: none; }
-.btn.rel-who .pick-text { display: grid; gap: 2px; min-width: 0; }
-.btn.rel-who .pick-text small { color: var(--muted); font-size: 12px; }
-
-/* ART-021: рисованные значки разделов в нижней панели и на кнопке «Сохранения». */
-img.nav-art { width: 36px; height: 36px; margin: -6px 0; object-fit: contain; flex-shrink: 0; pointer-events: none; user-select: none; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6)); }
-.btn.icon-only img.nav-art { width: 32px; height: 32px; margin: 0; }
-@media (max-width: 940px) { .nav img.nav-art { width: 40px; height: 40px; } }
-.btn:disabled img.nav-art { opacity: 0.5; filter: grayscale(0.6); }
-
-/* Статусы на портрете: ранг, ранение, усталость (личное дело и список составов). */
-.status-face { position: relative; flex: none; display: grid; }
-.status-face .portrait.sm { width: 44px; height: 44px; }
-.sf-rank { position: absolute; left: -5px; top: -5px; z-index: 3; min-width: 18px; height: 16px; padding: 0 3px; display: grid; place-items: center; border-radius: 8px; background: #0b1016; border: 1px solid var(--gold); font: 700 9px/1 var(--font-ui); color: var(--gold-light); box-shadow: 0 0 0 1px #000; }
-.status-face .sf-hp { z-index: 3; }
-.status-face .sf-fatigue { z-index: 3; }
-.status-face .portrait-mark { bottom: 8px; }
-.status-face.lg .sf-rank { left: -8px; top: -8px; min-width: 30px; height: 26px; border-radius: 13px; font-size: 13px; }
-.status-face.lg .sf-hp { width: 24px; height: 24px; font-size: 14px; top: -8px; right: -8px; }
-.status-face.lg .sf-fatigue { height: 7px; left: 4px; right: 4px; bottom: 4px; border-radius: 4px; }
-.status-face.lg .portrait-mark { bottom: 14px; }
-.status-face.hp-recovering .portrait { border-color: var(--amber); }
-.person-picker .btn.pick.with-face { padding-top: 6px; padding-bottom: 6px; }
-
-/* ---------- Личное дело на одном экране ---------- */
-.cabinet .person-split { grid-template-columns: 220px minmax(0, 1fr) minmax(380px, 40%); }
-.cabinet-main { display: grid; gap: 10px; align-content: start; min-width: 0; }
-.cabinet-dev { min-width: 0; position: sticky; top: 0; align-self: start; }
-.dossier-card { grid-template-columns: auto minmax(0, 1fr); }
-.dossier-card .stat-bars { grid-column: 1 / -1; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px 10px; min-width: 0; }
-.dossier-card .stat-bars li { display: grid; gap: 3px; justify-content: start; }
-.cab-sec { display: grid; gap: 8px; padding: 10px 12px; border: 1px solid var(--stroke2); border-radius: var(--radius); background: #0000002e; min-width: 0; }
-.cab-sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
-.cab-sec-head h4 { margin: 0; font-family: var(--font-title); font-weight: 400; font-size: 17px; color: var(--gold-light); }
-.cab-sec-head small { color: var(--muted); font-size: 12px; }
-.cab-sec-head small b { color: var(--text); }
-.cab-note { margin: 0; color: var(--muted); font-size: 13px; }
-.cab-dev .skill-tree { gap: 6px; }
-.cab-dev .skill-branch { padding: 8px 4px; gap: 8px; }
-.cab-dev .skill-branch header b { font-size: 13px; line-height: 1.2; }
-.cab-dev .skill-path { gap: 16px; }
-.tile-step { position: relative; display: grid; justify-items: center; gap: 4px; }
-.skill-path .tile-step + .tile-step::before { content: ''; position: absolute; top: -16px; left: 50%; width: 3px; height: 16px; transform: translateX(-50%); background: var(--stroke2); }
-.skill-path .tile-step.st-learned + .tile-step::before { background: var(--green); }
-.cab-dev .skill-node { width: 60px; height: 60px; border-radius: 10px; }
-.cab-dev .skill-node .skill-img { border-radius: 8px; }
-.cab-dev .skill-caption { font-size: 12px; max-width: 110px; }
-.tile-step.st-locked .skill-caption { color: var(--dim); }
-.tile-step.st-learned .skill-caption { color: var(--green); }
-.skill-node[aria-disabled='true'] { cursor: help; }
-.skill-node.armed { outline: 3px solid var(--crimson-glow); outline-offset: 3px; }
-.skill-node.st-innate { border-color: #4b6a78; color: var(--cyan); }
-.tile-row { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 12px; }
-.tile-row .skill-node { width: 52px; height: 52px; border-radius: 10px; }
-.tile-row .skill-node .icon { width: 26px; height: 26px; }
-.cab-why { font-size: 12px; color: var(--muted); display: grid; gap: 2px; }
-.cab-why b { color: var(--text); font-weight: 500; }
-.tile-tip { position: fixed; z-index: 10000; width: 260px; isolation: isolate; display: grid; gap: 4px; padding: 10px 12px; border: 1px solid var(--gold); border-radius: 8px; background: #0b1016; box-shadow: 0 0 0 1px #000, 0 14px 32px #000000e6; font-size: 13px; line-height: 1.35; pointer-events: none; }
-.tile-tip b { color: var(--gold-light); font-size: 14px; }
-.tile-tip small { font-size: 12px; color: var(--muted); }
-.tile-tip .tl-ok { color: var(--green); }
-.tile-tip .tl-no { color: var(--amber); }
-.tile-tip .tl-cost { color: var(--gold-light); font-weight: 600; }
-.tile-tip .tl-hint { color: var(--cyan); }
-.cab-dev .promo { gap: 6px; }
-.cab-dev .promo small { color: var(--muted); font-size: 12px; }
-.rel-rows { display: grid; gap: 6px; }
-.rel-row { display: grid; grid-template-columns: minmax(130px, 170px) repeat(3, minmax(0, 1fr)); gap: 4px 10px; align-items: center; }
-.rel-row.kia { opacity: .7; }
-.rel-row .rel-meter { grid-template-columns: 1fr; gap: 2px; }
-.rel-row .rel-why { grid-column: 1 / -1; color: var(--muted); font-size: 12px; padding-left: 4px; }
-.cab-sec .history-list { max-height: 180px; overflow-y: auto; }
-@media (max-width: 1250px) {
-  .cabinet .person-split { grid-template-columns: 200px minmax(0, 1fr); }
-  .cabinet-dev { grid-column: 2; position: static; }
-}
-@media (max-width: 950px) {
-  .cabinet .person-split { grid-template-columns: 1fr; }
-  .cabinet-dev { grid-column: auto; }
-  .dossier-card .stat-bars { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .rel-row { grid-template-columns: 1fr 1fr 1fr; }
-  .rel-row .rel-who { grid-column: 1 / -1; }
-}
-/* Модификации — та же раскладка, что у развития: ветки по системам организма. */
-.mods-tree { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-.mods-tree .skill-branch { padding: 8px 4px; gap: 8px; }
-.mods-tree .skill-branch header b { font-size: 13px; line-height: 1.2; }
-.mods-tree .skill-branch.innate { background: #0d1a2033; border-color: #2c4651; }
-.mods-tree .skill-node { width: 56px; height: 56px; border-radius: 10px; }
-.mods-tree .skill-node .icon { width: 26px; height: 26px; }
-.mods-tree .skill-caption { font-size: 12px; max-width: 110px; }
-.skill-path.loose { gap: 10px; }
-.skill-path.loose .tile-step + .tile-step::before { display: none; }
-.load-meter span { background: var(--cyan); }
-@media (max-width: 950px) { .mods-tree { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-
-/* Вызовы, связанные с расследованием: золотое свечение и ярлык дела над меткой. */
-.marker.incident.case-link { border-color: var(--gold-light); box-shadow: 0 0 0 3px #0b1118, 0 0 0 5px var(--gold-light), 0 2px 10px #000c; animation: case-glow 2.2s ease-in-out infinite; }
-.marker.incident.shield.case-link { --glow: var(--gold-light); box-shadow: none; filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 6px var(--glow)) drop-shadow(0 0 3px var(--glow)) drop-shadow(0 3px 5px #000); animation: none; }
-.marker.incident.case-link.selected:not(.shield) { box-shadow: 0 0 0 3px #0b1118, 0 0 0 6px #ff8a78, 0 2px 12px #000; }
-@keyframes case-glow { 50% { box-shadow: 0 0 0 3px #0b1118, 0 0 0 9px #e6c58d55, 0 2px 10px #000c; } }
-@media (prefers-reduced-motion: reduce) { .marker.incident.case-link { animation: none; } }
-.case-link-box { margin: 8px 0; padding: 10px 12px; border: 1px solid var(--gold); border-radius: 8px; background: linear-gradient(180deg, #2a2216cc, #14110ccc); }
-.case-link-box h4 { margin: 0 0 6px; display: flex; align-items: center; gap: 6px; color: var(--gold-light); font-family: var(--font-title); font-weight: 400; font-size: 15px; letter-spacing: 0.5px; }
-.case-link-box p { margin: 4px 0; }
-.case-link-box .btn { margin-top: 6px; }
-
-/* Обучение и «следующий шаг» в деле. */
-.case-guide { margin: 8px 0; padding: 10px 12px; border: 1px solid var(--gold); border-radius: 8px; background: #1a1610e6; display: grid; gap: 8px; }
-.case-guide header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.case-guide header b { color: var(--gold-light); font-family: var(--font-title); font-weight: 400; letter-spacing: 0.5px; }
-.case-guide header .spacer { flex: 1; }
-.case-guide .next { margin: 0; }
-.training-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
-.training-steps li button { min-height: 36px; display: inline-flex; align-items: center; gap: 6px; }
-.training-steps li.done button { color: var(--green); border-color: #3c6b4a; }
-.training-steps .num { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; border: 1px solid currentColor; font-size: 12px; }
-.case-back { margin: 6px 0 0; }
-.case-back summary { cursor: pointer; color: var(--gold-light); min-height: 32px; display: flex; align-items: center; }
-.case-back[open] summary { margin-bottom: 4px; }
-.case-help ol { padding-left: 22px; display: grid; gap: 8px; }
-.case-help li b { color: var(--gold-light); }
-.case-help .note { border-left: 3px solid var(--gold); padding-left: 10px; }
-.tab-attn { box-shadow: inset 0 -3px 0 var(--gold-light); }
-
-/* ---------- ART-023: карточка происшествия ---------- */
-/* Фон: арт incident_card_bg (если есть) под затемнением. Пустое место под текстом занимает бледный герб Дирекции
-   (только если место есть: при длинной карточке он исчезает и не ложится под текст). */
-.right-panel.kind-incident .panel-body {
-  background: linear-gradient(180deg, #0b1016f0 0%, #0b1016d9 55%, #0b1016e6 100%), var(--inc-card-bg, none) center / cover no-repeat;
-}
-.right-panel.kind-incident .card-body { display: flex; flex-direction: column; }
-.incident-card { display: flex; flex-direction: column; gap: 10px; flex: 1 0 auto; }
-.incident-card::after {
-  content: ''; flex: 1 1 0; min-height: 0; max-height: 260px; margin-top: 8px;
-  background: url('../../assets/ui/kit_v2/crest_directorate.png') center / contain no-repeat; opacity: .07;
-}
-.incident-card > * { margin: 0; }
-.inc-hero {
-  position: relative; aspect-ratio: 2 / 1; min-height: 120px; border-radius: 10px; overflow: hidden;
-  background-size: cover; background-position: center; border: 1px solid var(--stroke2);
-  box-shadow: inset 0 -40px 40px -20px #000a;
-}
-.inc-hero.placeholder {
-  background: radial-gradient(ellipse at 50% 60%, #2a1418 0%, #12161e 70%), #12161e;
-  display: grid; place-items: center; border-style: dashed;
-}
-.inc-hero-type { display: grid; justify-items: center; gap: 2px; color: var(--muted); font-size: 13px; }
-.inc-hero-type .icon { width: 28px; height: 28px; color: var(--gold); opacity: .7; }
-.inc-hero-type small { color: var(--dim); font-size: 11px; }
-@media (max-height: 560px) { .inc-hero { aspect-ratio: 3 / 1; min-height: 84px; } .inc-stamp { font-size: 14px; } }
-.inc-stamp {
-  position: absolute; right: 10px; bottom: 10px; transform: rotate(-8deg);
-  padding: 3px 10px; border: 3px double currentColor; border-radius: 6px;
-  font-family: var(--font-title); font-weight: 700; font-size: 18px; letter-spacing: 2px; text-transform: uppercase;
-  background: #0b1016b3; box-shadow: 0 0 0 1px #0006; pointer-events: none;
-}
-.inc-stamp.has-art { width: 42%; aspect-ratio: 2 / 1; padding: 0; border: 0; background: currentColor; box-shadow: none; mask-size: contain; mask-repeat: no-repeat; mask-position: center; -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; filter: drop-shadow(0 1px 2px #000); }
-.inc-stamp.tone-good { color: #7fc79a; }
-.inc-stamp.tone-mid { color: var(--amber); }
-.inc-stamp.tone-bad { color: #e0504f; }
-.inc-stamp.tone-dim { color: var(--dim); }
-.aftermath-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.aftermath-list li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start; line-height: 1.35; }
-.aftermath-list b { color: var(--text); font-weight: 600; }
-.aft-ico { width: 20px; height: 20px; margin-top: 1px; color: var(--gold); display: inline-grid; place-items: center; }
-.aft-ico .icon { width: 18px; height: 18px; }
-.aft-ico.cat-people { color: #e08a7a; }
-.aft-ico.cat-city { color: var(--gold); }
-.aft-ico.cat-law { color: #c9b27a; }
-.aft-ico.cat-politics { color: #c07ad0; }
-.aft-ico.cat-staff { color: #8fc0d8; }
-.aft-ico.cat-science { color: #69c1d0; }
-
-
-/* ---------- Песочница: интерфейсный слой поверх утверждённой карты ---------- */
-.district-hit.locked { cursor: help; }
-.district-label.locked {
-  display: grid; justify-items: center; gap: 3px; color: #aaa39a;
-  background: #090c10b8; border-color: #68635b66;
-}
-.district-label.locked small {
-  font: 500 9px/1.2 var(--font-ui); letter-spacing: .2px; text-transform: none;
-  color: var(--amber); white-space: normal; text-align: center;
-}
-.sandbox-dock .goals-panel { width: min(340px, calc(100vw - 40px)); }
-.sandbox-active-case { display: grid; gap: 4px; margin: 0 0 10px; }
-.sandbox-active-case b { color: var(--gold-light); }
-.sandbox-active-case small { color: var(--muted); }
-.sandbox-vitals { margin: 12px 0; }
-.sandbox-event-brief {
-  display: grid; gap: 8px; padding: 10px 12px; margin: 8px 0;
-  border: 1px solid #c9a46a88; border-radius: var(--radius);
-  background: linear-gradient(135deg, #c9a46a12, #0c121a80);
-}
-.sandbox-event-brief dl { display: grid; grid-template-columns: minmax(110px, .42fr) 1fr; gap: 6px 10px; margin: 0; }
-.sandbox-event-brief dt { color: var(--gold-light); font-weight: 600; }
-.sandbox-event-brief dd { margin: 0; }
-.sandbox-event-brief p { margin: 0; }
-.sandbox-case-summary {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 10px 0;
-}
-.sandbox-case-summary > div {
-  padding: 10px 12px; border: 1px solid var(--stroke2); border-radius: 8px; background: #0c121a99;
-}
-.sandbox-case-summary dt { margin-bottom: 4px; color: var(--gold-light); font: 400 16px/1.2 var(--font-title); }
-.sandbox-case-summary dd { margin: 0; color: var(--text); font-size: 13px; line-height: 1.45; }
-.sandbox-story-episode { padding: 10px 12px; border-left: 3px solid var(--gold); background: #c9a46a0d; }
-.sandbox-story-episode p:last-child { margin-bottom: 0; }
-@media (max-width: 650px) {
-  .sandbox-case-summary { grid-template-columns: 1fr; }
-  .sandbox-event-brief dl { grid-template-columns: 1fr; gap: 2px; }
-  .sandbox-event-brief dd + dt { margin-top: 6px; }
-  .sandbox-dock .goals-panel { width: min(320px, calc(100vw - 20px)); }
-}
+/* Цветовые утилиты */
+.ok { color: var(--green); }
+.bad { color: var(--bad); }
+.warn { color: var(--amber); }

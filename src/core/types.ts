@@ -2,7 +2,7 @@
  * Доменная модель W2 — подмножество ТЗ §5.2, необходимое для одной смены.
  * Деньги хранятся целым числом в сотых долях РЕ (cents), чтобы избежать ошибок округления.
  */
-export const SCHEMA_VERSION = 13;
+export const SCHEMA_VERSION = 14;
 
 import type { Route } from './map/graph';
 
@@ -244,6 +244,52 @@ export interface SandboxResult {
   complication?: string;
 }
 
+/** Статистика текущей сессии песочницы. */
+export interface SandboxSessionStats {
+  dutyTotal: number;
+  dutySuccess: number;
+  dutyPartial: number;
+  dutyFailure: number;
+  dutyDelegated: number;
+  dutyIgnored: number;
+  opsTotal: number;
+  opsSuccess: number;
+  opsPartial: number;
+  opsFailure: number;
+  tacticsUsed: Record<TacticId, number>;
+  casualties: number;
+  reEarned: number;
+  reSpent: number;
+  shiftsSurvived: number;
+  minutesPlayed: number;
+  districtsOpened: number;
+  casesCompleted: number;
+  casesFailed: number;
+  startMinute: number;
+}
+
+/** Запись о завершённой сессии (рекорды). */
+export interface SandboxRecord {
+  date: string;
+  outcome: 'victory' | 'defeat' | 'abandoned';
+  stats: SandboxSessionStats;
+  finalOrder: number;
+  finalLegitimacy: number;
+  finalReadiness: number;
+  finalBalanceRe: number;
+  shifts: number;
+}
+
+/** Прогрессия открытия районов через песочничные достижения (альтернатива сюжетным делам). */
+export interface SandboxProgression {
+  /** Накоплено РЕ для открытия следующего района */
+  reProgress: number;
+  /** Накоплено порядка для открытия следующего района */
+  orderProgress: number;
+  /** Следующий район, который откроется через прогрессию */
+  nextDistrict: DistrictId | null;
+}
+
 export interface SandboxState {
   unlockedDistricts: DistrictId[];
   controlledDistricts: DistrictId[];
@@ -261,6 +307,12 @@ export interface SandboxState {
   result: SandboxResult | null;
   defeatReason: string | null;
   sliceComplete: boolean;
+  /** Статистика текущей сессии. */
+  stats?: SandboxSessionStats;
+  /** Рекорды прошлых сессий. */
+  records?: SandboxRecord[];
+  /** Прогрессия открытия районов. */
+  progression?: SandboxProgression;
 }
 
 export interface Incident {

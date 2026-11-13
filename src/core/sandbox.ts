@@ -7,7 +7,7 @@ import { nextFloat, nextInt } from './rng';
 import { isOpen } from './selectors';
 import { setFlag } from './flags';
 import type {
-  DistrictId, DutyKind, GameState, Incident, OperationReport, SandboxGoal, SandboxOutcome, SandboxState, Severity, Squad,
+  DistrictId, DutyKind, GameState, Incident, OperationReport, SandboxGoal, SandboxOutcome, SandboxState, SandboxSessionStats, SandboxRecord, Severity, Squad,
 } from './types';
 
 interface SandboxEventDef {
@@ -106,6 +106,38 @@ function post(s: GameState, amount: number, note: string) {
   s.economy.balance += amount;
 }
 
+function emptyStats(startMinute: number): SandboxSessionStats {
+  return {
+    dutyTotal: 0, dutySuccess: 0, dutyPartial: 0, dutyFailure: 0,
+    dutyDelegated: 0, dutyIgnored: 0,
+    opsTotal: 0, opsSuccess: 0, opsPartial: 0, opsFailure: 0,
+    tacticsUsed: { recon: 0, arrest: 0, suppression: 0, quarantine: 0 },
+    casualties: 0, reEarned: 0, reSpent: 0,
+    shiftsSurvived: 0, minutesPlayed: 0, districtsOpened: 1,
+    casesCompleted: 0, casesFailed: 0, startMinute,
+  };
+}
+
+function ensureStats(s: GameState): SandboxSessionStats {
+  const sb = s.sandbox!;
+  if (!sb.stats) sb.stats = emptyStats(s.minute);
+  return sb.stats;
+}
+
+function ensureRecords(s: GameState): SandboxRecord[] {
+  const sb = s.sandbox!;
+  if (!sb.records) sb.records = [];
+  return sb.records;
+}
+
+function ensureProgression(s: GameState) {
+  const sb = s.sandbox!;
+  if (!sb.progression) {
+    const next = DATA.districtOrder.find((d) => !sb.unlockedDistricts.includes(d)) ?? null;
+    sb.progression = { reProgress: 0, orderProgress: 0, nextDistrict: next };
+  }
+}
+
 /** Отдельная фабрика: демонстрационные вызовы, особые операции и шесть отрядов кампании сюда не попадают. */
 export function createSandboxState(seed: number = DEFAULT_SEED): GameState {
   const s = createInitialState(seed);
@@ -137,6 +169,9 @@ export function createSandboxState(seed: number = DEFAULT_SEED): GameState {
     result: null,
     defeatReason: null,
     sliceComplete: false,
+    stats: emptyStats(0),
+    records: [],
+    progression: { reProgress: 0, orderProgress: 0, nextDistrict: 'residential' },
   };
   Object.assign(s, {
     mode: 'sandbox' as const,
@@ -224,6 +259,8 @@ export function buySandboxSquad(s: GameState): string | null {
   const memberIds = ['p4', 'p5', 'p6'].filter((id) => s.staff.some((p) => p.id === id && p.health !== 'dead'));
   if (!memberIds.length) return 'Нет сотрудников для нового отряда.';
   post(s, -cost, 'Покупка слота второго отряда');
+  const stats = ensureStats(s);
+  stats.reSpent += SANDBOX_RULES.squadSlotCostRe;
   s.squads.push({
     id: def.id,
     name: def.name,
@@ -327,6 +364,9 @@ export function delegateDutyIncident(s: GameState, incidentId: string): string |
   if (typeof found === 'string') return found;
   applyDutyEffect(s, dutyEffect(found, 'patrol'), 'Дежурный наряд принял вызов');
   found.state = 'resolved_partial';
+  const stats = ensureStats(s);
+  stats.dutyTotal += 1;
+  stats.dutyDelegated += 1;
   log(s, 'duty_delegated', `${found.title}: передано дежурному наряду. Отряд не занят, награда и опыт не начисляются.`);
   return null;
 }
@@ -334,10 +374,12 @@ export function delegateDutyIncident(s: GameState, incidentId: string): string |
 function ignoreDuty(s: GameState, inc: Incident, expired: boolean) {
   const effect = dutyEffect(inc, 'ignore');
   const sb = s.sandbox!;
-  // Отказ никогда сам по себе не завершает сценарий: остаётся шанс исправить обстановку.
   sb.order = Math.max(1, clamp(sb.order + effect.order));
   sb.legitimacy = Math.max(1, clamp(sb.legitimacy + effect.legitimacy));
   inc.state = 'expired';
+  const stats = ensureStats(s);
+  stats.dutyTotal += 1;
+  stats.dutyIgnored += 1;
   log(s, expired ? 'duty_expired' : 'duty_ignored', `${inc.title}: ${expired ? 'срок вышел' : 'дирекция не вмешалась'}; порядок ${effect.order}, легитимность ${effect.legitimacy}. Немедленного поражения нет.`);
 }
 
@@ -356,6 +398,22 @@ function changeVitals(s: GameState, delta: Partial<Pick<SandboxState, 'order' | 
   checkSandboxDefeat(s);
 }
 
+function saveDefeatRecord(s: GameState) {
+  const sb = s.sandbox!;
+  if (!sb.stats) return;
+  const record: SandboxRecord = {
+    date: new Date().toISOString(),
+    outcome: 'defeat',
+    stats: { ...sb.stats },
+    finalOrder: sb.order,
+    finalLegitimacy: sb.legitimacy,
+    finalReadiness: sb.readiness,
+    finalBalanceRe: Math.floor(s.economy.balance / 100),
+    shifts: s.shift,
+  };
+  ensureRecords(s).push(record);
+}
+
 export function checkSandboxDefeat(s: GameState) {
   const sb = s.sandbox;
   if (!sb || sb.defeatReason) return;
@@ -364,6 +422,7 @@ export function checkSandboxDefeat(s: GameState) {
   else if (sb.readiness <= 0) sb.defeatReason = 'Дирекция потеряла боеспособность: некому продолжать операции.';
   if (sb.defeatReason) {
     s.paused = true;
+    saveDefeatRecord(s);
     log(s, 'sandbox_defeat', sb.defeatReason);
   }
 }
@@ -376,16 +435,39 @@ function spawnFailureBranch(s: GameState, inc: Incident) {
   log(s, 'sandbox_branch', `Альтернативная ветвь дела: ${next.title}. Дело не перезапускается.`);
 }
 
+/** Проверить, можно ли открыть следующий район через прогрессию (альтернатива сюжетным делам). */
+function checkSandboxProgression(s: GameState) {
+  const sb = s.sandbox!;
+  ensureProgression(s);
+  const prog = sb.progression!;
+  if (!prog.nextDistrict) return;
+  if (sb.unlockedDistricts.includes(prog.nextDistrict)) {
+    prog.nextDistrict = DATA.districtOrder.find((d) => !sb.unlockedDistricts.includes(d)) ?? null;
+    return;
+  }
+  if (prog.reProgress >= 15 && prog.orderProgress >= 50) {
+    addUnique(sb.unlockedDistricts, prog.nextDistrict);
+    const stats = ensureStats(s);
+    stats.districtsOpened += 1;
+    log(s, 'sandbox_progression_unlock', `Открыт район через прогрессию: ${districtById(prog.nextDistrict)!.name}. Продолжайте расследование или дежурные вызовы.`);
+    prog.reProgress = 0;
+    prog.orderProgress = 0;
+    prog.nextDistrict = DATA.districtOrder.find((d) => !sb.unlockedDistricts.includes(d)) ?? null;
+  }
+}
+
 /** Последствия уже разрешённой общей операции: улики, альтернативная ветвь, восстановление и шкалы песочницы. */
 export function resolveSandboxOperation(s: GameState, report: OperationReport) {
   const sb = s.sandbox;
   const inc = s.incidents.find((i) => i.id === report.incidentId);
   if (!sb || !inc) return;
+  const stats = ensureStats(s);
 
   for (const c of report.casualties) {
     if (c.after === 'dead') continue;
     const light = c.after === 'light_injury' || c.after === 'fatigued';
     sb.recovery[c.staffId] = s.minute + (light ? SANDBOX_RULES.lightRecoveryMinutes : SANDBOX_RULES.recoveryMinutes);
+    if (c.after !== 'healthy' && c.after !== 'fatigued') stats.casualties += 1;
   }
 
   if (inc.duty) {
@@ -393,7 +475,18 @@ export function resolveSandboxOperation(s: GameState, report: OperationReport) {
     const effect = dutyEffect(inc, report.outcome);
     applyDutyEffect(s, effect, `Дежурный вызов: ${inc.title}`);
     report.findings = [...(report.findings ?? []), report.outcome === 'failure' ? def.failureText : def.successText];
+    stats.dutyTotal += 1;
+    if (report.outcome === 'success') stats.dutySuccess += 1;
+    else if (report.outcome === 'partial') stats.dutyPartial += 1;
+    else stats.dutyFailure += 1;
+    stats.tacticsUsed[report.tactic] = (stats.tacticsUsed[report.tactic] ?? 0) + 1;
+    if (effect.rewardRe > 0) {
+      stats.reEarned += effect.rewardRe;
+      ensureProgression(s);
+      sb.progression!.reProgress += effect.rewardRe;
+    }
     log(s, 'duty_resolved', `${inc.title}: ${report.outcome === 'success' ? 'успех' : report.outcome === 'partial' ? 'частичный результат' : 'неудача'}; награда ${effect.rewardRe} РЕ. Следственные материалы не изменены.`);
+    checkSandboxProgression(s);
     return;
   }
 
@@ -406,6 +499,12 @@ export function resolveSandboxOperation(s: GameState, report: OperationReport) {
   else if (report.outcome === 'partial') changeVitals(s, { order: -3, legitimacy: -1, readiness: -4 });
   else changeVitals(s, { order: -8, legitimacy: -4, readiness: -12 });
   if (sb.duty.nextAt === null) sb.duty.nextAt = s.minute + DATA.duty.firstDelayMinutes;
+
+  stats.opsTotal += 1;
+  if (report.outcome === 'success') stats.opsSuccess += 1;
+  else if (report.outcome === 'partial') stats.opsPartial += 1;
+  else stats.opsFailure += 1;
+  stats.tacticsUsed[report.tactic] = (stats.tacticsUsed[report.tactic] ?? 0) + 1;
 
   if (success && def.nextEventId && !s.incidents.some((i) => i.sandbox?.eventId === def.nextEventId && isOpen(i))) {
     spawnSandboxEvent(s, def.nextEventId);
@@ -444,6 +543,10 @@ export function advanceSandboxMinute(s: GameState) {
   const sb = s.sandbox;
   if (!sb || sb.defeatReason) return;
   const ready = s.squads.some((q) => q.status === 'ready' && q.memberIds.length > 0);
+  const stats = ensureStats(s);
+  stats.minutesPlayed = s.minute - stats.startMinute;
+  stats.shiftsSurvived = s.shift;
+
   for (const [staffId, at] of Object.entries(sb.recovery)) {
     if (s.minute < at) continue;
     const p = s.staff.find((x) => x.id === staffId);
@@ -474,6 +577,12 @@ export function advanceSandboxMinute(s: GameState) {
     if (waiting) changeVitals(s, { order: -waiting, readiness: ready ? 0 : 1 });
     else if (!s.squads.some((q) => q.operation)) changeVitals(s, { readiness: 1 });
   }
+
+  ensureProgression(s);
+  const prog = sb.progression!;
+  if (sb.order > prog.orderProgress) prog.orderProgress = sb.order;
+  checkSandboxProgression(s);
+
   if (!sb.defeatReason) advanceDuty(s);
 }
 
@@ -515,7 +624,9 @@ export function concludeSandboxCase(s: GameState, caseId: string, conclusionId: 
     outcome = sandboxCaseDef(caseId)!.conclusions[conclusionId] ?? 'error';
   }
 
+  const stats = ensureStats(s);
   if (outcome === 'error') {
+    stats.casesFailed += 1;
     changeVitals(s, { order: -2, legitimacy: -8, readiness: -4 });
     resetSandboxCase(s, caseId);
     const text = sandboxCaseDef(caseId)!.error;
@@ -524,6 +635,8 @@ export function concludeSandboxCase(s: GameState, caseId: string, conclusionId: 
     log(s, 'sandbox_case_error', `Дело №${d.number}: заключение опровергнуто. Правильная версия не раскрывается.`);
     return;
   }
+
+  stats.casesCompleted += 1;
 
   // Награда и открытие района выполняются один раз; кампанские деньги/эффекты заключения здесь не применяются.
   if (!sb.rewardedCases.includes(caseId)) {
